@@ -1,0 +1,8 @@
+.git
+.env
+vendor
+storage/logs/*
+storage/cache/*
+storage/uploads/bikes/*
+storage/uploads/reports/*
+!storage/**/.gitkeep
