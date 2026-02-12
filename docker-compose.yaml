@@ -35,5 +35,18 @@ services:
       timeout: 3s
       retries: 10
 
+  # phpMyAdmin - database management GUI
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: bikeswap
+      PMA_PASSWORD: bikeswap
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   db_data:

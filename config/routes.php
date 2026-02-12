@@ -44,6 +44,10 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->get('/bike/{id}/edit', [BikeController::class, 'editForm']);
     $router->post('/bike/{id}/edit', [BikeController::class, 'update']);
     $router->post('/bike/{id}/delete', [BikeController::class, 'delete']);
+
+    // Photo management
+    $router->post('/bike/{id}/photo/{photoId}/primary', [BikeController::class, 'setPrimaryPhoto']);
+    $router->post('/bike/{id}/photo/{photoId}/delete', [BikeController::class, 'deletePhoto']);
 });
 
 // ── Public bike detail (QR code scan) ──────────────────────────

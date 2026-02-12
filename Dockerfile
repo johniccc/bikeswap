@@ -34,5 +34,10 @@ RUN sed -ri -e 's/AllowOverride None/AllowOverride All/g' \
 # PHP configuration for development
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
-# Set working directory
+# Custom entrypoint to fix storage permissions
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 WORKDIR /var/www/html
+
+ENTRYPOINT ["entrypoint.sh"]

@@ -55,9 +55,22 @@
                 <?php foreach ($bike->getPhotos() as $photo): ?>
                     <div class="photo-item">
                         <img src="<?= e($photo->getUrl()) ?>" alt="Foto kola">
+
                         <?php if ($photo->isPrimary()): ?>
-                            <span class="badge">Hlavní</span>
+                            <span class="badge badge-primary">Hlavní</span>
+                        <?php else: ?>
+                            <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/primary" style="display:inline;">
+                                <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                                <button type="submit" class="btn btn-small">Nastavit jako hlavní</button>
+                            </form>
                         <?php endif; ?>
+
+                        <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete"
+                              style="display:inline;"
+                              onsubmit="return confirm('Opravdu smazat tuto fotku?')">
+                            <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                            <button type="submit" class="btn btn-small btn-danger">Smazat</button>
+                        </form>
                     </div>
                 <?php endforeach; ?>
             </div>

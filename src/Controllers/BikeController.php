@@ -304,6 +304,87 @@ class BikeController
     }
 
     /**
+     * Set a photo as the primary photo for a bike.
+     * POST /bike/{id}/photo/{photoId}/primary
+     */
+    public function setPrimaryPhoto(Request $request): Response
+    {
+        $bikeId = (int) $request->param('id');
+        $photoId = (int) $request->param('photoId');
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return new RedirectResponse("/bike/{$bikeId}/edit");
+        }
+
+        $bike = $this->bikeRepository->findById($bikeId);
+        $currentUser = $this->authService->currentUser();
+
+        if ($bike === null) {
+            throw new \RuntimeException('Kolo nenalezeno.', 404);
+        }
+
+        if (!$bike->isOwnedBy($currentUser->getId()) && !$currentUser->isAdmin()) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        // Verify the photo belongs to this bike
+        $photo = $this->bikeRepository->findPhotoById($photoId);
+
+        if ($photo === null || $photo->getBikeId() !== $bikeId) {
+            throw new \RuntimeException('Fotografie nenalezena.', 404);
+        }
+
+        $this->bikeRepository->setPrimaryPhoto($photoId, $bikeId);
+
+        $this->session->flash('success', 'Hlavní fotografie byla změněna.');
+
+        return new RedirectResponse("/bike/{$bikeId}/edit");
+    }
+
+    /**
+     * Delete a photo from a bike.
+     * POST /bike/{id}/photo/{photoId}/delete
+     */
+    public function deletePhoto(Request $request): Response
+    {
+        $bikeId = (int) $request->param('id');
+        $photoId = (int) $request->param('photoId');
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return new RedirectResponse("/bike/{$bikeId}/edit");
+        }
+
+        $bike = $this->bikeRepository->findById($bikeId);
+        $currentUser = $this->authService->currentUser();
+
+        if ($bike === null) {
+            throw new \RuntimeException('Kolo nenalezeno.', 404);
+        }
+
+        if (!$bike->isOwnedBy($currentUser->getId()) && !$currentUser->isAdmin()) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        $photo = $this->bikeRepository->findPhotoById($photoId);
+
+        if ($photo === null || $photo->getBikeId() !== $bikeId) {
+            throw new \RuntimeException('Fotografie nenalezena.', 404);
+        }
+
+        // Delete file from storage
+        $this->fileUploadService->delete($photo->getFilePath());
+
+        // Delete record from database
+        $this->bikeRepository->deletePhoto($photoId);
+
+        $this->session->flash('success', 'Fotografie byla smazána.');
+
+        return new RedirectResponse("/bike/{$bikeId}/edit");
+    }
+
+    /**
      * Handle multiple file uploads for a bike.
      */
     private function handlePhotoUploads(array $files, int $bikeId, int $uploadedBy): void
