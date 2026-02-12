@@ -65,14 +65,23 @@
 
 <script>
 document.getElementById('geolocate-btn')?.addEventListener('click', function() {
-    const status = document.getElementById('geo-status');
+    var status = document.getElementById('geo-status');
+    var btn = this;
 
+    // Check if geolocation is available at all
     if (!navigator.geolocation) {
         status.textContent = 'Geolokace není podporována vaším prohlížečem.';
         return;
     }
 
+    // Check secure context (HTTPS or localhost)
+    if (window.isSecureContext === false) {
+        status.textContent = 'Geolokace vyžaduje HTTPS připojení. Na HTTP nefunguje.';
+        return;
+    }
+
     status.textContent = 'Zjišťuji polohu...';
+    btn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
         function(position) {
@@ -81,9 +90,21 @@ document.getElementById('geolocate-btn')?.addEventListener('click', function() {
             status.textContent = 'Poloha zjištěna (' +
                 position.coords.latitude.toFixed(5) + ', ' +
                 position.coords.longitude.toFixed(5) + ')';
+            btn.disabled = false;
         },
         function(error) {
-            status.textContent = 'Nepodařilo se zjistit polohu. Zadejte místo ručně.';
+            var messages = {
+                1: 'Přístup k poloze byl zamítnut. Povolte geolokaci v nastavení prohlížeče.',
+                2: 'Poloha není dostupná. Zařízení nemohlo zjistit vaši pozici.',
+                3: 'Zjišťování polohy vypršelo. Zkuste to znovu.'
+            };
+            status.textContent = messages[error.code] || ('Neznámá chyba geolokace (kód: ' + error.code + ').');
+            btn.disabled = false;
+        },
+        {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 300000
         }
     );
 });

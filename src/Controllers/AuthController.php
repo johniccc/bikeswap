@@ -8,9 +8,6 @@ use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
 use App\Response\Response;
-use App\Response\ViewResponse;
-use App\Response\JsonResponse;
-use App\Response\RedirectResponse;
 use App\Services\AuthService;
 
 class AuthController
@@ -29,7 +26,7 @@ class AuthController
      */
     public function registerForm(Request $request): Response
     {
-        return new ViewResponse('auth/register', [
+        return view('auth/register', [
             'title' => 'Registrace – BikeSwap',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
@@ -45,7 +42,7 @@ class AuthController
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token. Zkuste to znovu.');
 
-            return new RedirectResponse('/register');
+            return redirect('/register');
         }
 
         // Validate input
@@ -60,12 +57,12 @@ class AuthController
 
         if ($validator->fails()) {
             if ($request->wantsJson()) {
-                return new JsonResponse(['errors' => $validator->errors()], 422);
+                return json(['errors' => $validator->errors()], 422);
             }
 
             $this->session->flash('error', $validator->allErrors()[0]);
 
-            return new RedirectResponse('/register');
+            return redirect('/register');
         }
 
         // Attempt registration
@@ -78,21 +75,21 @@ class AuthController
 
         if (!$result['success']) {
             if ($request->wantsJson()) {
-                return new JsonResponse(['error' => $result['error']], 409);
+                return json(['error' => $result['error']], 409);
             }
 
             $this->session->flash('error', $result['error']);
 
-            return new RedirectResponse('/register');
+            return redirect('/register');
         }
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['user_id' => $result['user_id']], 201);
+            return json(['user_id' => $result['user_id']], 201);
         }
 
         $this->session->flash('success', 'Registrace proběhla úspěšně. Můžete se přihlásit.');
 
-        return new RedirectResponse('/login');
+        return redirect('/login');
     }
 
     /**
@@ -100,7 +97,7 @@ class AuthController
      */
     public function loginForm(Request $request): Response
     {
-        return new ViewResponse('auth/login', [
+        return view('auth/login', [
             'title' => 'Přihlášení – BikeSwap',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
@@ -116,7 +113,7 @@ class AuthController
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token. Zkuste to znovu.');
 
-            return new RedirectResponse('/login');
+            return redirect('/login');
         }
 
         // Validate input
@@ -127,12 +124,12 @@ class AuthController
 
         if ($validator->fails()) {
             if ($request->wantsJson()) {
-                return new JsonResponse(['errors' => $validator->errors()], 422);
+                return json(['errors' => $validator->errors()], 422);
             }
 
             $this->session->flash('error', $validator->allErrors()[0]);
 
-            return new RedirectResponse('/login');
+            return redirect('/login');
         }
 
         // Attempt login
@@ -143,21 +140,21 @@ class AuthController
 
         if (!$result['success']) {
             if ($request->wantsJson()) {
-                return new JsonResponse(['error' => $result['error']], 401);
+                return json(['error' => $result['error']], 401);
             }
 
             $this->session->flash('error', $result['error']);
 
-            return new RedirectResponse('/login');
+            return redirect('/login');
         }
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['message' => 'Přihlášení úspěšné.']);
+            return json(['message' => 'Přihlášení úspěšné.']);
         }
 
         $this->session->flash('success', 'Vítejte zpět!');
 
-        return new RedirectResponse('/dashboard');
+        return redirect('/dashboard');
     }
 
     /**
@@ -168,9 +165,9 @@ class AuthController
         $this->authService->logout();
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['message' => 'Odhlášení úspěšné.']);
+            return json(['message' => 'Odhlášení úspěšné.']);
         }
 
-        return new RedirectResponse('/');
+        return redirect('/');
     }
 }

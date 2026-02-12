@@ -8,21 +8,21 @@ declare(strict_types=1);
  * This file contains application settings that are NOT secrets.
  * Secrets (DB password, API keys) belong in .env
  * 
- * Values from .env can be referenced here via $_ENV.
+ * Uses the env() helper from functions.php for consistent access.
  */
 return [
 
     'app' => [
-        'name' => $_ENV['APP_NAME'] ?? 'BikeSwap',
-        'url' => $_ENV['APP_URL'] ?? 'http://localhost',
-        'debug' => filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'name' => env('APP_NAME', 'BikeSwap'),
+        'url' => env('APP_URL', 'http://localhost'),
+        'debug' => filter_var(env('APP_DEBUG', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
     'database' => [
-        'host' => $_ENV['DB_HOST'] ?? 'localhost',
-        'name' => $_ENV['DB_NAME'] ?? 'bikeswap',
-        'user' => $_ENV['DB_USER'] ?? 'root',
-        'pass' => $_ENV['DB_PASS'] ?? '',
+        'host' => env('DB_HOST', 'localhost'),
+        'name' => env('DB_NAME', 'bikeswap'),
+        'user' => env('DB_USER', 'root'),
+        'pass' => env('DB_PASS', ''),
         'charset' => 'utf8mb4',
     ],
 
@@ -48,13 +48,13 @@ return [
     ],
 
     'mail' => [
-        'from_address' => $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@bikeswap.cz',
-        'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'BikeSwap',
+        'from_address' => env('MAIL_FROM_ADDRESS', 'noreply@bikeswap.cz'),
+        'from_name' => env('MAIL_FROM_NAME', 'BikeSwap'),
     ],
 
     'turnstile' => [
-        'site_key' => $_ENV['TURNSTILE_SITE_KEY'] ?? '',
-        'secret_key' => $_ENV['TURNSTILE_SECRET_KEY'] ?? '',
+        'site_key' => env('TURNSTILE_SITE_KEY', ''),
+        'secret_key' => env('TURNSTILE_SECRET_KEY', ''),
     ],
 
 ];

@@ -5,8 +5,8 @@
 .env
 
 # User uploads
-/public/uploads/*
-!/public/uploads/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
 
 # Logs and cache
 /storage/logs/*

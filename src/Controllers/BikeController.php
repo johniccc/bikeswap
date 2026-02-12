@@ -11,9 +11,6 @@ use App\Repository\BikeRepository;
 use App\Repository\TheftReportRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
-use App\Response\JsonResponse;
-use App\Response\RedirectResponse;
-use App\Response\ViewResponse;
 use App\Services\AuthService;
 use App\Services\FileUploadService;
 use App\Services\QRService;
@@ -64,7 +61,7 @@ class BikeController
         $isOwner = $currentUser !== null && $bike->isOwnedBy($currentUser->getId());
 
         if ($request->wantsJson()) {
-            return new JsonResponse([
+            return json([
                 'bike' => [
                     'brand' => $bike->getBrand(),
                     'model' => $bike->getModel(),
@@ -75,7 +72,7 @@ class BikeController
             ]);
         }
 
-        return new ViewResponse('bike/public-detail', [
+        return view('bike/public-detail', [
             'title' => $bike->getFullName() . ' – BikeSwap',
             'bike' => $bike,
             'currentUser' => $currentUser,
@@ -93,7 +90,7 @@ class BikeController
      */
     public function createForm(Request $request): Response
     {
-        return new ViewResponse('bike/create', [
+        return view('bike/create', [
             'title' => 'Registrovat kolo – BikeSwap',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
@@ -110,7 +107,7 @@ class BikeController
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
 
-            return new RedirectResponse('/bike/new');
+            return redirect('/bike/new');
         }
 
         // Validate
@@ -130,7 +127,7 @@ class BikeController
         if ($validator->fails()) {
             $this->session->flash('error', $validator->allErrors()[0]);
 
-            return new RedirectResponse('/bike/new');
+            return redirect('/bike/new');
         }
 
         $currentUser = $this->authService->currentUser();
@@ -158,12 +155,12 @@ class BikeController
         }
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['bike_id' => $bikeId, 'qr_hash' => $qrHash], 201);
+            return json(['bike_id' => $bikeId, 'qr_hash' => $qrHash], 201);
         }
 
         $this->session->flash('success', 'Kolo bylo úspěšně zaregistrováno!');
 
-        return new RedirectResponse('/bike/' . $qrHash);
+        return redirect('/bike/' . $qrHash);
     }
 
     /**
@@ -184,7 +181,7 @@ class BikeController
             throw new \RuntimeException('Nemáte oprávnění upravovat toto kolo.', 403);
         }
 
-        return new ViewResponse('bike/edit', [
+        return view('bike/edit', [
             'title' => 'Upravit kolo – BikeSwap',
             'bike' => $bike,
             'csrf' => $this->session->csrfToken(),
@@ -213,7 +210,7 @@ class BikeController
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
 
-            return new RedirectResponse("/bike/{$bikeId}/edit");
+            return redirect("/bike/{$bikeId}/edit");
         }
 
         // Validate
@@ -225,7 +222,7 @@ class BikeController
         if ($validator->fails()) {
             $this->session->flash('error', $validator->allErrors()[0]);
 
-            return new RedirectResponse("/bike/{$bikeId}/edit");
+            return redirect("/bike/{$bikeId}/edit");
         }
 
         // Update
@@ -247,7 +244,7 @@ class BikeController
 
         $this->session->flash('success', 'Kolo bylo úspěšně upraveno.');
 
-        return new RedirectResponse('/bike/' . $bike->getQrHash());
+        return redirect('/bike/' . $bike->getQrHash());
     }
 
     /**
@@ -278,7 +275,7 @@ class BikeController
 
         $this->session->flash('success', 'Kolo bylo smazáno.');
 
-        return new RedirectResponse('/dashboard');
+        return redirect('/dashboard');
     }
 
     /**
@@ -291,7 +288,7 @@ class BikeController
         $bikes = $this->bikeRepository->findByOwner($currentUser->getId(), withPhotos: true);
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['bikes' => array_map(fn($b) => [
+            return json(['bikes' => array_map(fn($b) => [
                 'id' => $b->getId(),
                 'brand' => $b->getBrand(),
                 'model' => $b->getModel(),
@@ -300,7 +297,7 @@ class BikeController
             ], $bikes)]);
         }
 
-        return new ViewResponse('bike/my-bikes', [
+        return view('bike/my-bikes', [
             'title' => 'Moje kola – BikeSwap',
             'bikes' => $bikes,
             'currentUser' => $currentUser,
@@ -319,7 +316,8 @@ class BikeController
 
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return new RedirectResponse("/bike/{$bikeId}/edit");
+
+            return redirect("/bike/{$bikeId}/edit");
         }
 
         $bike = $this->bikeRepository->findById($bikeId);
@@ -344,7 +342,7 @@ class BikeController
 
         $this->session->flash('success', 'Hlavní fotografie byla změněna.');
 
-        return new RedirectResponse("/bike/{$bikeId}/edit");
+        return redirect("/bike/{$bikeId}/edit");
     }
 
     /**
@@ -358,7 +356,8 @@ class BikeController
 
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return new RedirectResponse("/bike/{$bikeId}/edit");
+
+            return redirect("/bike/{$bikeId}/edit");
         }
 
         $bike = $this->bikeRepository->findById($bikeId);
@@ -386,7 +385,7 @@ class BikeController
 
         $this->session->flash('success', 'Fotografie byla smazána.');
 
-        return new RedirectResponse("/bike/{$bikeId}/edit");
+        return redirect("/bike/{$bikeId}/edit");
     }
 
     /**

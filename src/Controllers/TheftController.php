@@ -10,9 +10,6 @@ use App\Core\Validator;
 use App\Repository\BikeRepository;
 use App\Repository\TheftReportRepository;
 use App\Response\Response;
-use App\Response\JsonResponse;
-use App\Response\RedirectResponse;
-use App\Response\ViewResponse;
 use App\Services\AuthService;
 use App\Services\TheftService;
 
@@ -59,10 +56,10 @@ class TheftController
         if ($bike->isStolen()) {
             $this->session->flash('error', 'Toto kolo je již nahlášeno jako odcizené.');
 
-            return new RedirectResponse('/bike/' . $bike->getQrHash());
+            return redirect('/bike/' . $bike->getQrHash());
         }
 
-        return new ViewResponse('theft/report', [
+        return view('theft/report', [
             'title' => 'Nahlásit krádež – BikeSwap',
             'bike' => $bike,
             'csrf' => $this->session->csrfToken(),
@@ -91,7 +88,7 @@ class TheftController
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
 
-            return new RedirectResponse("/theft/report/{$bikeId}");
+            return redirect("/theft/report/{$bikeId}");
         }
 
         // Validate
@@ -101,7 +98,7 @@ class TheftController
         if ($validator->fails()) {
             $this->session->flash('error', $validator->allErrors()[0]);
 
-            return new RedirectResponse("/theft/report/{$bikeId}");
+            return redirect("/theft/report/{$bikeId}");
         }
 
         // Report the theft
@@ -118,16 +115,16 @@ class TheftController
         if (!$result['success']) {
             $this->session->flash('error', $result['error']);
 
-            return new RedirectResponse("/theft/report/{$bikeId}");
+            return redirect("/theft/report/{$bikeId}");
         }
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['report_id' => $result['report_id']], 201);
+            return json(['report_id' => $result['report_id']], 201);
         }
 
         $this->session->flash('success', 'Krádež byla nahlášena. Vaše kolo je nyní v databázi odcizených kol.');
 
-        return new RedirectResponse('/bike/' . $bike->getQrHash());
+        return redirect('/bike/' . $bike->getQrHash());
     }
 
     /**
@@ -148,7 +145,7 @@ class TheftController
         $stolenBikes = $this->bikeRepository->findStolen($filters, withPhotos: true);
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['bikes' => array_map(fn($b) => [
+            return json(['bikes' => array_map(fn($b) => [
                 'id' => $b->getId(),
                 'brand' => $b->getBrand(),
                 'model' => $b->getModel(),
@@ -157,7 +154,7 @@ class TheftController
             ], $stolenBikes)]);
         }
 
-        return new ViewResponse('theft/stolen-list', [
+        return view('theft/stolen-list', [
             'title' => 'Odcizená kola – BikeSwap',
             'bikes' => $stolenBikes,
             'filters' => $filters,
@@ -188,7 +185,7 @@ class TheftController
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
 
-            return new RedirectResponse('/bike/' . $bike->getQrHash());
+            return redirect('/bike/' . $bike->getQrHash());
         }
 
         $result = $this->theftService->resolveTheft($reportId, $bike->getId());
@@ -199,6 +196,6 @@ class TheftController
             $this->session->flash('success', 'Kolo bylo označeno jako nalezené. Děkujeme!');
         }
 
-        return new RedirectResponse('/bike/' . $bike->getQrHash());
+        return redirect('/bike/' . $bike->getQrHash());
     }
 }

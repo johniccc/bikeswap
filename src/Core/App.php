@@ -90,18 +90,27 @@ class App
             $e->getTraceAsString()
         ));
 
+        // Try to get session so error pages render within the main layout (nav, footer)
+        $session = null;
+        try {
+            $session = $this->container->make(Session::class);
+        } catch (\Throwable) {
+            // Session might not be available during early bootstrap errors
+        }
+
         if ($request->wantsJson()) {
-            return new \App\Response\JsonResponse(
+            return json(
                 ['error' => $this->isDebug() ? $e->getMessage() : 'Internal Server Error'],
                 $code
             );
         }
 
-        return new \App\Response\ViewResponse(
+        return view(
             "errors/{$code}",
             [
                 'message' => $this->isDebug() ? $e->getMessage() : 'Něco se pokazilo.',
                 'code' => $code,
+                'session' => $session,
             ],
             $code
         );

@@ -5,23 +5,30 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Request;
+use App\Core\Session;
 use App\Response\Response;
-use App\Response\ViewResponse;
-use App\Response\JsonResponse;
 
 class HomeController
 {
+    private Session $session;
+
+    public function __construct(Session $session)
+    {
+        $this->session = $session;
+    }
+
     public function index(Request $request): Response
     {
         if ($request->wantsJson()) {
-            return new JsonResponse([
+            return json([
                 'name' => 'BikeSwap',
                 'status' => 'running',
             ]);
         }
 
-        return new ViewResponse('home/index', [
+        return view('home/index', [
             'title' => 'BikeSwap – Ochrana vašeho kola',
+            'session' => $this->session,
         ]);
     }
 }

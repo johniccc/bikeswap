@@ -6,8 +6,6 @@ namespace App\Middleware;
 
 use App\Core\Request;
 use App\Core\Session;
-use App\Response\JsonResponse;
-use App\Response\RedirectResponse;
 use App\Response\Response;
 
 /**
@@ -37,11 +35,11 @@ class AuthMiddleware
         }
 
         if ($request->wantsJson()) {
-            return new JsonResponse(['error' => 'Vyžadováno přihlášení.'], 401);
+            return json(['error' => 'Vyžadováno přihlášení.'], 401);
         }
 
         $this->session->flash('error', 'Pro přístup se musíte přihlásit.');
 
-        return new RedirectResponse('/login');
+        return redirect('/login');
     }
 }
