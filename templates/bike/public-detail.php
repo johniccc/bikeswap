@@ -17,6 +17,10 @@
         <div class="alert alert-success"><?= e($session->getFlash('success')) ?></div>
     <?php endif; ?>
 
+    <?php if (isset($session) && $session->hasFlash('error')): ?>
+        <div class="alert alert-error"><?= e($session->getFlash('error')) ?></div>
+    <?php endif; ?>
+
     <!-- Photo gallery -->
     <div class="bike-gallery">
         <?php if (!empty($bike->getPhotos())): ?>
@@ -88,11 +92,60 @@
                 <a href="/theft/report/<?= $bike->getId() ?>" class="btn btn-danger">Nahlásit krádež</a>
             <?php endif; ?>
 
+            <?php if ($bike->isStolen() && isset($theftReport)): ?>
+                <form method="POST" action="/theft/<?= $theftReport->getId() ?>/resolve"
+                      onsubmit="return confirm('Opravdu jste kolo našli?')">
+                    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                    <button type="submit" class="btn btn-success">Kolo nalezeno – zrušit hlášení</button>
+                </form>
+            <?php endif; ?>
+
             <form method="POST" action="/bike/<?= $bike->getId() ?>/delete"
                   onsubmit="return confirm('Opravdu chcete smazat toto kolo?')">
                 <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
                 <button type="submit" class="btn btn-danger">Smazat</button>
             </form>
+        </div>
+    <?php endif; ?>
+
+    <!-- Theft report details (visible to owner and police) -->
+    <?php if (isset($theftReport) && ($isOwner || (isset($currentUser) && $currentUser->hasRole('police')))): ?>
+        <div class="theft-info">
+            <h2>Informace o krádeži</h2>
+            <table>
+                <?php if ($theftReport->getTheftDate()): ?>
+                <tr>
+                    <th>Datum krádeže</th>
+                    <td><?= e($theftReport->getFormattedTheftDate()) ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if ($theftReport->getTheftLocationText()): ?>
+                <tr>
+                    <th>Místo krádeže</th>
+                    <td><?= e($theftReport->getTheftLocationText()) ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if ($theftReport->getDescription()): ?>
+                <tr>
+                    <th>Popis</th>
+                    <td><?= nl2br(e($theftReport->getDescription())) ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if ($theftReport->getPoliceCaseNumber()): ?>
+                <tr>
+                    <th>Číslo případu PČR</th>
+                    <td><?= e($theftReport->getPoliceCaseNumber()) ?></td>
+                </tr>
+                <?php endif; ?>
+                <tr>
+                    <th>Stav hlášení</th>
+                    <td>
+                        <span class="status-badge <?= e($theftReport->getStatusClass()) ?>">
+                            <?= e($theftReport->getStatusLabel()) ?>
+                        </span>
+                    </td>
+                </tr>
+            </table>
         </div>
     <?php endif; ?>
 

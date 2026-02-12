@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
 use App\Repository\BikeRepository;
+use App\Repository\TheftReportRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Response\JsonResponse;
@@ -20,6 +21,7 @@ use App\Services\QRService;
 class BikeController
 {
     private BikeRepository $bikeRepository;
+    private TheftReportRepository $theftReportRepository;
     private UserRepository $userRepository;
     private AuthService $authService;
     private FileUploadService $fileUploadService;
@@ -28,6 +30,7 @@ class BikeController
 
     public function __construct(
         BikeRepository $bikeRepository,
+        TheftReportRepository $theftReportRepository,
         UserRepository $userRepository,
         AuthService $authService,
         FileUploadService $fileUploadService,
@@ -35,6 +38,7 @@ class BikeController
         Session $session
     ) {
         $this->bikeRepository = $bikeRepository;
+        $this->theftReportRepository = $theftReportRepository;
         $this->userRepository = $userRepository;
         $this->authService = $authService;
         $this->fileUploadService = $fileUploadService;
@@ -76,6 +80,7 @@ class BikeController
             'bike' => $bike,
             'currentUser' => $currentUser,
             'isOwner' => $isOwner,
+            'theftReport' => $bike->isStolen() ? $this->theftReportRepository->findActiveByBikeId($bike->getId()) : null,
             'qrDataUri' => $this->qrService->generateQrDataUri($hash),
             'session' => $this->session,
             'csrf' => $this->session->csrfToken(),

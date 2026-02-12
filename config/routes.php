@@ -13,11 +13,13 @@ use App\Controllers\HomeController;
 use App\Controllers\AuthController;
 use App\Controllers\BikeController;
 use App\Controllers\FileController;
+use App\Controllers\TheftController;
 use App\Middleware\AuthMiddleware;
 
 // ── Public routes ──────────────────────────────────────────────
 
 $router->get('/', [HomeController::class, 'index']);
+$router->get('/stolen', [TheftController::class, 'publicList']);
 
 // ── File serving (images, QR codes) ───────────────────────────
 
@@ -48,6 +50,11 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     // Photo management
     $router->post('/bike/{id}/photo/{photoId}/primary', [BikeController::class, 'setPrimaryPhoto']);
     $router->post('/bike/{id}/photo/{photoId}/delete', [BikeController::class, 'deletePhoto']);
+
+    // Theft reporting (owner only)
+    $router->get('/theft/report/{bikeId}', [TheftController::class, 'reportForm']);
+    $router->post('/theft/report/{bikeId}', [TheftController::class, 'report']);
+    $router->post('/theft/{reportId}/resolve', [TheftController::class, 'resolve']);
 });
 
 // ── Public bike detail (QR code scan) ──────────────────────────
