@@ -48,8 +48,8 @@ class TheftService
             return ['success' => false, 'error' => 'Toto kolo je již nahlášeno jako odcizené.'];
         }
 
-        // Only active or recovered bikes can be reported as stolen
-        if (!$bike->isActive() && !$bike->isRecovered()) {
+        // Only active bikes can be reported as stolen
+        if (!$bike->isActive()) {
             return ['success' => false, 'error' => 'Toto kolo nelze nahlásit jako odcizené (aktuální stav: ' . $bike->getStatusLabel() . ').'];
         }
 
@@ -83,8 +83,11 @@ class TheftService
     }
 
     /**
-     * Cancel/resolve a theft report (bike was found by owner).
-     * Changes bike status back to 'recovered'.
+     * Resolve a theft report (bike was found by owner).
+     * 
+     * Marks the report as resolved and returns the bike to 'active' status,
+     * so the owner can continue using all features (sharing, re-reporting if needed).
+     * The theft history is preserved in the theft_reports table.
      */
     public function resolveTheft(int $reportId, int $bikeId): array
     {
@@ -102,7 +105,7 @@ class TheftService
             $this->db->beginTransaction();
 
             $this->theftReportRepository->updateStatus($reportId, 'resolved');
-            $this->bikeRepository->updateStatus($bikeId, 'recovered');
+            $this->bikeRepository->updateStatus($bikeId, 'active');
 
             $this->db->commit();
 
