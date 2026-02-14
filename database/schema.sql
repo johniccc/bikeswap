@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `address`            VARCHAR(255)    NULL DEFAULT NULL,
     `is_verified`        TINYINT(1)      NOT NULL DEFAULT 0,
     `verification_token` VARCHAR(64)     NULL DEFAULT NULL,
+    `karma_score`        INT UNSIGNED    NOT NULL DEFAULT 0,
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `last_login_at`      DATETIME        NULL DEFAULT NULL,
@@ -99,30 +100,29 @@ CREATE TABLE IF NOT EXISTS `theft_reports` (
 -- ── FOUND REPORTS ──────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS `found_reports` (
-    `id`                  INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-    `bike_id`             INT UNSIGNED    NULL DEFAULT NULL,
-    `qr_hash_scanned`     VARCHAR(64)     NULL DEFAULT NULL,
-    `reported_by`         INT UNSIGNED    NULL DEFAULT NULL,
-    `reporter_email`      VARCHAR(255)    NULL DEFAULT NULL,
-    `reporter_phone`      VARCHAR(20)     NULL DEFAULT NULL,
-    `reporter_ip`         VARCHAR(45)     NULL DEFAULT NULL,
-    `found_date`          DATE            NULL DEFAULT NULL,
-    `found_location_text` VARCHAR(255)    NULL DEFAULT NULL,
-    `found_location_lat`  DECIMAL(10, 7)  NULL DEFAULT NULL,
-    `found_location_lng`  DECIMAL(10, 7)  NULL DEFAULT NULL,
-    `description`         TEXT            NULL DEFAULT NULL,
-    `status`              ENUM('pending', 'verified', 'contacted', 'resolved') NOT NULL DEFAULT 'pending',
-    `verified_by`         INT UNSIGNED    NULL DEFAULT NULL,
-    `verified_at`         DATETIME        NULL DEFAULT NULL,
-    `created_at`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `id`                   INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `bike_id`              INT UNSIGNED    NULL DEFAULT NULL,
+    `qr_hash_scanned`      VARCHAR(64)     NULL DEFAULT NULL,
+    `reported_by`          INT UNSIGNED    NULL DEFAULT NULL,
+    `reporter_email`       VARCHAR(255)    NULL DEFAULT NULL,
+    `reporter_phone`       VARCHAR(20)     NULL DEFAULT NULL,
+    `reporter_ip`          VARCHAR(45)     NULL DEFAULT NULL,
+    `conversation_token`   VARCHAR(64)     NOT NULL,
+    `found_date`           DATE            NULL DEFAULT NULL,
+    `found_location_text`  VARCHAR(255)    NULL DEFAULT NULL,
+    `found_location_lat`   DECIMAL(10, 7)  NULL DEFAULT NULL,
+    `found_location_lng`   DECIMAL(10, 7)  NULL DEFAULT NULL,
+    `description`          TEXT            NULL DEFAULT NULL,
+    `status`               ENUM('pending', 'contacted', 'resolved') NOT NULL DEFAULT 'pending',
+    `created_at`           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_found_conversation_token` (`conversation_token`),
     KEY `idx_found_bike` (`bike_id`),
     KEY `idx_found_status` (`status`),
     KEY `idx_found_qr` (`qr_hash_scanned`),
     CONSTRAINT `fk_found_bike` FOREIGN KEY (`bike_id`) REFERENCES `bikes` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_found_reporter` FOREIGN KEY (`reported_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_found_verifier` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_found_reporter` FOREIGN KEY (`reported_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
 
@@ -137,6 +137,60 @@ CREATE TABLE IF NOT EXISTS `found_report_photos` (
     PRIMARY KEY (`id`),
     KEY `idx_found_photos_report` (`found_report_id`),
     CONSTRAINT `fk_found_photos_report` FOREIGN KEY (`found_report_id`) REFERENCES `found_reports` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
+-- ── FOUND REPORT MESSAGES ──────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `found_report_messages` (
+    `id`               INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `found_report_id`  INT UNSIGNED    NOT NULL,
+    `sender_type`      ENUM('owner', 'finder', 'system') NOT NULL,
+    `sender_user_id`   INT UNSIGNED    NULL DEFAULT NULL,
+    `message`          TEXT            NOT NULL,
+    `is_read`          TINYINT(1)      NOT NULL DEFAULT 0,
+    `created_at`       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    KEY `idx_messages_report` (`found_report_id`),
+    KEY `idx_messages_unread` (`found_report_id`, `is_read`),
+    CONSTRAINT `fk_messages_report` FOREIGN KEY (`found_report_id`) REFERENCES `found_reports` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
+-- ── NOTIFICATIONS ──────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `notifications` (
+    `id`          INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `user_id`     INT UNSIGNED    NOT NULL,
+    `type`        VARCHAR(50)     NOT NULL,
+    `title`       VARCHAR(255)    NOT NULL,
+    `message`     TEXT            NOT NULL,
+    `link`        VARCHAR(255)    NULL DEFAULT NULL,
+    `is_read`     TINYINT(1)      NOT NULL DEFAULT 0,
+    `created_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    KEY `idx_notifications_user` (`user_id`),
+    KEY `idx_notifications_unread` (`user_id`, `is_read`),
+    KEY `idx_notifications_type` (`type`),
+    CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
+-- ── USER PREFERENCES ───────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `user_preferences` (
+    `user_id`                INT UNSIGNED    NOT NULL,
+    `email_on_found_report`  TINYINT(1)      NOT NULL DEFAULT 1,
+    `email_on_message`       TINYINT(1)      NOT NULL DEFAULT 1,
+    `email_on_status_change` TINYINT(1)      NOT NULL DEFAULT 1,
+    `email_on_reservation`   TINYINT(1)      NOT NULL DEFAULT 1,
+    `updated_at`             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`user_id`),
+    CONSTRAINT `fk_preferences_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
 

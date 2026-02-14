@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Services\KarmaService;
+
 /**
  * User entity.
  * 
@@ -21,6 +23,7 @@ class User
     private ?string $address;
     private bool $isVerified;
     private ?string $verificationToken;
+    private int $karmaScore;
     private string $createdAt;
     private string $updatedAt;
     private ?string $lastLoginAt;
@@ -43,6 +46,7 @@ class User
         $user->address           = $row['address'] ?? null;
         $user->isVerified        = (bool) ($row['is_verified'] ?? false);
         $user->verificationToken = $row['verification_token'] ?? null;
+        $user->karmaScore        = (int) ($row['karma_score'] ?? 0);
         $user->createdAt         = $row['created_at'];
         $user->updatedAt         = $row['updated_at'];
         $user->lastLoginAt       = $row['last_login_at'] ?? null;
@@ -95,6 +99,19 @@ class User
     public function getVerificationToken(): ?string
     {
         return $this->verificationToken;
+    }
+
+    public function getKarmaScore(): int
+    {
+        return $this->karmaScore;
+    }
+
+    /**
+     * Get the karma level label based on cached score.
+     */
+    public function getKarmaLevel(): string
+    {
+        return KarmaService::getLevel($this->karmaScore);
     }
 
     public function getCreatedAt(): string
