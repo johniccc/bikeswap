@@ -14,6 +14,8 @@ use App\Controllers\AuthController;
 use App\Controllers\BikeController;
 use App\Controllers\FileController;
 use App\Controllers\TheftController;
+use App\Controllers\FoundReportController;
+use App\Controllers\NotificationController;
 use App\Middleware\AuthMiddleware;
 
 // ── Public routes ──────────────────────────────────────────────
@@ -33,6 +35,13 @@ $router->post('/register', [AuthController::class, 'register']);
 $router->get('/login', [AuthController::class, 'loginForm']);
 $router->post('/login', [AuthController::class, 'login']);
 $router->post('/logout', [AuthController::class, 'logout']);
+
+// ── Found reports (public — no auth required) ──────────────────
+
+$router->get('/found/report/{qrHash}', [FoundReportController::class, 'reportForm']);
+$router->post('/found/report/{qrHash}', [FoundReportController::class, 'report']);
+$router->get('/found/conversation/{token}', [FoundReportController::class, 'finderConversation']);
+$router->post('/found/conversation/{token}/message', [FoundReportController::class, 'finderSendMessage']);
 
 // ── Authenticated routes ───────────────────────────────────────
 
@@ -55,6 +64,17 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->get('/theft/report/{bikeId}', [TheftController::class, 'reportForm']);
     $router->post('/theft/report/{bikeId}', [TheftController::class, 'report']);
     $router->post('/theft/{reportId}/resolve', [TheftController::class, 'resolve']);
+
+    // Found reports (owner — auth required)
+    $router->get('/found/{reportId}/conversation', [FoundReportController::class, 'ownerConversation']);
+    $router->post('/found/{reportId}/message', [FoundReportController::class, 'ownerSendMessage']);
+    $router->post('/found/{reportId}/resolve', [FoundReportController::class, 'resolve']);
+
+    // Notifications (specific routes BEFORE parametric!)
+    $router->get('/notifications', [NotificationController::class, 'index']);
+    $router->get('/notifications/count', [NotificationController::class, 'unreadCount']);
+    $router->post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    $router->post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 });
 
 // ── Public bike detail (QR code scan) ──────────────────────────

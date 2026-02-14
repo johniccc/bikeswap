@@ -13,31 +13,31 @@ use App\Services\NotificationService;
 
 class NotificationController
 {
-    private NotificationRepository $notificationRepository;
-    private NotificationService $notificationService;
+    private NotificationRepository $repository;
+    private NotificationService $service;
     private AuthService $authService;
     private Session $session;
 
     public function __construct(
-        NotificationRepository $notificationRepository,
-        NotificationService $notificationService,
+        NotificationRepository $repository,
+        NotificationService $service,
         AuthService $authService,
         Session $session
     ) {
-        $this->notificationRepository = $notificationRepository;
-        $this->notificationService = $notificationService;
+        $this->repository = $repository;
+        $this->service = $service;
         $this->authService = $authService;
         $this->session = $session;
     }
 
     /**
-     * Show all notifications for the current user.
+     * Show notifications list.
      * GET /notifications
      */
     public function index(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        $notifications = $this->notificationRepository->findByUserId($currentUser->getId());
+        $notifications = $this->repository->findByUserId($currentUser->getId());
 
         if ($request->wantsJson()) {
             return json([
@@ -48,9 +48,8 @@ class NotificationController
                     'message' => $n->getMessage(),
                     'link' => $n->getLink(),
                     'is_read' => $n->isRead(),
-                    'created_at' => $n->getCreatedAt(),
+                    'time' => $n->getFormattedTime(),
                 ], $notifications),
-                'unread_count' => $this->notificationService->getUnreadCount($currentUser->getId()),
             ]);
         }
 
@@ -64,40 +63,38 @@ class NotificationController
     /**
      * Mark a single notification as read.
      * POST /notifications/{id}/read
+     *
+     * If the notification has a link, redirects there.
+     * Otherwise redirects back to notifications list.
      */
     public function markAsRead(Request $request): Response
     {
-        $notificationId = (int) $request->param('id');
+        $id = (int) $request->param('id');
+        $currentUser = $this->authService->currentUser();
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+        // Verify ownership
+        $notification = $this->repository->findById($id);
+
+        if ($notification === null || $notification->getUserId() !== $currentUser->getId()) {
             if ($request->wantsJson()) {
-                return json(['error' => 'Neplatný token.'], 403);
+                return json(['error' => 'Oznámení nenalezeno.'], 404);
             }
 
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            $this->session->flash('error', 'Oznámení nenalezeno.');
 
             return redirect('/notifications');
         }
 
-        $this->notificationService->markAsRead($notificationId);
+        $this->service->markAsRead($id);
 
         if ($request->wantsJson()) {
             return json(['success' => true]);
         }
 
-        // If notification has a link, redirect there
-        $notification = $this->notificationRepository->findByUserId(
-            $this->authService->currentUser()->getId()
-        );
+        // Redirect to notification link if available, otherwise to list
+        $redirectTo = $notification->getLink() ?? '/notifications';
 
-        // Find the specific notification to get its link
-        foreach ($notification as $n) {
-            if ($n->getId() === $notificationId && $n->getLink() !== null) {
-                return redirect($n->getLink());
-            }
-        }
-
-        return redirect('/notifications');
+        return redirect($redirectTo);
     }
 
     /**
@@ -107,18 +104,7 @@ class NotificationController
     public function markAllAsRead(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            if ($request->wantsJson()) {
-                return json(['error' => 'Neplatný token.'], 403);
-            }
-
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect('/notifications');
-        }
-
-        $this->notificationService->markAllAsRead($currentUser->getId());
+        $this->service->markAllAsRead($currentUser->getId());
 
         if ($request->wantsJson()) {
             return json(['success' => true]);
@@ -130,15 +116,14 @@ class NotificationController
     }
 
     /**
-     * Get unread count (for AJAX badge updates).
+     * Get unread count (AJAX endpoint for badge).
      * GET /notifications/count
      */
     public function unreadCount(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
+        $count = $this->service->getUnreadCount($currentUser->getId());
 
-        return json([
-            'unread_count' => $this->notificationService->getUnreadCount($currentUser->getId()),
-        ]);
+        return json(['unread_count' => $count]);
     }
 }

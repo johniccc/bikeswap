@@ -9,6 +9,7 @@ use App\Entity\FoundReport;
 use App\Repository\BikeRepository;
 use App\Repository\FoundReportRepository;
 use App\Repository\FoundReportMessageRepository;
+use App\Repository\TheftReportRepository;
 
 /**
  * Found Report service.
@@ -24,6 +25,7 @@ class FoundReportService
     private FoundReportRepository $reportRepository;
     private FoundReportMessageRepository $messageRepository;
     private BikeRepository $bikeRepository;
+    private TheftReportRepository $theftReportRepository;
     private NotificationService $notificationService;
     private EmailService $emailService;
     private KarmaService $karmaService;
@@ -33,6 +35,7 @@ class FoundReportService
         FoundReportRepository $reportRepository,
         FoundReportMessageRepository $messageRepository,
         BikeRepository $bikeRepository,
+        TheftReportRepository $theftReportRepository,
         NotificationService $notificationService,
         EmailService $emailService,
         KarmaService $karmaService,
@@ -41,6 +44,7 @@ class FoundReportService
         $this->reportRepository = $reportRepository;
         $this->messageRepository = $messageRepository;
         $this->bikeRepository = $bikeRepository;
+        $this->theftReportRepository = $theftReportRepository;
         $this->notificationService = $notificationService;
         $this->emailService = $emailService;
         $this->karmaService = $karmaService;
@@ -184,8 +188,9 @@ class FoundReportService
     /**
      * Resolve a found report (bike was returned to owner).
      * 
-     * Marks the report as resolved, adds a system message,
-     * and resolves the associated theft report.
+     * Marks the found report as resolved, adds a system message,
+     * changes bike status back to active, and also resolves the
+     * associated theft report — all within a single transaction.
      * 
      * @return array{success: bool, error?: string}
      */
@@ -204,10 +209,10 @@ class FoundReportService
         try {
             $this->db->beginTransaction();
 
-            // Resolve the found report
+            // 1. Resolve the found report
             $this->reportRepository->updateStatus($reportId, 'resolved');
 
-            // Add system message to conversation
+            // 2. Add system message to conversation
             $this->messageRepository->create(
                 $reportId,
                 'system',
@@ -215,10 +220,22 @@ class FoundReportService
                 'Majitel označil kolo jako nalezené. Děkujeme za pomoc!'
             );
 
-            // Change bike status back to active
+            // 3. Change bike status back to active
             $this->bikeRepository->updateStatus($bikeId, 'active');
 
-            // Recalculate karma for the finder
+            // 4. Resolve associated theft report (if any active one exists)
+            $activeTheftReport = $this->theftReportRepository->findActiveByBikeId($bikeId);
+            if ($activeTheftReport !== null) {
+                $this->theftReportRepository->updateStatus($activeTheftReport->getId(), 'resolved');
+            }
+
+            // 5. Notify the bike owner
+            $bike = $this->bikeRepository->findById($bikeId);
+            if ($bike !== null) {
+                $this->notificationService->notifyTheftResolved($bike->getOwnerId(), $bike);
+            }
+
+            // 6. Recalculate karma for the finder
             if ($report->getReportedBy() !== null) {
                 $this->karmaService->recalculate($report->getReportedBy());
             }

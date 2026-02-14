@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
 use App\Repository\BikeRepository;
+use App\Repository\FoundReportRepository;
 use App\Repository\TheftReportRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
@@ -18,6 +19,7 @@ use App\Services\QRService;
 class BikeController
 {
     private BikeRepository $bikeRepository;
+    private FoundReportRepository $foundReportRepository;
     private TheftReportRepository $theftReportRepository;
     private UserRepository $userRepository;
     private AuthService $authService;
@@ -27,6 +29,7 @@ class BikeController
 
     public function __construct(
         BikeRepository $bikeRepository,
+        FoundReportRepository $foundReportRepository,
         TheftReportRepository $theftReportRepository,
         UserRepository $userRepository,
         AuthService $authService,
@@ -35,6 +38,7 @@ class BikeController
         Session $session
     ) {
         $this->bikeRepository = $bikeRepository;
+        $this->foundReportRepository = $foundReportRepository;
         $this->theftReportRepository = $theftReportRepository;
         $this->userRepository = $userRepository;
         $this->authService = $authService;
@@ -72,12 +76,19 @@ class BikeController
             ]);
         }
 
+        // Load found reports for owner view
+        $foundReports = [];
+        if ($isOwner) {
+            $foundReports = $this->foundReportRepository->findActiveByBikeId($bike->getId());
+        }
+
         return view('bike/public-detail', [
             'title' => $bike->getFullName() . ' – BikeSwap',
             'bike' => $bike,
             'currentUser' => $currentUser,
             'isOwner' => $isOwner,
             'theftReport' => $bike->isStolen() ? $this->theftReportRepository->findActiveByBikeId($bike->getId()) : null,
+            'foundReports' => $foundReports,
             'qrDataUri' => $this->qrService->generateQrDataUri($hash),
             'session' => $this->session,
             'csrf' => $this->session->csrfToken(),
@@ -287,6 +298,15 @@ class BikeController
         $currentUser = $this->authService->currentUser();
         $bikes = $this->bikeRepository->findByOwner($currentUser->getId(), withPhotos: true);
 
+        // Load found report counts per bike (for badges)
+        $foundReportCounts = [];
+        foreach ($bikes as $bike) {
+            $count = $this->foundReportRepository->countActiveByBikeId($bike->getId());
+            if ($count > 0) {
+                $foundReportCounts[$bike->getId()] = $count;
+            }
+        }
+
         if ($request->wantsJson()) {
             return json(['bikes' => array_map(fn($b) => [
                 'id' => $b->getId(),
@@ -300,6 +320,7 @@ class BikeController
         return view('bike/my-bikes', [
             'title' => 'Moje kola – BikeSwap',
             'bikes' => $bikes,
+            'foundReportCounts' => $foundReportCounts,
             'currentUser' => $currentUser,
             'session' => $this->session,
         ]);

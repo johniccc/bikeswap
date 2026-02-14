@@ -1,18 +1,4 @@
 <div class="bike-detail">
-    <div class="bike-header">
-        <h1><?= e($bike->getFullName()) ?></h1>
-        <span class="status-badge <?= e($bike->getStatusClass()) ?>">
-            <?= e($bike->getStatusLabel()) ?>
-        </span>
-    </div>
-
-    <?php if ($bike->isStolen()): ?>
-        <div class="alert alert-stolen">
-            Toto kolo je hlášeno jako <strong>odcizené</strong>.
-            Pokud jste ho nalezli, prosím <a href="/found/report/<?= e($bike->getQrHash()) ?>">nahlaste nález</a>.
-        </div>
-    <?php endif; ?>
-
     <?php if (isset($session) && $session->hasFlash('success')): ?>
         <div class="alert alert-success"><?= e($session->getFlash('success')) ?></div>
     <?php endif; ?>
@@ -23,136 +9,153 @@
 
     <!-- Photo gallery -->
     <div class="bike-gallery">
-        <?php if (!empty($bike->getPhotos())): ?>
-            <?php foreach ($bike->getPhotos() as $photo): ?>
+        <?php $photos = $bike->getPhotos(); ?>
+        <?php if (!empty($photos)): ?>
+            <?php foreach ($photos as $photo): ?>
                 <img src="<?= e($photo->getUrl()) ?>"
                      alt="<?= e($bike->getFullName()) ?>"
-                     class="bike-photo <?= $photo->isPrimary() ? 'primary' : '' ?>">
+                     class="bike-gallery-photo <?= $photo->isPrimary() ? 'photo-primary' : '' ?>">
             <?php endforeach; ?>
         <?php else: ?>
-            <p class="no-photo">Žádné fotografie</p>
+            <div class="bike-gallery-placeholder">Žádné fotografie</div>
         <?php endif; ?>
     </div>
 
     <!-- Bike info -->
     <div class="bike-info">
-        <table>
-            <tr>
-                <th>Značka</th>
-                <td><?= e($bike->getBrand()) ?></td>
-            </tr>
+        <h1><?= e($bike->getFullName()) ?></h1>
+
+        <span class="status-badge status-<?= e($bike->getStatus()) ?>">
+            <?php
+                $statusLabels = [
+                    'active' => 'Aktivní',
+                    'stolen' => 'Odcizené',
+                    'shared' => 'Sdílené',
+                    'inactive' => 'Neaktivní',
+                ];
+                echo e($statusLabels[$bike->getStatus()] ?? $bike->getStatus());
+            ?>
+        </span>
+
+        <dl class="bike-specs">
+            <dt>Značka</dt>
+            <dd><?= e($bike->getBrand()) ?></dd>
+
             <?php if ($bike->getModel()): ?>
-            <tr>
-                <th>Model</th>
-                <td><?= e($bike->getModel()) ?></td>
-            </tr>
+                <dt>Model</dt>
+                <dd><?= e($bike->getModel()) ?></dd>
             <?php endif; ?>
-            <tr>
-                <th>Barva</th>
-                <td><?= e($bike->getColor()) ?></td>
-            </tr>
+
+            <dt>Barva</dt>
+            <dd><?= e($bike->getColor()) ?></dd>
+
             <?php if ($bike->getYearOfManufacture()): ?>
-            <tr>
-                <th>Rok výroby</th>
-                <td><?= $bike->getYearOfManufacture() ?></td>
-            </tr>
+                <dt>Rok výroby</dt>
+                <dd><?= e((string) $bike->getYearOfManufacture()) ?></dd>
             <?php endif; ?>
-            <?php if ($bike->getDescription()): ?>
-            <tr>
-                <th>Popis</th>
-                <td><?= nl2br(e($bike->getDescription())) ?></td>
-            </tr>
+
+            <?php if ($bike->getFrameNumber() && $isOwner): ?>
+                <dt>Číslo rámu</dt>
+                <dd><?= e($bike->getFrameNumber()) ?></dd>
             <?php endif; ?>
-            <tr>
-                <th>Stav</th>
-                <td>
-                    <span class="status-badge <?= e($bike->getStatusClass()) ?>">
-                        <?= e($bike->getStatusLabel()) ?>
-                    </span>
-                </td>
-            </tr>
-        </table>
+        </dl>
+
+        <?php if ($bike->getDescription()): ?>
+            <div class="bike-description">
+                <h2>Popis</h2>
+                <p><?= nl2br(e($bike->getDescription())) ?></p>
+            </div>
+        <?php endif; ?>
     </div>
 
-    <!-- QR Code -->
-    <?php if ($isOwner): ?>
-        <div class="bike-qr">
-            <h2>QR kód vašeho kola</h2>
-            <img src="<?= e($qrDataUri) ?>" alt="QR kód" class="qr-image">
-            <p><a href="/file/qr/<?= e($bike->getQrHash()) ?>" download="bikeswap-qr.png">Stáhnout QR kód</a></p>
+    <!-- Stolen bike alert + report found CTA -->
+    <?php if ($bike->isStolen()): ?>
+        <div class="alert alert-stolen">
+            <h2>Toto kolo je hlášeno jako odcizené!</h2>
+
+            <?php if ($theftReport): ?>
+                <p>
+                    Datum krádeže: <?= e($theftReport->getFormattedTheftDate()) ?>
+                    <?php if ($theftReport->getTheftLocationText()): ?>
+                        — <?= e($theftReport->getTheftLocationText()) ?>
+                    <?php endif; ?>
+                </p>
+            <?php endif; ?>
+
+            <?php if (!$isOwner): ?>
+                <p>
+                    Poznáváte toto kolo nebo jste ho našli? Pomozte majiteli tím, že nález nahlásíte.
+                    Vaše kontaktní údaje nebudou zveřejněny.
+                </p>
+                <a href="/found/report/<?= e($bike->getQrHash()) ?>" class="btn btn-success btn-large">
+                    Nahlásit nález tohoto kola
+                </a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 
     <!-- Owner actions -->
     <?php if ($isOwner): ?>
-        <div class="bike-actions">
-            <a href="/bike/<?= $bike->getId() ?>/edit" class="btn">Upravit</a>
+        <div class="bike-owner-actions">
+            <h2>Správa kola</h2>
+            <div class="action-buttons">
+                <a href="/bike/<?= $bike->getId() ?>/edit" class="btn">Upravit</a>
 
-            <?php if ($bike->isActive()): ?>
-                <a href="/theft/report/<?= $bike->getId() ?>" class="btn btn-danger">Nahlásit krádež</a>
-            <?php endif; ?>
-
-            <?php if ($bike->isStolen() && isset($theftReport)): ?>
-                <form method="POST" action="/theft/<?= $theftReport->getId() ?>/resolve"
-                      onsubmit="return confirm('Opravdu jste kolo našli?')">
-                    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                    <button type="submit" class="btn btn-success">Kolo nalezeno – zrušit hlášení</button>
-                </form>
-            <?php endif; ?>
-
-            <form method="POST" action="/bike/<?= $bike->getId() ?>/delete"
-                  onsubmit="return confirm('Opravdu chcete smazat toto kolo?')">
-                <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                <button type="submit" class="btn btn-danger">Smazat</button>
-            </form>
+                <?php if (!$bike->isStolen()): ?>
+                    <a href="/theft/report/<?= $bike->getId() ?>" class="btn btn-danger">Nahlásit krádež</a>
+                <?php else: ?>
+                    <?php if ($theftReport): ?>
+                        <form method="POST" action="/theft/<?= $theftReport->getId() ?>/resolve"
+                              onsubmit="return confirm('Opravdu chcete zrušit hlášení krádeže?')">
+                            <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                            <button type="submit" class="btn btn-success">Kolo jsem získal zpět</button>
+                        </form>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
+
+        <!-- Found reports for owner -->
+        <?php if (!empty($foundReports)): ?>
+            <div class="found-reports-section">
+                <h2>Nahlášené nálezy (<?= count($foundReports) ?>)</h2>
+
+                <div class="found-reports-list">
+                    <?php foreach ($foundReports as $fr): ?>
+                        <div class="found-report-card">
+                            <div class="found-report-card-header">
+                                <span class="status-badge <?= e($fr->getStatusClass()) ?>">
+                                    <?= e($fr->getStatusLabel()) ?>
+                                </span>
+                                <span class="found-report-date"><?= e($fr->getFormattedFoundDate()) ?></span>
+                            </div>
+
+                            <?php if ($fr->getFoundLocationText()): ?>
+                                <p class="found-report-location">
+                                    Místo: <?= e($fr->getFoundLocationText()) ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <?php if ($fr->getDescription()): ?>
+                                <p class="found-report-desc"><?= e(mb_strimwidth($fr->getDescription(), 0, 120, '…')) ?></p>
+                            <?php endif; ?>
+
+                            <a href="/found/<?= $fr->getId() ?>/conversation" class="btn btn-small btn-primary">
+                                Otevřít konverzaci
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 
-    <!-- Theft report details (visible to owner and police) -->
-    <?php if (isset($theftReport) && ($isOwner || (isset($currentUser) && $currentUser->hasRole('police')))): ?>
-        <div class="theft-info">
-            <h2>Informace o krádeži</h2>
-            <table>
-                <?php if ($theftReport->getTheftDate()): ?>
-                <tr>
-                    <th>Datum krádeže</th>
-                    <td><?= e($theftReport->getFormattedTheftDate()) ?></td>
-                </tr>
-                <?php endif; ?>
-                <?php if ($theftReport->getTheftLocationText()): ?>
-                <tr>
-                    <th>Místo krádeže</th>
-                    <td><?= e($theftReport->getTheftLocationText()) ?></td>
-                </tr>
-                <?php endif; ?>
-                <?php if ($theftReport->getDescription()): ?>
-                <tr>
-                    <th>Popis</th>
-                    <td><?= nl2br(e($theftReport->getDescription())) ?></td>
-                </tr>
-                <?php endif; ?>
-                <?php if ($theftReport->getPoliceCaseNumber()): ?>
-                <tr>
-                    <th>Číslo případu PČR</th>
-                    <td><?= e($theftReport->getPoliceCaseNumber()) ?></td>
-                </tr>
-                <?php endif; ?>
-                <tr>
-                    <th>Stav hlášení</th>
-                    <td>
-                        <span class="status-badge <?= e($theftReport->getStatusClass()) ?>">
-                            <?= e($theftReport->getStatusLabel()) ?>
-                        </span>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    <?php endif; ?>
-
-    <!-- Report found bike (for non-owners) -->
-    <?php if (!$isOwner && $bike->isStolen()): ?>
-        <div class="bike-actions">
-            <a href="/found/report/<?= e($bike->getQrHash()) ?>" class="btn btn-success">Nahlásit nález tohoto kola</a>
+    <!-- QR code (owner only) -->
+    <?php if ($isOwner && isset($qrDataUri)): ?>
+        <div class="bike-qr">
+            <h2>QR kód kola</h2>
+            <img src="<?= $qrDataUri ?>" alt="QR kód" class="qr-code-image">
+            <p class="qr-hint">Vytiskněte a umístěte na kolo. Po naskenování zobrazí detail kola.</p>
         </div>
     <?php endif; ?>
 </div>

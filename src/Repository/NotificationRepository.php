@@ -8,7 +8,7 @@ use App\Core\Database;
 use App\Entity\Notification;
 
 /**
- * Repository for the notifications table.
+ * Repository for notifications table.
  */
 class NotificationRepository
 {
@@ -20,66 +20,81 @@ class NotificationRepository
     }
 
     /**
-     * Get all notifications for a user, newest first.
-     * 
+     * Find all notifications for a user, newest first.
+     *
      * @return Notification[]
      */
     public function findByUserId(int $userId, int $limit = 50): array
     {
         $rows = $this->db->fetchAll(
-            "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+            'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
             [$userId, $limit]
         );
 
-        return array_map(fn(array $row) => Notification::fromRow($row), $rows);
+        return array_map([Notification::class, 'fromRow'], $rows);
     }
 
     /**
-     * Get only unread notifications for a user.
-     * 
+     * Find unread notifications for a user.
+     *
      * @return Notification[]
      */
-    public function findUnreadByUserId(int $userId): array
+    public function findUnreadByUserId(int $userId, int $limit = 20): array
     {
         $rows = $this->db->fetchAll(
-            "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC",
-            [$userId]
+            'SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC LIMIT ?',
+            [$userId, $limit]
         );
 
-        return array_map(fn(array $row) => Notification::fromRow($row), $rows);
+        return array_map([Notification::class, 'fromRow'], $rows);
     }
 
     /**
-     * Count unread notifications for a user (for badge display).
+     * Count unread notifications for a user.
      */
     public function countUnread(int $userId): int
     {
         return (int) $this->db->fetchColumn(
-            "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0",
+            'SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0',
             [$userId]
         );
     }
 
     /**
-     * Create a new notification. Returns the notification ID.
+     * Find a single notification by ID.
      */
-    public function create(int $userId, string $type, string $title, string $message, ?string $link = null): int
+    public function findById(int $id): ?Notification
     {
-        return $this->db->insert('notifications', [
-            'user_id' => $userId,
-            'type'    => $type,
-            'title'   => $title,
-            'message' => $message,
-            'link'    => $link,
-        ]);
+        $row = $this->db->fetch(
+            'SELECT * FROM notifications WHERE id = ?',
+            [$id]
+        );
+
+        return $row ? Notification::fromRow($row) : null;
     }
 
     /**
-     * Mark a single notification as read.
+     * Create a new notification.
      */
-    public function markAsRead(int $notificationId): void
+    public function create(int $userId, string $type, string $title, string $message, ?string $link = null): int
     {
-        $this->db->update('notifications', ['is_read' => 1], 'id = ?', [$notificationId]);
+        $this->db->execute(
+            'INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, ?, ?, ?, ?)',
+            [$userId, $type, $title, $message, $link]
+        );
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    /**
+     * Mark a notification as read.
+     */
+    public function markAsRead(int $id): void
+    {
+        $this->db->execute(
+            'UPDATE notifications SET is_read = 1 WHERE id = ?',
+            [$id]
+        );
     }
 
     /**
@@ -87,19 +102,20 @@ class NotificationRepository
      */
     public function markAllAsRead(int $userId): void
     {
-        $this->db->update('notifications', ['is_read' => 1], 'user_id = ? AND is_read = 0', [$userId]);
+        $this->db->execute(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
+            [$userId]
+        );
     }
 
     /**
-     * Delete old read notifications (cleanup, optional).
-     * Keeps the last N days of read notifications.
+     * Delete old read notifications (cleanup).
      */
-    public function deleteOldRead(int $daysToKeep = 90): int
+    public function deleteOldRead(int $olderThanDays = 90): int
     {
-        return $this->db->delete(
-            'notifications',
-            'is_read = 1 AND created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
-            [$daysToKeep]
+        return $this->db->execute(
+            'DELETE FROM notifications WHERE is_read = 1 AND created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
+            [$olderThanDays]
         );
     }
 }

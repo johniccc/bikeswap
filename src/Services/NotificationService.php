@@ -8,18 +8,17 @@ use App\Entity\Bike;
 use App\Repository\NotificationRepository;
 
 /**
- * Notification service.
- * 
- * Creates in-app notifications for users.
- * Each method represents a specific event type.
+ * Notification service — facade over NotificationRepository.
+ *
+ * Creates typed notifications with appropriate titles, messages, and links.
  */
 class NotificationService
 {
-    private NotificationRepository $notificationRepository;
+    private NotificationRepository $repository;
 
-    public function __construct(NotificationRepository $notificationRepository)
+    public function __construct(NotificationRepository $repository)
     {
-        $this->notificationRepository = $notificationRepository;
+        $this->repository = $repository;
     }
 
     /**
@@ -27,57 +26,66 @@ class NotificationService
      */
     public function notifyFoundReport(int $ownerId, Bike $bike, int $reportId): void
     {
-        $this->notificationRepository->create(
-            $ownerId,
-            'found_report_new',
-            'Někdo nalezl vaše kolo!',
-            sprintf('Někdo nahlásil nález vašeho kola %s. Podívejte se na detail a kontaktujte nálezce.', $bike->getFullName()),
-            '/bike/' . $bike->getQrHash()
+        $this->repository->create(
+            userId: $ownerId,
+            type: 'found_report',
+            title: 'Někdo našel vaše kolo!',
+            message: sprintf(
+                'Bylo nahlášeno nalezení kola %s. Zkontrolujte detaily a odpovězte nálezci.',
+                $bike->getFullName()
+            ),
+            link: "/found/{$reportId}/conversation"
         );
     }
 
     /**
-     * Notify bike owner about a new message in a found report conversation.
+     * Notify bike owner about a new message in found report conversation.
      */
     public function notifyNewMessage(int $ownerId, Bike $bike, int $reportId): void
     {
-        $this->notificationRepository->create(
-            $ownerId,
-            'message_new',
-            'Nová zpráva od nálezce',
-            sprintf('Máte novou zprávu v konverzaci o kole %s.', $bike->getFullName()),
-            '/bike/' . $bike->getQrHash()
+        $this->repository->create(
+            userId: $ownerId,
+            type: 'message',
+            title: 'Nová zpráva od nálezce',
+            message: sprintf(
+                'Máte novou zprávu v konverzaci o kole %s.',
+                $bike->getFullName()
+            ),
+            link: "/found/{$reportId}/conversation"
         );
     }
 
     /**
-     * Notify bike owner that a theft report was resolved.
+     * Notify bike owner that their theft report was resolved (bike found).
      */
     public function notifyTheftResolved(int $ownerId, Bike $bike): void
     {
-        $this->notificationRepository->create(
-            $ownerId,
-            'theft_resolved',
-            'Kolo označeno jako nalezené',
-            sprintf('Vaše kolo %s bylo úspěšně označeno jako nalezené.', $bike->getFullName()),
-            '/bike/' . $bike->getQrHash()
+        $this->repository->create(
+            userId: $ownerId,
+            type: 'theft_resolved',
+            title: 'Kolo označeno jako nalezené',
+            message: sprintf(
+                'Kolo %s bylo úspěšně navráceno. Hlášení krádeže bylo uzavřeno.',
+                $bike->getFullName()
+            ),
+            link: '/bike/' . $bike->getQrHash()
         );
     }
 
     /**
-     * Get the unread notification count for a user (for badge).
+     * Get unread count for a user.
      */
     public function getUnreadCount(int $userId): int
     {
-        return $this->notificationRepository->countUnread($userId);
+        return $this->repository->countUnread($userId);
     }
 
     /**
      * Mark a notification as read.
      */
-    public function markAsRead(int $notificationId): void
+    public function markAsRead(int $id): void
     {
-        $this->notificationRepository->markAsRead($notificationId);
+        $this->repository->markAsRead($id);
     }
 
     /**
@@ -85,6 +93,6 @@ class NotificationService
      */
     public function markAllAsRead(int $userId): void
     {
-        $this->notificationRepository->markAllAsRead($userId);
+        $this->repository->markAllAsRead($userId);
     }
 }

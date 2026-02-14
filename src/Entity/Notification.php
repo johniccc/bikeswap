@@ -6,10 +6,9 @@ namespace App\Entity;
 
 /**
  * Notification entity.
- * 
- * In-app notifications displayed in the dashboard.
- * Types include: found_report_new, message_new, theft_resolved,
- * reservation_new, reservation_approved, reservation_rejected, etc.
+ *
+ * Represents an in-app notification for a user.
+ * Types: found_report, message, theft_resolved, system
  */
 class Notification
 {
@@ -22,76 +21,120 @@ class Notification
     private bool $isRead;
     private string $createdAt;
 
-    private function __construct() {}
+    public function __construct(
+        int $id,
+        int $userId,
+        string $type,
+        string $title,
+        string $message,
+        ?string $link,
+        bool $isRead,
+        string $createdAt
+    ) {
+        $this->id = $id;
+        $this->userId = $userId;
+        $this->type = $type;
+        $this->title = $title;
+        $this->message = $message;
+        $this->link = $link;
+        $this->isRead = $isRead;
+        $this->createdAt = $createdAt;
+    }
 
     public static function fromRow(array $row): self
     {
-        $notif = new self();
-
-        $notif->id        = (int) $row['id'];
-        $notif->userId    = (int) $row['user_id'];
-        $notif->type      = $row['type'];
-        $notif->title     = $row['title'];
-        $notif->message   = $row['message'];
-        $notif->link      = $row['link'] ?? null;
-        $notif->isRead    = (bool) ($row['is_read'] ?? false);
-        $notif->createdAt = $row['created_at'];
-
-        return $notif;
+        return new self(
+            id: (int) $row['id'],
+            userId: (int) $row['user_id'],
+            type: $row['type'],
+            title: $row['title'],
+            message: $row['message'],
+            link: $row['link'] ?? null,
+            isRead: (bool) ($row['is_read'] ?? false),
+            createdAt: $row['created_at'],
+        );
     }
 
-    // ── Getters ────────────────────────────────────────────────
+    public function getId(): int
+    {
+        return $this->id;
+    }
 
-    public function getId(): int { return $this->id; }
-    public function getUserId(): int { return $this->userId; }
-    public function getType(): string { return $this->type; }
-    public function getTitle(): string { return $this->title; }
-    public function getMessage(): string { return $this->message; }
-    public function getLink(): ?string { return $this->link; }
-    public function isRead(): bool { return $this->isRead; }
-    public function getCreatedAt(): string { return $this->createdAt; }
+    public function getUserId(): int
+    {
+        return $this->userId;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function getMessage(): string
+    {
+        return $this->message;
+    }
+
+    public function getLink(): ?string
+    {
+        return $this->link;
+    }
+
+    public function isRead(): bool
+    {
+        return $this->isRead;
+    }
+
+    public function getCreatedAt(): string
+    {
+        return $this->createdAt;
+    }
 
     /**
-     * Get icon class based on notification type (for UI rendering).
+     * CSS class for the notification icon based on type.
      */
     public function getIconClass(): string
     {
-        return match (true) {
-            str_starts_with($this->type, 'found_report') => 'icon-found',
-            str_starts_with($this->type, 'message')      => 'icon-message',
-            str_starts_with($this->type, 'theft')         => 'icon-theft',
-            str_starts_with($this->type, 'reservation')   => 'icon-reservation',
-            default                                        => 'icon-default',
+        return match ($this->type) {
+            'found_report'   => 'icon-found',
+            'message'        => 'icon-message',
+            'theft_resolved' => 'icon-resolved',
+            default          => 'icon-info',
         };
     }
 
     /**
-     * Format timestamp for display.
+     * Relative time formatting in Czech.
+     * "Právě teď", "před 5 min", "Včera 14:30", "12. 1. 2026"
      */
     public function getFormattedTime(): string
     {
-        $date = \DateTime::createFromFormat('Y-m-d H:i:s', $this->createdAt);
+        $timestamp = strtotime($this->createdAt);
+        $now = time();
+        $diff = $now - $timestamp;
 
-        if (!$date) {
-            return $this->createdAt;
+        if ($diff < 60) {
+            return 'Právě teď';
         }
 
-        $now = new \DateTime();
-        $diff = $now->diff($date);
-
-        // Relative time for recent notifications
-        if ($diff->days === 0) {
-            if ($diff->h === 0) {
-                return $diff->i <= 1 ? 'Právě teď' : "před {$diff->i} min";
-            }
-
-            return "před {$diff->h} h";
+        if ($diff < 3600) {
+            $minutes = (int) floor($diff / 60);
+            return "před {$minutes} min";
         }
 
-        if ($diff->days === 1) {
-            return 'Včera ' . $date->format('H:i');
+        if ($diff < 86400 && date('d', $timestamp) === date('d', $now)) {
+            return 'Dnes ' . date('H:i', $timestamp);
         }
 
-        return $date->format('j. n. Y H:i');
+        if ($diff < 172800 && date('d', $timestamp) === date('d', $now - 86400)) {
+            return 'Včera ' . date('H:i', $timestamp);
+        }
+
+        return date('j. n. Y', $timestamp);
     }
 }

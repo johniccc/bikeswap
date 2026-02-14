@@ -10,13 +10,18 @@
     <header>
         <nav>
             <a href="/" class="nav-brand">BikeSwap</a>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
 
-            <div class="nav-links">
+            <div class="nav-links" id="nav-links">
                 <a href="/stolen">Odcizená kola</a>
 
                 <?php if (isset($session) && $session->isLoggedIn()): ?>
                     <a href="/dashboard">Moje kola</a>
                     <a href="/bike/new">Registrovat kolo</a>
+                    <a href="/notifications" class="nav-notifications" id="nav-notifications">
+                        Oznámení
+                        <span class="notification-badge" id="notification-badge" style="display:none;"></span>
+                    </a>
                     <form method="POST" action="/logout" class="nav-logout">
                         <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
                         <button type="submit">Odhlásit se</button>
@@ -38,5 +43,36 @@
     </footer>
 
     <script src="/js/app.js"></script>
+
+    <?php if (isset($session) && $session->isLoggedIn()): ?>
+    <script>
+    (function() {
+        function updateBadge() {
+            fetch('/notifications/count', {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var badge = document.getElementById('notification-badge');
+                if (!badge) return;
+
+                if (data.unread_count > 0) {
+                    badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                    badge.style.display = '';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(function() {});
+        }
+
+        // Fetch on page load
+        updateBadge();
+
+        // Poll every 60 seconds
+        setInterval(updateBadge, 60000);
+    })();
+    </script>
+    <?php endif; ?>
 </body>
 </html>
