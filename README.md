@@ -2,18 +2,10 @@
 
 Cele jako docker kontejner
 
-po odeslání nepřihlášeného nálezu kola mi to napíše tuto chybu 500 – Chyba serveru
+stále submit buttony nejsou nastylovaný, ani file upload (koukni pořádně na css), zároveň uprav i editační stránku kola (nová sekce s obrázky nemá žádný padding a vypadá to strašně), to stejný i rezervační stránka (která taky prakticky nemá padding)
 
-Call to undefined method App\Core\Database::execute() --> už jsem opravil, změnil jsem na metody delete, update, insert
+v detailu rezervace ať je tlačítko rezerovovat
 
+500 – Chyba serveru
 
-
-refreshování konverzace? aby byla realtime
-
-přihlášení uživatelé budou mít ke konverzaci přístup z profilu
-
-
-uživatelské profily (změna údajů, karma systém apod.)
-
-
-pomocí CSS nastyluj i buttony apod, hodně ti tam toho chybí
+Call to undefined method App\Services\NotificationService::create() po odeslání žádosti o rezervaci

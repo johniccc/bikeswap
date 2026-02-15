@@ -16,12 +16,15 @@ use App\Controllers\FileController;
 use App\Controllers\TheftController;
 use App\Controllers\FoundReportController;
 use App\Controllers\NotificationController;
+use App\Controllers\ReservationController;
+
 use App\Middleware\AuthMiddleware;
 
 // ── Public routes ──────────────────────────────────────────────
 
 $router->get('/', [HomeController::class, 'index']);
 $router->get('/stolen', [TheftController::class, 'publicList']);
+$router->get('/shared', [ReservationController::class, 'sharedBikes']);
 
 // ── File serving (images, QR codes) ───────────────────────────
 
@@ -75,6 +78,21 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->get('/notifications/count', [NotificationController::class, 'unreadCount']);
     $router->post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     $router->post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+
+    // Reservation system
+    $router->get('/reservations', [ReservationController::class, 'myReservations']);
+    $router->get('/reservation/new/{bikeId}', [ReservationController::class, 'createForm']);
+    $router->post('/reservation/new/{bikeId}', [ReservationController::class, 'store']);
+    $router->get('/reservation/{bikeId}/unavailable-dates', [ReservationController::class, 'unavailableDates']);
+    $router->get('/reservation/{id}', [ReservationController::class, 'detail']);
+    $router->post('/reservation/{id}/approve', [ReservationController::class, 'approve']);
+    $router->post('/reservation/{id}/reject', [ReservationController::class, 'reject']);
+    $router->post('/reservation/{id}/cancel', [ReservationController::class, 'cancel']);
+    $router->post('/reservation/{id}/activate', [ReservationController::class, 'activate']);
+    $router->post('/reservation/{id}/complete', [ReservationController::class, 'complete']);
+    $router->post('/reservation/{id}/not-returned', [ReservationController::class, 'reportNotReturned']);
+    $router->post('/reservation/{id}/message', [ReservationController::class, 'sendMessage']);
+    $router->post('/reservation/{id}/review', [ReservationController::class, 'submitReview']);
 });
 
 // ── Public bike detail (QR code scan) ──────────────────────────
