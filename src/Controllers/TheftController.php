@@ -102,24 +102,24 @@ class TheftController
         }
 
         // Report the theft
-        $result = $this->theftService->reportTheft($bike, $currentUser->getId(), [
-            'theft_date'          => $request->input('theft_date') ?: null,
-            'theft_location_text' => $request->input('theft_location_text'),
-            'theft_location_lat'  => $request->input('theft_location_lat') ?: null,
-            'theft_location_lng'  => $request->input('theft_location_lng') ?: null,
-            'description'         => $request->input('description'),
-            'police_case_number'  => $request->input('police_case_number'),
-            'reporter_ip'         => $request->ip(),
-        ]);
-
-        if (!$result['success']) {
-            $this->session->flash('error', $result['error']);
+        try {
+            $reportId = $this->theftService->reportTheft($bike, $currentUser->getId(), [
+                'theft_date'          => $request->input('theft_date') ?: null,
+                'theft_location_text' => $request->input('theft_location_text'),
+                'theft_location_lat'  => $request->input('theft_location_lat') ?: null,
+                'theft_location_lng'  => $request->input('theft_location_lng') ?: null,
+                'description'         => $request->input('description'),
+                'police_case_number'  => $request->input('police_case_number'),
+                'reporter_ip'         => $request->ip(),
+            ]);
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
 
             return redirect("/theft/report/{$bikeId}");
         }
 
         if ($request->wantsJson()) {
-            return json(['report_id' => $result['report_id']], 201);
+            return json(['report_id' => $reportId], 201);
         }
 
         $this->session->flash('success', 'Krádež byla nahlášena. Vaše kolo je nyní v databázi odcizených kol.');
@@ -188,12 +188,11 @@ class TheftController
             return redirect('/bike/' . $bike->getQrHash());
         }
 
-        $result = $this->theftService->resolveTheft($reportId, $bike->getId());
-
-        if (!$result['success']) {
-            $this->session->flash('error', $result['error']);
-        } else {
+        try {
+            $this->theftService->resolveTheft($reportId, $bike->getId());
             $this->session->flash('success', 'Kolo bylo označeno jako nalezené. Děkujeme!');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
         }
 
         return redirect('/bike/' . $bike->getQrHash());

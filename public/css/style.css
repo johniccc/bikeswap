@@ -1,8 +1,11 @@
-/* ═══════════════════════════════════════════════════
-   BikeSwap — Complete Stylesheet v2
-   ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   BikeSwap — Complete Stylesheet v3
+   Reorganizováno pro lepší údržbu a konzistenci
+   ═══════════════════════════════════════════════════════════════ */
 
-/* ── Reset & Base ───────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   1. RESET & BASE
+   ──────────────────────────────────────────────────────────────── */
 
 *,
 *::before,
@@ -58,10 +61,12 @@ h1 {
   font-size: 1.75rem;
   font-weight: 700;
 }
+
 h2 {
   font-size: 1.35rem;
   font-weight: 600;
 }
+
 h3 {
   font-size: 1.1rem;
   font-weight: 600;
@@ -81,7 +86,9 @@ hr {
   margin: 1.5rem 0;
 }
 
-/* ── Layout ─────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   2. LAYOUT (Header, Nav, Main, Footer)
+   ──────────────────────────────────────────────────────────────── */
 
 header {
   background: #1f2937;
@@ -112,6 +119,17 @@ nav {
 .nav-brand:hover {
   color: #93c5fd;
   text-decoration: none;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
 }
 
 .nav-links {
@@ -165,11 +183,15 @@ nav {
   min-width: 18px;
   height: 18px;
   border-radius: 9px;
-  display: flex;
+  display: none; /* Hidden by default, shown via JS */
   align-items: center;
   justify-content: center;
   padding: 0 4px;
   line-height: 1;
+}
+
+.notification-badge.visible {
+  display: flex;
 }
 
 main {
@@ -193,7 +215,9 @@ footer a {
   color: #93c5fd;
 }
 
-/* ── Buttons ────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   3. BUTTONS
+   ──────────────────────────────────────────────────────────────── */
 
 .btn {
   display: inline-flex;
@@ -329,7 +353,9 @@ footer a {
   gap: 0.5rem;
 }
 
-/* ── Forms ──────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   4. FORMS
+   ──────────────────────────────────────────────────────────────── */
 
 fieldset {
   border: 1px solid #e5e7eb;
@@ -358,6 +384,17 @@ legend {
 
 .form-group:last-child {
   margin-bottom: 0;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 150px;
 }
 
 label {
@@ -481,7 +518,45 @@ small,
   margin-top: 1.5rem;
 }
 
-/* ── Cards (generic) ────────────────────────────── */
+/* Star rating input */
+.star-rating {
+  display: inline-flex;
+  direction: rtl;
+  font-size: 2rem;
+  gap: 0.1rem;
+}
+
+.star-rating label {
+  cursor: pointer;
+}
+
+.star-rating input {
+  display: none;
+}
+
+.star-rating .star {
+  color: #ddd;
+  transition: color 0.15s;
+}
+
+.star-rating label:hover .star,
+.star-rating label:hover ~ label .star {
+  color: #f59e0b;
+}
+
+.star-rating input:checked ~ .star,
+.star-rating label:has(input:checked) .star,
+.star-rating label:has(input:checked) ~ label .star {
+  color: #f59e0b;
+}
+
+.star-rating-group {
+  margin-bottom: 1rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   5. CARDS & CONTAINERS
+   ──────────────────────────────────────────────────────────────── */
 
 .card {
   background: #fff;
@@ -506,7 +581,9 @@ small,
   background: #f9fafb;
 }
 
-/* ── Alerts ─────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   6. ALERTS & NOTIFICATIONS
+   ──────────────────────────────────────────────────────────────── */
 
 .alert {
   padding: 0.85rem 1.1rem;
@@ -560,8 +637,9 @@ small,
   font-weight: 600;
 }
 
-/* ── Status badges ──────────────────────────────── */
-/* Must match Entity::getStatusClass() return values */
+/* ────────────────────────────────────────────────────────────────
+   7. STATUS BADGES
+   ──────────────────────────────────────────────────────────────── */
 
 .status-badge {
   display: inline-block;
@@ -601,7 +679,7 @@ small,
   color: #6b7280;
 }
 
-/* Contextual aliases (shared, inactive, pending, contacted, resolved) */
+/* Contextual aliases */
 .status-shared {
   background: #dbeafe;
   color: #1e40af;
@@ -627,6 +705,32 @@ small,
   color: #166534;
 }
 
+.status-approved {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-cancelled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-not_returned {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+/* Found report badge */
 .found-report-badge {
   display: inline-block;
   padding: 0.2rem 0.65rem;
@@ -638,85 +742,43 @@ small,
   line-height: 1.5;
 }
 
-/* ── Homepage / Hero ────────────────────────────── */
-
-.hero {
-  text-align: center;
-  padding: 3rem 1rem;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
-  color: #fff;
-  border-radius: 12px;
-  margin-bottom: 2rem;
+/* Generic badge */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 20px;
+  line-height: 1.5;
+  background: #f3f4f6;
+  color: #374151;
 }
 
-.hero h1 {
-  font-size: 2.25rem;
-  margin-bottom: 0.75rem;
-  font-weight: 800;
+.badge-success {
+  background: #dcfce7;
+  color: #166534;
 }
 
-.hero p {
-  font-size: 1.15rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto 1.5rem;
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.hero .btn {
-  font-size: 1.05rem;
-  padding: 0.75rem 1.5rem;
+.badge-danger {
+  background: #fecaca;
+  color: #991b1b;
 }
 
-.hero .btn-primary {
-  background: #fff;
-  color: #2563eb;
-  border-color: #fff;
+.badge-info {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
-.hero .btn-primary:hover {
-  background: #eff6ff;
-  color: #1d4ed8;
-}
+/* ────────────────────────────────────────────────────────────────
+   8. BIKE COMPONENTS
+   ──────────────────────────────────────────────────────────────── */
 
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.feature-card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.feature-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.feature-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-}
-
-.feature-card h3 {
-  margin-bottom: 0.35rem;
-}
-
-.feature-card p {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-/* ── Bike card grid (dashboard) ─────────────────── */
-
+/* Bike card grid (dashboard, stolen list, shared bikes) */
 .my-bikes-header {
   display: flex;
   align-items: center;
@@ -740,6 +802,8 @@ small,
   transition:
     box-shadow 0.2s,
     transform 0.2s;
+  display: flex;
+  flex-direction: column;
 }
 
 .bike-card:hover {
@@ -756,13 +820,16 @@ small,
   text-decoration: none;
 }
 
-.bike-card-photo {
+.bike-card-photo,
+.bike-card-image {
   width: 100%;
   height: 200px;
   object-fit: cover;
 }
 
-.bike-card-photo-placeholder {
+.bike-card-photo-placeholder,
+.bike-card-photo.no-photo,
+.bike-card-no-image {
   width: 100%;
   height: 200px;
   background: #e5e7eb;
@@ -777,6 +844,13 @@ small,
   padding: 1rem;
 }
 
+.bike-card-body {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .bike-card-name {
   font-size: 1.1rem;
   margin-bottom: 0.25rem;
@@ -789,14 +863,34 @@ small,
   margin-bottom: 0.5rem;
 }
 
+.bike-card-frame {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
 .bike-card-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
 
-/* ── Bike detail ────────────────────────────────── */
+.bike-card-meta {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0.5rem;
+  display: flex;
+  gap: 1rem;
+}
 
+.bike-card-actions {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Bike detail page */
 .bike-detail {
   max-width: 800px;
 }
@@ -908,20 +1002,31 @@ small,
   color: #6b7280;
 }
 
-/* ── Found report form ──────────────────────────── */
-
-.found-report {
-  max-width: 640px;
+/* Bike preview (reservation create) */
+.bike-preview {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.found-report h1 {
-  margin-bottom: 1.25rem;
+.bike-preview-photo {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
-.found-report form {
-  margin-top: 1.5rem;
+.bike-preview-info h2 {
+  margin: 0;
 }
 
+.bike-preview-info p {
+  margin: 0.25rem 0;
+}
+
+/* Bike summary (found report) */
 .bike-summary {
   display: flex;
   gap: 1rem;
@@ -952,7 +1057,266 @@ small,
   margin-bottom: 0.4rem;
 }
 
-/* ── Found reports section (on bike detail) ─────── */
+/* Photo management grid (bike edit) */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.photo-item {
+  position: relative;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.photo-item-primary {
+  border-color: #2563eb;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.photo-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  align-items: center;
+}
+
+.photo-item-actions form {
+  display: inline;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   9. RESERVATION COMPONENTS
+   ──────────────────────────────────────────────────────────────── */
+
+.reservation-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.reservation-info-grid h2 {
+  margin: 0;
+}
+
+.reservation-info-grid p {
+  margin: 0.25rem 0;
+}
+
+.action-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-row form {
+  display: inline;
+}
+
+.action-row-spaced {
+  margin-top: 0.75rem;
+}
+
+.overdue-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.overdue-actions form {
+  display: inline;
+}
+
+/* Review items */
+.review-item {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.review-item:last-child {
+  margin-bottom: 0;
+}
+
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.review-comment {
+  margin: 0.5rem 0 0;
+}
+
+.review-notice {
+  margin-top: 0.75rem;
+}
+
+.stars {
+  color: #f59e0b;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+/* Calendar (reservation create) */
+.calendar-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.legend-available {
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+}
+
+.legend-unavailable {
+  background: #ffebee;
+  border: 1px solid #ef9a9a;
+}
+
+.legend-selected {
+  background: #2563eb;
+  border: 1px solid #2563eb;
+}
+
+.calendar {
+  user-select: none;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-header button {
+  background: none;
+  border: 1px solid #d1d5db;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.calendar-header button:hover {
+  background: #f3f4f6;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.calendar-grid .day-header {
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.4rem;
+  color: #6b7280;
+}
+
+.calendar-grid .day {
+  padding: 0.5rem 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s;
+}
+
+.calendar-grid .day:hover:not(.day-unavailable):not(.day-empty):not(.day-past) {
+  background: #e3f2fd;
+}
+
+.day-empty {
+  cursor: default;
+}
+
+.day-past {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.day-unavailable {
+  background: #ffebee;
+  color: #c62828;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.day-available {
+  background: #e8f5e9;
+}
+
+.day-selected {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+
+.day-in-range {
+  background: #bbdefb !important;
+  color: #1565c0 !important;
+}
+
+.day-today {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px #2563eb;
+}
+
+.calendar-month-title {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.calendars-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   10. FOUND REPORTS
+   ──────────────────────────────────────────────────────────────── */
+
+.found-report {
+  max-width: 640px;
+}
+
+.found-report h1 {
+  margin-bottom: 1.25rem;
+}
+
+.found-report form {
+  margin-top: 1.5rem;
+}
 
 .found-reports-section {
   background: #fff;
@@ -1004,7 +1368,9 @@ small,
   margin-bottom: 0.75rem;
 }
 
-/* ── Conversation / Chat ────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   11. CONVERSATION / CHAT
+   ──────────────────────────────────────────────────────────────── */
 
 .conversation {
   max-width: 700px;
@@ -1148,14 +1514,16 @@ small,
   word-break: break-word;
 }
 
-/* Compose area */
-
 .conversation-compose {
   background: #fff;
   border-radius: 10px;
   padding: 1rem;
   margin-bottom: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.conversation-form {
+  margin-top: 1rem;
 }
 
 .compose-row {
@@ -1195,7 +1563,9 @@ small,
   border-radius: 6px;
 }
 
-/* ── Notifications ──────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   12. NOTIFICATIONS PAGE
+   ──────────────────────────────────────────────────────────────── */
 
 .notifications-page {
   max-width: 700px;
@@ -1310,6 +1680,33 @@ small,
   content: "ℹ️";
 }
 
+.icon-reservation {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.icon-reservation::after {
+  content: "📅";
+}
+
+.icon-review {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.icon-review::after {
+  content: "⭐";
+}
+
+.icon-warning {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+.icon-warning::after {
+  content: "⚠️";
+}
+
 .notification-content {
   flex: 1;
   min-width: 0;
@@ -1341,38 +1738,9 @@ small,
   display: inline;
 }
 
-/* ── Auth pages (login/register) ────────────────── */
-
-.auth-page {
-  max-width: 440px;
-  margin: 2rem auto;
-}
-
-.auth-form {
-  background: #fff;
-  border-radius: 10px;
-  padding: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.auth-form h1 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.auth-form .btn-primary {
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-.form-footer {
-  margin-top: 1.25rem;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-/* ── User profile ───────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   13. USER PROFILE
+   ──────────────────────────────────────────────────────────────── */
 
 .profile-page {
   max-width: 700px;
@@ -1436,7 +1804,121 @@ small,
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* ── Stolen bikes public list ───────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   14. AUTH PAGES (Login / Register)
+   ──────────────────────────────────────────────────────────────── */
+
+.auth-page {
+  max-width: 440px;
+  margin: 2rem auto;
+}
+
+.auth-form {
+  background: #fff;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.auth-form h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-form .btn-primary {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.form-footer {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   15. HOMEPAGE / HERO
+   ──────────────────────────────────────────────────────────────── */
+
+.hero {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  color: #fff;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.hero h1 {
+  font-size: 2.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 800;
+}
+
+.hero p {
+  font-size: 1.15rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+}
+
+.hero .btn {
+  font-size: 1.05rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.hero .btn-primary {
+  background: #fff;
+  color: #2563eb;
+  border-color: #fff;
+}
+
+.hero .btn-primary:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.feature-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-card h3 {
+  margin-bottom: 0.35rem;
+}
+
+.feature-card p {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   16. STOLEN BIKES LIST
+   ──────────────────────────────────────────────────────────────── */
 
 .stolen-list {
   max-width: 800px;
@@ -1512,7 +1994,9 @@ small,
   margin-top: 0.5rem;
 }
 
-/* ── Admin panel ────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   17. ADMIN PANEL & TABLES
+   ──────────────────────────────────────────────────────────────── */
 
 .admin-layout {
   display: grid;
@@ -1576,8 +2060,6 @@ small,
   margin-top: 0.25rem;
 }
 
-/* ── Tables (admin) ─────────────────────────────── */
-
 .table-wrapper {
   overflow-x: auto;
   background: #fff;
@@ -1620,7 +2102,9 @@ tbody tr:last-child td {
   gap: 0.35rem;
 }
 
-/* ── Empty state ────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   18. EMPTY STATES & PAGINATION
+   ──────────────────────────────────────────────────────────────── */
 
 .empty-state {
   text-align: center;
@@ -1632,8 +2116,6 @@ tbody tr:last-child td {
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
 }
-
-/* ── Pagination ─────────────────────────────────── */
 
 .pagination {
   display: flex;
@@ -1667,7 +2149,9 @@ tbody tr:last-child td {
   cursor: not-allowed;
 }
 
-/* ── Utilities ──────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   19. UTILITIES
+   ──────────────────────────────────────────────────────────────── */
 
 .text-muted {
   color: #6b7280;
@@ -1684,18 +2168,23 @@ tbody tr:last-child td {
 .mt-1 {
   margin-top: 0.5rem;
 }
+
 .mt-2 {
   margin-top: 1rem;
 }
+
 .mt-3 {
   margin-top: 1.5rem;
 }
+
 .mb-1 {
   margin-bottom: 0.5rem;
 }
+
 .mb-2 {
   margin-bottom: 1rem;
 }
+
 .mb-3 {
   margin-bottom: 1.5rem;
 }
@@ -1711,7 +2200,23 @@ tbody tr:last-child td {
   border: 0;
 }
 
-/* ── Scrollbar (for conversation) ───────────────── */
+.danger-zone {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.section-spaced {
+  margin-top: 2rem;
+}
+
+.back-link {
+  margin-top: 1.5rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   20. SCROLLBAR CUSTOMIZATION
+   ──────────────────────────────────────────────────────────────── */
 
 .conversation-messages::-webkit-scrollbar {
   width: 6px;
@@ -1730,62 +2235,9 @@ tbody tr:last-child td {
   background: #9ca3af;
 }
 
-/* ── Shared bikes ───────────────────────────────── */
-
-.bike-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-.bike-card {
-  display: flex;
-  flex-direction: column;
-}
-.bike-card-image {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 8px 8px 0 0;
-}
-.bike-card-no-image {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f0f0f0;
-  color: #999;
-}
-.bike-card-body {
-  padding: 1rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.bike-card-meta {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin: 0.25rem 0 0.5rem;
-  display: flex;
-  gap: 1rem;
-}
-.bike-card-actions {
-  margin-top: auto;
-  padding-top: 0.75rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* ── Responsive ─────────────────────────────────── */
-
-.nav-toggle {
-  display: none;
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  line-height: 1;
-}
+/* ────────────────────────────────────────────────────────────────
+   21. RESPONSIVE (Media Queries)
+   ──────────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
   nav {
@@ -1820,6 +2272,7 @@ tbody tr:last-child td {
   h1 {
     font-size: 1.4rem;
   }
+
   h2 {
     font-size: 1.15rem;
   }
@@ -1827,6 +2280,7 @@ tbody tr:last-child td {
   .hero h1 {
     font-size: 1.6rem;
   }
+
   .hero p {
     font-size: 1rem;
   }
@@ -1909,6 +2363,15 @@ tbody tr:last-child td {
     flex-direction: column;
     text-align: center;
   }
+
+  .calendars-row {
+    grid-template-columns: 1fr;
+  }
+
+  .bike-preview {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1939,9 +2402,15 @@ tbody tr:last-child td {
   .hero {
     padding: 2rem 1rem;
   }
+
+  .photo-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-/* ── Print ──────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   22. PRINT STYLES
+   ──────────────────────────────────────────────────────────────── */
 
 @media print {
   header,

@@ -61,6 +61,7 @@ class UserPreferencesRepository
 
         $columnList = implode(', ', $columns);
 
+        // Note: Using query() instead of insert() because we need ON DUPLICATE KEY UPDATE (MySQL upsert)
         $this->db->query(
             "INSERT INTO user_preferences ({$columnList}) VALUES ({$placeholders})
              ON DUPLICATE KEY UPDATE {$updateClause}",

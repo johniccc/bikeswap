@@ -113,6 +113,30 @@ class KarmaService
     }
 
     /**
+     * Add or subtract karma points from a user's score.
+     * This is used for actions not covered by recalculate() (e.g., reservations, reviews).
+     *
+     * @param int $userId User ID
+     * @param int $points Points to add (positive) or subtract (negative)
+     * @param string|null $reason Optional reason for logging/debugging
+     * @return int New karma score
+     */
+    public function addPoints(int $userId, int $points, ?string $reason = null): int
+    {
+        $user = $this->userRepository->findById($userId);
+
+        if ($user === null) {
+            return 0;
+        }
+
+        $newScore = max(0, $user->getKarmaScore() + $points);
+
+        $this->db->update('users', ['karma_score' => $newScore], 'id = ?', [$userId]);
+
+        return $newScore;
+    }
+
+    /**
      * Get a display string for use in conversations.
      * e.g. "Důvěryhodný uživatel, 3 úspěšné nálezy"
      */

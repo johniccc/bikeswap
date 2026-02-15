@@ -132,30 +132,30 @@ class FoundReportController
             return redirect('/bike/' . $qrHash);
         }
 
-        $result = $this->foundReportService->createReport([
-            'bike_id'              => $bike->getId(),
-            'qr_hash_scanned'      => $qrHash,
-            'reported_by'          => $currentUser?->getId(),
-            'reporter_email'       => $currentUser?->getEmail() ?? $request->input('reporter_email'),
-            'reporter_phone'       => $request->input('reporter_phone'),
-            'reporter_ip'          => $request->ip(),
-            'found_date'           => $request->input('found_date') ?: null,
-            'found_location_text'  => $request->input('found_location_text'),
-            'found_location_lat'   => $request->input('found_location_lat') ?: null,
-            'found_location_lng'   => $request->input('found_location_lng') ?: null,
-            'description'          => $request->input('description'),
-        ]);
+        try {
+            $result = $this->foundReportService->createReport([
+                'bike_id'              => $bike->getId(),
+                'qr_hash_scanned'      => $qrHash,
+                'reported_by'          => $currentUser?->getId(),
+                'reporter_email'       => $currentUser?->getEmail() ?? $request->input('reporter_email'),
+                'reporter_phone'       => $request->input('reporter_phone'),
+                'reporter_ip'          => $request->ip(),
+                'found_date'           => $request->input('found_date') ?: null,
+                'found_location_text'  => $request->input('found_location_text'),
+                'found_location_lat'   => $request->input('found_location_lat') ?: null,
+                'found_location_lng'   => $request->input('found_location_lng') ?: null,
+                'description'          => $request->input('description'),
+            ]);
 
-        if (!$result['success']) {
-            $this->session->flash('error', $result['error']);
+            // Redirect to the conversation (finder sees it immediately)
+            $this->session->flash('success', 'Děkujeme za nahlášení nálezu! Majitel kola byl upozorněn.');
+
+            return redirect('/found/conversation/' . $result['conversation_token']);
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
 
             return redirect("/found/report/{$qrHash}");
         }
-
-        // Redirect to the conversation (finder sees it immediately)
-        $this->session->flash('success', 'Děkujeme za nahlášení nálezu! Majitel kola byl upozorněn.');
-
-        return redirect('/found/conversation/' . $result['conversation_token']);
     }
 
     /**
@@ -212,15 +212,15 @@ class FoundReportController
 
         $currentUser = $this->authService->currentUser();
 
-        $result = $this->foundReportService->sendMessage(
-            $report->getId(),
-            'finder',
-            $currentUser?->getId(),
-            $request->input('message', '')
-        );
-
-        if (!$result['success']) {
-            $this->session->flash('error', $result['error']);
+        try {
+            $this->foundReportService->sendMessage(
+                $report->getId(),
+                'finder',
+                $currentUser?->getId(),
+                $request->input('message', '')
+            );
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
         }
 
         return redirect("/found/conversation/{$token}");
@@ -296,15 +296,15 @@ class FoundReportController
             return redirect("/found/{$reportId}/conversation");
         }
 
-        $result = $this->foundReportService->sendMessage(
-            $reportId,
-            'owner',
-            $currentUser->getId(),
-            $request->input('message', '')
-        );
-
-        if (!$result['success']) {
-            $this->session->flash('error', $result['error']);
+        try {
+            $this->foundReportService->sendMessage(
+                $reportId,
+                'owner',
+                $currentUser->getId(),
+                $request->input('message', '')
+            );
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
         }
 
         return redirect("/found/{$reportId}/conversation");
@@ -336,12 +336,12 @@ class FoundReportController
             return redirect("/found/{$reportId}/conversation");
         }
 
-        $result = $this->foundReportService->resolveReport($reportId, $bike->getId());
+        try {
+            $this->foundReportService->resolveReport($reportId, $bike->getId());
 
-        if (!$result['success']) {
-            $this->session->flash('error', $result['error']);
-        } else {
             $this->session->flash('success', 'Kolo bylo označeno jako nalezené. Děkujeme!');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
         }
 
         return redirect('/bike/' . $bike->getQrHash());

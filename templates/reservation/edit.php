@@ -78,40 +78,42 @@
     </div>
 </form>
 
-<!-- ═══ SPRÁVA FOTOGRAFIÍ – samostatná sekce MIMO hlavní formulář ═══ -->
+<!-- ═══ SPRÁVA FOTOGRAFIÍ ═══ -->
 <?php if (!empty($bike->getPhotos())): ?>
-<section class="card" style="margin-top: 2rem;">
-    <h2>Současné fotografie</h2>
+<section class="card section-spaced">
+    <div class="card-body">
+        <h2>Současné fotografie</h2>
 
-    <div class="photo-grid">
-        <?php foreach ($bike->getPhotos() as $photo): ?>
-            <div class="photo-item <?= $photo->isPrimary() ? 'photo-item-primary' : '' ?>">
-                <img src="<?= e($photo->getUrl()) ?>" alt="Foto kola">
+        <div class="photo-grid">
+            <?php foreach ($bike->getPhotos() as $photo): ?>
+                <div class="photo-item <?= $photo->isPrimary() ? 'photo-item-primary' : '' ?>">
+                    <img src="<?= e($photo->getUrl()) ?>" alt="Foto kola">
 
-                <div class="photo-item-actions">
-                    <?php if ($photo->isPrimary()): ?>
-                        <span class="badge badge-success">Hlavní</span>
-                    <?php else: ?>
-                        <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/primary">
+                    <div class="photo-item-actions">
+                        <?php if ($photo->isPrimary()): ?>
+                            <span class="badge badge-success">Hlavní</span>
+                        <?php else: ?>
+                            <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/primary">
+                                <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                                <button type="submit" class="btn btn-small">Nastavit jako hlavní</button>
+                            </form>
+                        <?php endif; ?>
+
+                        <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete"
+                              onsubmit="return confirm('Opravdu smazat tuto fotku?')">
                             <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                            <button type="submit" class="btn btn-small">Nastavit jako hlavní</button>
+                            <button type="submit" class="btn btn-small btn-danger">Smazat</button>
                         </form>
-                    <?php endif; ?>
-
-                    <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete"
-                          onsubmit="return confirm('Opravdu smazat tuto fotku?')">
-                        <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                        <button type="submit" class="btn btn-small btn-danger">Smazat</button>
-                    </form>
+                    </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        </div>
     </div>
 </section>
 <?php endif; ?>
 
 <!-- ═══ SMAZAT KOLO ═══ -->
-<section style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color, #ddd);">
+<section class="danger-zone">
     <form method="POST" action="/bike/<?= $bike->getId() ?>/delete"
           onsubmit="return confirm('Opravdu chcete trvale smazat toto kolo? Tuto akci nelze vrátit.')">
         <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">

@@ -8,7 +8,10 @@ use App\Core\Database;
 use App\Entity\Notification;
 
 /**
- * Repository for notifications table.
+ * Repository for the notifications table.
+ *
+ * Handles all database queries related to user notifications.
+ * Returns Notification entities, never raw arrays.
  */
 class NotificationRepository
 {
@@ -27,11 +30,14 @@ class NotificationRepository
     public function findByUserId(int $userId, int $limit = 50): array
     {
         $rows = $this->db->fetchAll(
-            'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ' . (int) $limit,
+            "SELECT * FROM notifications
+             WHERE user_id = ?
+             ORDER BY created_at DESC
+             LIMIT " . (int) $limit,
             [$userId]
         );
 
-        return array_map([Notification::class, 'fromRow'], $rows);
+        return array_map(fn(array $row) => Notification::fromRow($row), $rows);
     }
 
     /**
@@ -42,31 +48,39 @@ class NotificationRepository
     public function findUnreadByUserId(int $userId, int $limit = 20): array
     {
         $rows = $this->db->fetchAll(
-            'SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC LIMIT ' . (int) $limit,
+            "SELECT * FROM notifications
+             WHERE user_id = ? AND is_read = 0
+             ORDER BY created_at DESC
+             LIMIT " . (int) $limit,
             [$userId]
         );
 
-        return array_map([Notification::class, 'fromRow'], $rows);
+        return array_map(fn(array $row) => Notification::fromRow($row), $rows);
     }
 
     /**
      * Count unread notifications for a user.
+     *
+     * @return int Number of unread notifications
      */
     public function countUnread(int $userId): int
     {
         return (int) $this->db->fetchColumn(
-            'SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0',
+            "SELECT COUNT(*) FROM notifications
+             WHERE user_id = ? AND is_read = 0",
             [$userId]
         );
     }
 
     /**
      * Find a single notification by ID.
+     *
+     * @return Notification|null Notification or null if not found
      */
     public function findById(int $id): ?Notification
     {
         $row = $this->db->fetchOne(
-            'SELECT * FROM notifications WHERE id = ?',
+            "SELECT * FROM notifications WHERE id = ?",
             [$id]
         );
 
@@ -74,7 +88,9 @@ class NotificationRepository
     }
 
     /**
-     * Create a new notification. Returns the notification ID.
+     * Create a new notification.
+     *
+     * @return int The notification ID
      */
     public function create(int $userId, string $type, string $title, string $message, ?string $link = null): int
     {
@@ -105,6 +121,8 @@ class NotificationRepository
 
     /**
      * Delete old read notifications (cleanup).
+     *
+     * @return int Number of notifications deleted
      */
     public function deleteOldRead(int $olderThanDays = 90): int
     {

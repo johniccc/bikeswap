@@ -166,8 +166,7 @@ class ReservationController
 
         // Mark other party's messages as read
         $myRole = $reservation->getUserRole($currentUser->getId());
-        $otherRole = $myRole === 'owner' ? 'borrower' : 'owner';
-        $this->messageRepo->markAsReadForRecipient($id, $otherRole);
+        $this->messageRepo->markAsReadForViewer($id, $myRole);
 
         // Load revealed reviews
         $reviews = $this->reviewRepo->findRevealedByReservation($id);

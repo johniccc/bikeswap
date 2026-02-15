@@ -30,6 +30,7 @@ class ReservationService
     private ReservationReviewRepository $reviewRepo;
     private BikeRepository $bikeRepo;
     private NotificationService $notificationService;
+    private EmailService $emailService;
     private KarmaService $karmaService;
     private Database $db;
 
@@ -39,6 +40,7 @@ class ReservationService
         ReservationReviewRepository $reviewRepo,
         BikeRepository $bikeRepo,
         NotificationService $notificationService,
+        EmailService $emailService,
         KarmaService $karmaService,
         Database $db
     ) {
@@ -47,6 +49,7 @@ class ReservationService
         $this->reviewRepo = $reviewRepo;
         $this->bikeRepo = $bikeRepo;
         $this->notificationService = $notificationService;
+        $this->emailService = $emailService;
         $this->karmaService = $karmaService;
         $this->db = $db;
     }
@@ -127,11 +130,15 @@ class ReservationService
         }
 
         // 6. Notify owner
-        $this->notificationService->create(
+        $this->notificationService->notify(
             $bike->getOwnerId(),
+            'reservation',
             'Nová žádost o výpůjčku kola ' . $bike->getFullName(),
             "/reservation/{$reservationId}"
         );
+
+        // 7. Send email to owner
+        $this->emailService->sendReservationRequest($bike->getOwnerId(), $bike, $reservationId);
 
         return ['reservation_id' => $reservationId, 'token' => $token];
     }
@@ -162,17 +169,37 @@ class ReservationService
             );
         }
 
-        $this->reservationRepo->updateStatus($reservationId, 'approved');
+        try {
+            $this->db->beginTransaction();
 
-        // System message
-        $this->messageRepo->create($reservationId, 'system', null, 'Rezervace byla schválena majitelem.');
+            $this->reservationRepo->updateStatus($reservationId, 'approved');
 
-        // Notify borrower
-        $this->notificationService->create(
-            $reservation->getBorrowerId(),
-            'Vaše rezervace byla schválena!',
-            "/reservation/{$reservationId}"
-        );
+            $this->messageRepo->create($reservationId, 'system', null, 'Rezervace byla schválena majitelem.');
+
+            $this->notificationService->notify(
+                $reservation->getBorrowerId(),
+                'reservation',
+                'Vaše rezervace byla schválena!',
+                "/reservation/{$reservationId}"
+            );
+
+            // Send email to borrower
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getBorrowerId(),
+                    $bike,
+                    $reservationId,
+                    'approved',
+                    'Vaše rezervace byla schválena!'
+                );
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -186,15 +213,37 @@ class ReservationService
             throw new \RuntimeException('Tuto rezervaci nelze zamítnout.');
         }
 
-        $this->reservationRepo->updateStatus($reservationId, 'rejected');
+        try {
+            $this->db->beginTransaction();
 
-        $this->messageRepo->create($reservationId, 'system', null, 'Rezervace byla zamítnuta majitelem.');
+            $this->reservationRepo->updateStatus($reservationId, 'rejected');
 
-        $this->notificationService->create(
-            $reservation->getBorrowerId(),
-            'Vaše rezervace byla zamítnuta.',
-            "/reservation/{$reservationId}"
-        );
+            $this->messageRepo->create($reservationId, 'system', null, 'Rezervace byla zamítnuta majitelem.');
+
+            $this->notificationService->notify(
+                $reservation->getBorrowerId(),
+                'reservation',
+                'Vaše rezervace byla zamítnuta.',
+                "/reservation/{$reservationId}"
+            );
+
+            // Send email to borrower
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getBorrowerId(),
+                    $bike,
+                    $reservationId,
+                    'rejected',
+                    'Vaše rezervace byla zamítnuta.'
+                );
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -216,19 +265,41 @@ class ReservationService
             throw new \RuntimeException('Tuto rezervaci nelze zrušit.');
         }
 
-        $this->reservationRepo->updateStatus($reservationId, 'cancelled');
+        try {
+            $this->db->beginTransaction();
 
-        $role = $reservation->getUserRole($userId);
-        $cancellerLabel = $role === 'owner' ? 'majitelem' : 'vypůjčitelem';
-        $this->messageRepo->create($reservationId, 'system', null, "Rezervace byla zrušena {$cancellerLabel}.");
+            $this->reservationRepo->updateStatus($reservationId, 'cancelled');
 
-        // Notify the other party
-        $otherUserId = $role === 'owner' ? $reservation->getBorrowerId() : $reservation->getOwnerId();
-        $this->notificationService->create(
-            $otherUserId,
-            'Rezervace byla zrušena.',
-            "/reservation/{$reservationId}"
-        );
+            $role = $reservation->getUserRole($userId);
+            $cancellerLabel = $role === 'owner' ? 'majitelem' : 'vypůjčitelem';
+            $this->messageRepo->create($reservationId, 'system', null, "Rezervace byla zrušena {$cancellerLabel}.");
+
+            // Notify the other party
+            $otherUserId = $role === 'owner' ? $reservation->getBorrowerId() : $reservation->getOwnerId();
+            $this->notificationService->notify(
+                $otherUserId,
+                'reservation',
+                'Rezervace byla zrušena.',
+                "/reservation/{$reservationId}"
+            );
+
+            // Send email to the other party
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $otherUserId,
+                    $bike,
+                    $reservationId,
+                    'cancelled',
+                    'Rezervace byla zrušena.'
+                );
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -242,15 +313,37 @@ class ReservationService
             throw new \RuntimeException('Tuto rezervaci nelze aktivovat.');
         }
 
-        $this->reservationRepo->updateStatus($reservationId, 'active');
+        try {
+            $this->db->beginTransaction();
 
-        $this->messageRepo->create($reservationId, 'system', null, 'Kolo bylo předáno. Výpůjčka začala.');
+            $this->reservationRepo->updateStatus($reservationId, 'active');
 
-        $this->notificationService->create(
-            $reservation->getBorrowerId(),
-            'Výpůjčka začala! Nezapomeňte kolo vrátit včas.',
-            "/reservation/{$reservationId}"
-        );
+            $this->messageRepo->create($reservationId, 'system', null, 'Kolo bylo předáno. Výpůjčka začala.');
+
+            $this->notificationService->notify(
+                $reservation->getBorrowerId(),
+                'reservation',
+                'Výpůjčka začala! Nezapomeňte kolo vrátit včas.',
+                "/reservation/{$reservationId}"
+            );
+
+            // Send email to borrower
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getBorrowerId(),
+                    $bike,
+                    $reservationId,
+                    'active',
+                    'Výpůjčka začala! Nezapomeňte kolo vrátit včas.'
+                );
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -264,26 +357,56 @@ class ReservationService
             throw new \RuntimeException('Tuto rezervaci nelze dokončit.');
         }
 
-        $this->reservationRepo->updateStatus($reservationId, 'completed');
+        try {
+            $this->db->beginTransaction();
 
-        $this->messageRepo->create($reservationId, 'system', null, 'Kolo bylo vráceno. Výpůjčka dokončena. Nyní můžete ohodnotit druhou stranu.');
+            $this->reservationRepo->updateStatus($reservationId, 'completed');
 
-        // Karma reward for completing
-        $this->karmaService->addPoints($reservation->getBorrowerId(), 1, 'Výpůjčka dokončena');
-        $this->karmaService->addPoints($reservation->getOwnerId(), 1, 'Výpůjčka dokončena (sdílení kola)');
+            $this->messageRepo->create($reservationId, 'system', null, 'Kolo bylo vráceno. Výpůjčka dokončena. Nyní můžete ohodnotit druhou stranu.');
 
-        // Notify both to leave reviews
-        $this->notificationService->create(
-            $reservation->getBorrowerId(),
-            'Výpůjčka dokončena – ohodnoťte majitele.',
-            "/reservation/{$reservationId}"
-        );
+            // Karma reward for completing
+            $this->karmaService->addPoints($reservation->getBorrowerId(), 1, 'Výpůjčka dokončena');
+            $this->karmaService->addPoints($reservation->getOwnerId(), 1, 'Výpůjčka dokončena (sdílení kola)');
 
-        $this->notificationService->create(
-            $reservation->getOwnerId(),
-            'Výpůjčka dokončena – ohodnoťte vypůjčitele.',
-            "/reservation/{$reservationId}"
-        );
+            // Notify both to leave reviews
+            $this->notificationService->notify(
+                $reservation->getBorrowerId(),
+                'review',
+                'Výpůjčka dokončena – ohodnoťte majitele.',
+                "/reservation/{$reservationId}"
+            );
+
+            $this->notificationService->notify(
+                $reservation->getOwnerId(),
+                'review',
+                'Výpůjčka dokončena – ohodnoťte vypůjčitele.',
+                "/reservation/{$reservationId}"
+            );
+
+            // Send emails to both parties
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getBorrowerId(),
+                    $bike,
+                    $reservationId,
+                    'completed',
+                    'Výpůjčka dokončena – ohodnoťte majitele.'
+                );
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getOwnerId(),
+                    $bike,
+                    $reservationId,
+                    'completed',
+                    'Výpůjčka dokončena – ohodnoťte vypůjčitele.'
+                );
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -297,18 +420,40 @@ class ReservationService
             throw new \RuntimeException('Nelze nahlásit nevrácení.');
         }
 
-        $this->reservationRepo->updateStatus($reservationId, 'not_returned');
+        try {
+            $this->db->beginTransaction();
 
-        $this->messageRepo->create($reservationId, 'system', null, '⚠ Majitel nahlásil, že kolo nebylo vráceno.');
+            $this->reservationRepo->updateStatus($reservationId, 'not_returned');
 
-        // Karma penalty for borrower
-        $this->karmaService->addPoints($reservation->getBorrowerId(), -10, 'Kolo nevráceno');
+            $this->messageRepo->create($reservationId, 'system', null, '⚠ Majitel nahlásil, že kolo nebylo vráceno.');
 
-        $this->notificationService->create(
-            $reservation->getBorrowerId(),
-            '⚠ Majitel nahlásil, že jste nevrátili kolo!',
-            "/reservation/{$reservationId}"
-        );
+            // Karma penalty for borrower
+            $this->karmaService->addPoints($reservation->getBorrowerId(), -10, 'Kolo nevráceno');
+
+            $this->notificationService->notify(
+                $reservation->getBorrowerId(),
+                'warning',
+                '⚠ Majitel nahlásil, že jste nevrátili kolo!',
+                "/reservation/{$reservationId}"
+            );
+
+            // Send email to borrower
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getBorrowerId(),
+                    $bike,
+                    $reservationId,
+                    'not_returned',
+                    '⚠ Majitel nahlásil, že jste nevrátili kolo!'
+                );
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     // ── Messaging ──────────────────────────────────────────
@@ -337,11 +482,18 @@ class ReservationService
             ? $reservation->getBorrowerId()
             : $reservation->getOwnerId();
 
-        $this->notificationService->create(
+        $this->notificationService->notify(
             $otherUserId,
+            'message',
             'Nová zpráva v konverzaci k rezervaci.',
             "/reservation/{$reservationId}"
         );
+
+        // Send email to other party
+        $bike = $this->bikeRepo->findById($reservation->getBikeId());
+        if ($bike !== null) {
+            $this->emailService->sendReservationMessage($otherUserId, $bike, $reservationId);
+        }
     }
 
     // ── Reviews ────────────────────────────────────────────
@@ -419,13 +571,15 @@ class ReservationService
                 }
 
                 // Notify both that reviews are now visible
-                $this->notificationService->create(
+                $this->notificationService->notify(
                     $reservation->getBorrowerId(),
+                    'review',
                     'Obě hodnocení jsou nyní viditelná!',
                     "/reservation/{$reservationId}"
                 );
-                $this->notificationService->create(
+                $this->notificationService->notify(
                     $reservation->getOwnerId(),
+                    'review',
                     'Obě hodnocení jsou nyní viditelná!',
                     "/reservation/{$reservationId}"
                 );
@@ -441,8 +595,9 @@ class ReservationService
                     ? $reservation->getBorrowerId()
                     : $reservation->getOwnerId();
 
-                $this->notificationService->create(
+                $this->notificationService->notify(
                     $otherUserId,
+                    'review',
                     'Druhá strana vás ohodnotila. Ohodnoťte ji také, aby se recenze zobrazily.',
                     "/reservation/{$reservationId}"
                 );

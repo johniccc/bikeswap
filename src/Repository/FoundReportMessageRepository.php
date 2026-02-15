@@ -74,8 +74,9 @@ class FoundReportMessageRepository
         $placeholders = implode(',', array_fill(0, count($otherTypes), '?'));
         $params = array_merge([$reportId], $otherTypes);
 
+        // Note: Using query() instead of update() because we need IN clause support
         $this->db->query(
-            "UPDATE found_report_messages SET is_read = 1 
+            "UPDATE found_report_messages SET is_read = 1
              WHERE found_report_id = ? AND sender_type IN ({$placeholders}) AND is_read = 0",
             $params
         );

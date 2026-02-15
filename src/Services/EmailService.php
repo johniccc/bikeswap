@@ -129,6 +129,87 @@ class EmailService
     }
 
     /**
+     * Notify owner about a new reservation request.
+     */
+    public function sendReservationRequest(int $ownerId, Bike $bike, int $reservationId): void
+    {
+        if (!$this->preferencesRepository->isEnabled($ownerId, 'email_on_reservation')) {
+            return;
+        }
+
+        $user = $this->userRepository->findById($ownerId);
+
+        if ($user === null) {
+            return;
+        }
+
+        $subject = 'Nová žádost o výpůjčku – ' . $bike->getFullName();
+        $body = sprintf(
+            "Dobrý den,\n\nněkdo požádal o výpůjčku vašeho kola %s.\n\n" .
+            "Přihlaste se do BikeSwap pro schválení nebo zamítnutí:\n/reservation/%d\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $bike->getFullName(),
+            $reservationId
+        );
+
+        $this->send($user->getEmail(), $subject, $body);
+    }
+
+    /**
+     * Notify borrower about reservation status change.
+     */
+    public function sendReservationStatusChange(int $borrowerId, Bike $bike, int $reservationId, string $status, string $statusMessage): void
+    {
+        if (!$this->preferencesRepository->isEnabled($borrowerId, 'email_on_status_change')) {
+            return;
+        }
+
+        $user = $this->userRepository->findById($borrowerId);
+
+        if ($user === null) {
+            return;
+        }
+
+        $subject = $statusMessage . ' – ' . $bike->getFullName();
+        $body = sprintf(
+            "Dobrý den,\n\n%s\n\n" .
+            "Přihlaste se do BikeSwap pro více informací:\n/reservation/%d\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $statusMessage,
+            $reservationId
+        );
+
+        $this->send($user->getEmail(), $subject, $body);
+    }
+
+    /**
+     * Notify user about a new message in reservation conversation.
+     */
+    public function sendReservationMessage(int $recipientId, Bike $bike, int $reservationId): void
+    {
+        if (!$this->preferencesRepository->isEnabled($recipientId, 'email_on_message')) {
+            return;
+        }
+
+        $user = $this->userRepository->findById($recipientId);
+
+        if ($user === null) {
+            return;
+        }
+
+        $subject = 'Nová zpráva v konverzaci – ' . $bike->getFullName();
+        $body = sprintf(
+            "Dobrý den,\n\nmáte novou zprávu v konverzaci k rezervaci kola %s.\n\n" .
+            "Přihlaste se do BikeSwap pro odpověď:\n/reservation/%d\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $bike->getFullName(),
+            $reservationId
+        );
+
+        $this->send($user->getEmail(), $subject, $body);
+    }
+
+    /**
      * Send an email (or log it in debug mode).
      */
     private function send(string $to, string $subject, string $body): void

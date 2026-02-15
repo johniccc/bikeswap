@@ -4,34 +4,25 @@
 
 <!-- Search filters -->
 <form method="GET" action="/stolen" class="search-form">
-    <div class="form-row">
-        <div class="form-group">
-            <label for="brand">Značka</label>
-            <input type="text" id="brand" name="brand"
-                   value="<?= e($filters['brand'] ?? '') ?>"
-                   placeholder="např. Trek, Giant">
-        </div>
+    <div class="search-row">
+        <input type="text" id="brand" name="brand"
+               value="<?= e($filters['brand'] ?? '') ?>"
+               placeholder="Značka (např. Trek, Giant)">
 
-        <div class="form-group">
-            <label for="color">Barva</label>
-            <input type="text" id="color" name="color"
-                   value="<?= e($filters['color'] ?? '') ?>"
-                   placeholder="např. černá">
-        </div>
+        <input type="text" id="color" name="color"
+               value="<?= e($filters['color'] ?? '') ?>"
+               placeholder="Barva (např. černá)">
 
-        <div class="form-group">
-            <label for="frame_number">Číslo rámu</label>
-            <input type="text" id="frame_number" name="frame_number"
-                   value="<?= e($filters['frame_number'] ?? '') ?>"
-                   placeholder="Číslo rámu">
-        </div>
+        <input type="text" id="frame_number" name="frame_number"
+               value="<?= e($filters['frame_number'] ?? '') ?>"
+               placeholder="Číslo rámu">
+
+        <button type="submit" class="btn btn-primary">Hledat</button>
+
+        <?php if (!empty($filters)): ?>
+            <a href="/stolen" class="btn">Zrušit filtr</a>
+        <?php endif; ?>
     </div>
-
-    <button type="submit" class="btn">Hledat</button>
-
-    <?php if (!empty($filters)): ?>
-        <a href="/stolen" class="btn">Zrušit filtr</a>
-    <?php endif; ?>
 </form>
 
 <!-- Results -->

@@ -69,5 +69,7 @@
         </div>
     </fieldset>
 
-    <button type="submit">Zaregistrovat kolo</button>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Zaregistrovat kolo</button>
+    </div>
 </form>

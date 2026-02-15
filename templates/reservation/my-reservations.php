@@ -9,7 +9,7 @@
     <div class="alert alert-error">
         <strong>⚠ Máte <?= count($overdue) ?> nevrácené <?= count($overdue) === 1 ? 'kolo' : 'kola' ?>!</strong>
         <?php foreach ($overdue as $r): ?>
-            <div style="margin-top: 0.5rem;">
+            <div class="mt-1">
                 <a href="/reservation/<?= $r->getId() ?>">
                     <?= e($r->getBike() ? $r->getBike()->getFullName() : 'Kolo #' . $r->getBikeId()) ?>
                 </a>
@@ -20,7 +20,7 @@
 <?php endif; ?>
 
 <!-- ═══ AS OWNER (incoming requests) ═══ -->
-<section style="margin-bottom: 2.5rem;">
+<section class="mb-3">
     <h2>Jako majitel <span class="text-muted text-small">(žádosti o moje kola)</span></h2>
 
     <?php if (empty($asOwner)): ?>

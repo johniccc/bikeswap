@@ -9,7 +9,10 @@ use App\Entity\Bike;
 use App\Entity\BikePhoto;
 
 /**
- * Repository for bikes and bike_photos tables.
+ * Repository for the bikes and bike_photos tables.
+ *
+ * Handles all database queries related to bikes and their photos.
+ * Returns Bike entities and BikePhoto entities, never raw arrays.
  */
 class BikeRepository
 {
@@ -245,17 +248,28 @@ class BikeRepository
      */
     public function addPhoto(int $bikeId, string $filePath, int $uploadedBy, bool $isPrimary = false): int
     {
-        // If this is primary, unset other primaries first
-        if ($isPrimary) {
-            $this->db->update('bike_photos', ['is_primary' => 0], 'bike_id = ?', [$bikeId]);
-        }
+        try {
+            $this->db->beginTransaction();
 
-        return $this->db->insert('bike_photos', [
-            'bike_id'     => $bikeId,
-            'file_path'   => $filePath,
-            'is_primary'  => $isPrimary ? 1 : 0,
-            'uploaded_by' => $uploadedBy,
-        ]);
+            // If this is primary, unset other primaries first
+            if ($isPrimary) {
+                $this->db->update('bike_photos', ['is_primary' => 0], 'bike_id = ?', [$bikeId]);
+            }
+
+            $photoId = $this->db->insert('bike_photos', [
+                'bike_id'     => $bikeId,
+                'file_path'   => $filePath,
+                'is_primary'  => $isPrimary ? 1 : 0,
+                'uploaded_by' => $uploadedBy,
+            ]);
+
+            $this->db->commit();
+
+            return $photoId;
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -271,8 +285,17 @@ class BikeRepository
      */
     public function setPrimaryPhoto(int $photoId, int $bikeId): void
     {
-        $this->db->update('bike_photos', ['is_primary' => 0], 'bike_id = ?', [$bikeId]);
-        $this->db->update('bike_photos', ['is_primary' => 1], 'id = ?', [$photoId]);
+        try {
+            $this->db->beginTransaction();
+
+            $this->db->update('bike_photos', ['is_primary' => 0], 'bike_id = ?', [$bikeId]);
+            $this->db->update('bike_photos', ['is_primary' => 1], 'id = ?', [$photoId]);
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     // ── Batch loading ──────────────────────────────────────────

@@ -53,24 +53,25 @@ class FoundReportService
 
     /**
      * Create a new found report.
-     * 
+     *
      * Generates a conversation token, creates the report,
      * notifies the bike owner, and sends confirmation email to finder.
-     * 
-     * @return array{success: bool, report_id?: int, conversation_token?: string, error?: string}
+     *
+     * @return array{report_id: int, conversation_token: string}
+     * @throws \RuntimeException If bike not found
      */
     public function createReport(array $data): array
     {
         $bikeId = $data['bike_id'] ?? null;
 
         if ($bikeId === null) {
-            return ['success' => false, 'error' => 'Kolo nebylo identifikováno.'];
+            throw new \RuntimeException('Kolo nebylo identifikováno.', 400);
         }
 
         $bike = $this->bikeRepository->findById($bikeId);
 
         if ($bike === null) {
-            return ['success' => false, 'error' => 'Kolo nenalezeno.'];
+            throw new \RuntimeException('Kolo nenalezeno.', 404);
         }
 
         // Generate unique conversation token
@@ -103,7 +104,14 @@ class FoundReportService
             );
 
             // Notify the bike owner (in-app)
-            $this->notificationService->notifyFoundReport($bike->getOwnerId(), $bike, $reportId);
+            $bikeName = $bike->getFullName();
+            $this->notificationService->notify(
+                $bike->getOwnerId(),
+                'found_report',
+                'Někdo našel vaše kolo!',
+                "/found/{$reportId}/conversation",
+                "Bylo nahlášeno nalezení kola {$bikeName}. Zkontrolujte detaily a odpovězte nálezci."
+            );
 
             // Send email to the bike owner (if they have it enabled)
             $this->emailService->sendFoundReportNotification($bike->getOwnerId(), $bike, $reportId);
@@ -125,7 +133,6 @@ class FoundReportService
             $this->db->commit();
 
             return [
-                'success' => true,
                 'report_id' => $reportId,
                 'conversation_token' => $conversationToken,
             ];
@@ -138,25 +145,26 @@ class FoundReportService
 
     /**
      * Send a message in a found report conversation.
-     * 
-     * @return array{success: bool, message_id?: int, error?: string}
+     *
+     * @return int Message ID
+     * @throws \RuntimeException If report not found, resolved, or message empty
      */
-    public function sendMessage(int $reportId, string $senderType, ?int $senderUserId, string $message): array
+    public function sendMessage(int $reportId, string $senderType, ?int $senderUserId, string $message): int
     {
         $report = $this->reportRepository->findById($reportId);
 
         if ($report === null) {
-            return ['success' => false, 'error' => 'Hlášení nenalezeno.'];
+            throw new \RuntimeException('Hlášení nenalezeno.', 404);
         }
 
         if ($report->isResolved()) {
-            return ['success' => false, 'error' => 'Tato konverzace je již uzavřena.'];
+            throw new \RuntimeException('Tato konverzace je již uzavřena.', 400);
         }
 
         $message = trim($message);
 
         if ($message === '') {
-            return ['success' => false, 'error' => 'Zpráva nemůže být prázdná.'];
+            throw new \RuntimeException('Zpráva nemůže být prázdná.', 400);
         }
 
         $messageId = $this->messageRepository->create($reportId, $senderType, $senderUserId, $message);
@@ -171,7 +179,14 @@ class FoundReportService
 
         if ($senderType === 'finder' && $bike !== null) {
             // Finder sent a message → notify owner
-            $this->notificationService->notifyNewMessage($bike->getOwnerId(), $bike, $reportId);
+            $bikeName = $bike->getFullName();
+            $this->notificationService->notify(
+                $bike->getOwnerId(),
+                'message',
+                'Nová zpráva od nálezce',
+                "/found/{$reportId}/conversation",
+                "Máte novou zprávu v konverzaci o kole {$bikeName}."
+            );
             $this->emailService->sendMessageNotification($bike->getOwnerId(), $bike, $reportId);
         } elseif ($senderType === 'owner' && !empty($report->getReporterEmail())) {
             // Owner sent a message → email the finder (no in-app notification, finder may not be registered)
@@ -182,28 +197,28 @@ class FoundReportService
             );
         }
 
-        return ['success' => true, 'message_id' => $messageId];
+        return $messageId;
     }
 
     /**
      * Resolve a found report (bike was returned to owner).
-     * 
+     *
      * Marks the found report as resolved, adds a system message,
      * changes bike status back to active, and also resolves the
      * associated theft report — all within a single transaction.
-     * 
-     * @return array{success: bool, error?: string}
+     *
+     * @throws \RuntimeException If report not found or already resolved
      */
-    public function resolveReport(int $reportId, int $bikeId): array
+    public function resolveReport(int $reportId, int $bikeId): void
     {
         $report = $this->reportRepository->findById($reportId);
 
         if ($report === null) {
-            return ['success' => false, 'error' => 'Hlášení nenalezeno.'];
+            throw new \RuntimeException('Hlášení nenalezeno.', 404);
         }
 
         if ($report->isResolved()) {
-            return ['success' => false, 'error' => 'Toto hlášení je již vyřešené.'];
+            throw new \RuntimeException('Toto hlášení je již vyřešené.', 400);
         }
 
         try {
@@ -235,8 +250,6 @@ class FoundReportService
             }
 
             $this->db->commit();
-
-            return ['success' => true];
         } catch (\Throwable $e) {
             $this->db->rollBack();
 

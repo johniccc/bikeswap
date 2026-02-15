@@ -48,16 +48,27 @@ class ReservationMessageRepository
     }
 
     /**
-     * Mark all messages as read for a specific recipient type.
-     * (When owner opens conversation, mark borrower messages as read and vice versa.)
+     * Mark all messages as read for a specific viewer.
+     * Owner reads messages from borrower, borrower reads messages from owner.
      */
-    public function markAsReadForRecipient(int $reservationId, string $recipientIsNot): void
+    public function markAsReadForViewer(int $reservationId, string $viewerType): void
     {
+        // Owner reads borrower messages, borrower reads owner messages
+        $senderType = match ($viewerType) {
+            'owner'    => 'borrower',
+            'borrower' => 'owner',
+            default    => null,
+        };
+
+        if ($senderType === null) {
+            return;
+        }
+
         $this->db->update(
             'reservation_messages',
             ['is_read' => 1],
             'reservation_id = ? AND sender_type = ? AND is_read = 0',
-            [$reservationId, $recipientIsNot]
+            [$reservationId, $senderType]
         );
     }
 

@@ -34,23 +34,24 @@ class TheftService
 
     /**
      * Report a bike as stolen.
-     * 
+     *
      * Creates a theft report and changes the bike status to 'stolen' in a single transaction.
-     * 
-     * @return array{success: bool, report_id?: int, error?: string}
+     *
+     * @return int Theft report ID
+     * @throws \RuntimeException If bike already reported as stolen or not active
      */
-    public function reportTheft(Bike $bike, int $reportedBy, array $data): array
+    public function reportTheft(Bike $bike, int $reportedBy, array $data): int
     {
         // Check if bike is already reported as stolen
         $existing = $this->theftReportRepository->findActiveByBikeId($bike->getId());
 
         if ($existing !== null) {
-            return ['success' => false, 'error' => 'Toto kolo je již nahlášeno jako odcizené.'];
+            throw new \RuntimeException('Toto kolo je již nahlášeno jako odcizené.', 409);
         }
 
         // Only active bikes can be reported as stolen
         if (!$bike->isActive()) {
-            return ['success' => false, 'error' => 'Toto kolo nelze nahlásit jako odcizené (aktuální stav: ' . $bike->getStatusLabel() . ').'];
+            throw new \RuntimeException('Toto kolo nelze nahlásit jako odcizené (aktuální stav: ' . $bike->getStatusLabel() . ').', 400);
         }
 
         try {
@@ -74,7 +75,7 @@ class TheftService
 
             $this->db->commit();
 
-            return ['success' => true, 'report_id' => $reportId];
+            return $reportId;
         } catch (\Throwable $e) {
             $this->db->rollBack();
 
@@ -84,21 +85,23 @@ class TheftService
 
     /**
      * Resolve a theft report (bike was found by owner).
-     * 
+     *
      * Marks the report as resolved and returns the bike to 'active' status,
      * so the owner can continue using all features (sharing, re-reporting if needed).
      * The theft history is preserved in the theft_reports table.
+     *
+     * @throws \RuntimeException If report not found or already resolved
      */
-    public function resolveTheft(int $reportId, int $bikeId): array
+    public function resolveTheft(int $reportId, int $bikeId): void
     {
         $report = $this->theftReportRepository->findById($reportId);
 
         if ($report === null) {
-            return ['success' => false, 'error' => 'Hlášení nenalezeno.'];
+            throw new \RuntimeException('Hlášení nenalezeno.', 404);
         }
 
         if ($report->isResolved()) {
-            return ['success' => false, 'error' => 'Toto hlášení je již vyřešené.'];
+            throw new \RuntimeException('Toto hlášení je již vyřešené.', 400);
         }
 
         try {
@@ -108,8 +111,6 @@ class TheftService
             $this->bikeRepository->updateStatus($bikeId, 'active');
 
             $this->db->commit();
-
-            return ['success' => true];
         } catch (\Throwable $e) {
             $this->db->rollBack();
 

@@ -16,11 +16,13 @@
                 <a href="/stolen">Odcizená kola</a>
 
                 <?php if (isset($session) && $session->isLoggedIn()): ?>
+                    <a href="/shared">Sdílená kola</a>
                     <a href="/dashboard">Moje kola</a>
+                    <a href="/reservations">Moje rezervace</a>
                     <a href="/bike/new">Registrovat kolo</a>
                     <a href="/notifications" class="nav-notifications" id="nav-notifications">
                         Oznámení
-                        <span class="notification-badge" id="notification-badge" style="display:none;"></span>
+                        <span class="notification-badge" id="notification-badge"></span>
                     </a>
                     <form method="POST" action="/logout" class="nav-logout">
                         <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
@@ -58,18 +60,15 @@
 
                 if (data.unread_count > 0) {
                     badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
-                    badge.style.display = '';
+                    badge.classList.add('visible');
                 } else {
-                    badge.style.display = 'none';
+                    badge.classList.remove('visible');
                 }
             })
             .catch(function() {});
         }
 
-        // Fetch on page load
         updateBadge();
-
-        // Poll every 60 seconds
         setInterval(updateBadge, 60000);
     })();
     </script>

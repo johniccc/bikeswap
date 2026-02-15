@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Entity\Bike;
 use App\Repository\NotificationRepository;
 
 /**
- * Notification service — facade over NotificationRepository.
+ * Notification service — thin facade over NotificationRepository.
  *
- * Creates typed notifications with appropriate titles, messages, and links.
+ * Does NOT contain business logic or entity knowledge.
+ * Each calling service composes its own notification texts,
+ * because it knows the context best.
  */
 class NotificationService
 {
@@ -22,53 +23,29 @@ class NotificationService
     }
 
     /**
-     * Notify bike owner that someone reported finding their bike.
+     * Create a notification for a user.
+     *
+     * @param int         $userId  Recipient user ID
+     * @param string      $type    Notification category (e.g. 'found_report', 'reservation', 'message', 'theft_resolved')
+     * @param string      $title   Short headline shown in notification list
+     * @param string|null $link    Optional URL to redirect when clicked
+     * @param string|null $message Optional longer description (defaults to $title if omitted)
+     *
+     * @return int Created notification ID
      */
-    public function notifyFoundReport(int $ownerId, Bike $bike, int $reportId): void
-    {
-        $this->repository->create(
-            userId: $ownerId,
-            type: 'found_report',
-            title: 'Někdo našel vaše kolo!',
-            message: sprintf(
-                'Bylo nahlášeno nalezení kola %s. Zkontrolujte detaily a odpovězte nálezci.',
-                $bike->getFullName()
-            ),
-            link: "/found/{$reportId}/conversation"
-        );
-    }
-
-    /**
-     * Notify bike owner about a new message in found report conversation.
-     */
-    public function notifyNewMessage(int $ownerId, Bike $bike, int $reportId): void
-    {
-        $this->repository->create(
-            userId: $ownerId,
-            type: 'message',
-            title: 'Nová zpráva od nálezce',
-            message: sprintf(
-                'Máte novou zprávu v konverzaci o kole %s.',
-                $bike->getFullName()
-            ),
-            link: "/found/{$reportId}/conversation"
-        );
-    }
-
-    /**
-     * Notify bike owner that their theft report was resolved (bike found).
-     */
-    public function notifyTheftResolved(int $ownerId, Bike $bike): void
-    {
-        $this->repository->create(
-            userId: $ownerId,
-            type: 'theft_resolved',
-            title: 'Kolo označeno jako nalezené',
-            message: sprintf(
-                'Kolo %s bylo úspěšně navráceno. Hlášení krádeže bylo uzavřeno.',
-                $bike->getFullName()
-            ),
-            link: '/bike/' . $bike->getQrHash()
+    public function notify(
+        int $userId,
+        string $type,
+        string $title,
+        ?string $link = null,
+        ?string $message = null
+    ): int {
+        return $this->repository->create(
+            userId: $userId,
+            type: $type,
+            title: $title,
+            message: $message ?? $title,
+            link: $link
         );
     }
 

@@ -44,7 +44,7 @@ class QRService
             }
         }
 
-        throw new \RuntimeException('Failed to generate a unique QR hash after multiple attempts.');
+        throw new \RuntimeException('Nepodařilo se vygenerovat unikátní QR hash po několika pokusech.', 500);
     }
 
     /**
