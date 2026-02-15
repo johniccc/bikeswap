@@ -4,7 +4,7 @@ Cele jako docker kontejner
 
 po odeslání nepřihlášeného nálezu kola mi to napíše tuto chybu 500 – Chyba serveru
 
-Call to undefined method App\Core\Database::execute()
+Call to undefined method App\Core\Database::execute() --> už jsem opravil, změnil jsem na metody delete, update, insert
 
 
 

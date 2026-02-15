@@ -229,13 +229,7 @@ class FoundReportService
                 $this->theftReportRepository->updateStatus($activeTheftReport->getId(), 'resolved');
             }
 
-            // 5. Notify the bike owner
-            $bike = $this->bikeRepository->findById($bikeId);
-            if ($bike !== null) {
-                $this->notificationService->notifyTheftResolved($bike->getOwnerId(), $bike);
-            }
-
-            // 6. Recalculate karma for the finder
+            // 5. Recalculate karma for the finder
             if ($report->getReportedBy() !== null) {
                 $this->karmaService->recalculate($report->getReportedBy());
             }
