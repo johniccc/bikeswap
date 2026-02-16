@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS `found_reports` (
     `reporter_email`      VARCHAR(255)    NULL DEFAULT NULL,
     `reporter_phone`      VARCHAR(20)     NULL DEFAULT NULL,
     `reporter_ip`         VARCHAR(45)     NULL DEFAULT NULL,
+    `conversation_token`  VARCHAR(64)     NOT NULL,
     `found_date`          DATE            NULL DEFAULT NULL,
     `found_location_text` VARCHAR(255)    NULL DEFAULT NULL,
     `found_location_lat`  DECIMAL(10, 7)  NULL DEFAULT NULL,
@@ -118,6 +119,7 @@ CREATE TABLE IF NOT EXISTS `found_reports` (
     `created_at`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_found_token` (`conversation_token`),
     KEY `idx_found_bike` (`bike_id`),
     KEY `idx_found_status` (`status`),
     KEY `idx_found_qr` (`qr_hash_scanned`),
@@ -164,6 +166,8 @@ CREATE TABLE IF NOT EXISTS `found_report_messages` (
 CREATE TABLE IF NOT EXISTS `notifications` (
     `id`          INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     `user_id`     INT UNSIGNED    NOT NULL,
+    `type`        VARCHAR(50)     NOT NULL DEFAULT 'info',
+    `title`       VARCHAR(255)    NOT NULL,
     `message`     VARCHAR(500)    NOT NULL,
     `link`        VARCHAR(255)    NULL DEFAULT NULL,
     `is_read`     TINYINT(1)      NOT NULL DEFAULT 0,
@@ -171,6 +175,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
 
     PRIMARY KEY (`id`),
     KEY `idx_notif_user_read` (`user_id`, `is_read`, `created_at`),
+    KEY `idx_notif_type` (`type`),
     CONSTRAINT `fk_notif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
@@ -183,6 +188,7 @@ CREATE TABLE IF NOT EXISTS `user_preferences` (
     `email_on_found_report`    TINYINT(1)      NOT NULL DEFAULT 1,
     `email_on_reservation`     TINYINT(1)      NOT NULL DEFAULT 1,
     `email_on_message`         TINYINT(1)      NOT NULL DEFAULT 0,
+    `email_on_status_change`   TINYINT(1)      NOT NULL DEFAULT 1,
 
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_prefs_user` (`user_id`),
