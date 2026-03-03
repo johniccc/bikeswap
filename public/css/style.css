@@ -40,6 +40,8 @@
   --alert-warning-bg:     #fef3c7;
   --alert-warning-text:   #92400e;
   --alert-warning-border: #fde68a;
+  --alert-stolen-text:    #7f1d1d;
+  --alert-stolen-border:  #fca5a5;
 
   /* Layout */
   --sidebar-width:     220px;
@@ -617,8 +619,8 @@ input, textarea, select { font-family: var(--font); }
 
 .alert-stolen {
   background: var(--alert-error-bg);
-  color: #7f1d1d;
-  border-color: #fca5a5;
+  color: var(--alert-stolen-text);
+  border-color: var(--alert-stolen-border);
   font-weight: 600;
 }
 
