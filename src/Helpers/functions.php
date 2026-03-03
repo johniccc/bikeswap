@@ -56,3 +56,17 @@ if (!function_exists('json')) {
         return new \App\Response\JsonResponse($data, $code);
     }
 }
+
+if (!function_exists('isActiveRoute')) {
+    /**
+     * Return 'active' if the given path matches the current request URI.
+     * Used in templates to highlight the current nav item.
+     */
+    function isActiveRoute(string $path): string
+    {
+        $current = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+        if ($path === '/' && $current === '/') return 'active';
+        if ($path !== '/' && str_starts_with($current, $path)) return 'active';
+        return '';
+    }
+}
