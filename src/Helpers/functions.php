@@ -66,7 +66,12 @@ if (!function_exists('isActiveRoute')) {
     {
         $current = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
         if ($path === '/' && $current === '/') return 'active';
-        if ($path !== '/' && str_starts_with($current, $path)) return 'active';
+        if ($path !== '/') {
+            $next = $current[strlen($path)] ?? '';
+            if (str_starts_with($current, $path) && ($next === '' || $next === '/' || $next === '?')) {
+                return 'active';
+            }
+        }
         return '';
     }
 }

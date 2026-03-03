@@ -158,7 +158,8 @@ input, textarea, select { font-family: var(--font); }
   box-shadow: var(--shadow-md);
 }
 
-.top-bar .brand {
+.top-bar .brand,
+.top-bar-logo {
   color: #fff;
   font-weight: 800;
   font-size: 1.15rem;
@@ -166,13 +167,41 @@ input, textarea, select { font-family: var(--font); }
   letter-spacing: -.3px;
 }
 
-.top-bar .brand:hover {
+.top-bar .brand:hover,
+.top-bar-logo:hover {
   text-decoration: none;
   color: #fff;
 }
 
-.top-bar .brand span {
+.top-bar .brand span,
+.top-bar-logo span {
   color: var(--color-accent);
+}
+
+/* Top bar actions area */
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-left: auto;
+}
+
+/* Top bar bell / notification icon link */
+.top-bar-bell {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  color: rgba(255,255,255,.85);
+  font-size: 1.2rem;
+  text-decoration: none;
+  position: relative;
+  padding: .25rem;
+  transition: color var(--transition);
+}
+
+.top-bar-bell:hover {
+  color: #fff;
+  text-decoration: none;
 }
 
 /* ── Page content ── */
@@ -230,13 +259,25 @@ input, textarea, select { font-family: var(--font); }
 }
 
 /* QR button in bottom nav */
-.bottom-nav-qr {
+.bottom-nav-qr,
+.bottom-nav-qr-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
   position: relative;
+}
+
+/* Bottom nav icon and label spans */
+.bottom-nav-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.bottom-nav-label {
+  font-size: .65rem;
+  line-height: 1.2;
 }
 
 .bottom-nav-qr-btn {
@@ -315,7 +356,8 @@ input, textarea, select { font-family: var(--font); }
 }
 
 /* Sidebar brand */
-.sidebar-brand {
+.sidebar-brand,
+.sidebar-logo {
   display: flex;
   align-items: center;
   padding: 1.1rem .9rem;
@@ -328,13 +370,24 @@ input, textarea, select { font-family: var(--font); }
   flex-shrink: 0;
 }
 
-.sidebar-brand:hover {
+.sidebar-brand:hover,
+.sidebar-logo:hover {
   color: #fff;
   text-decoration: none;
 }
 
-.sidebar-brand span {
+.sidebar-brand span,
+.sidebar-logo span,
+.sidebar-logo a,
+.sidebar-logo a:hover {
   color: var(--color-accent);
+  text-decoration: none;
+}
+
+.sidebar-logo a {
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 /* Sidebar navigation */
@@ -346,7 +399,8 @@ input, textarea, select { font-family: var(--font); }
   padding: .5rem .4rem;
 }
 
-.sidebar-link {
+.sidebar-link,
+.sidebar-nav-link {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -360,7 +414,9 @@ input, textarea, select { font-family: var(--font); }
 }
 
 .sidebar-link svg,
-.sidebar-link i {
+.sidebar-link i,
+.sidebar-nav-link svg,
+.sidebar-nav-link i {
   width: 18px;
   height: 18px;
   font-size: 1rem;
@@ -368,7 +424,9 @@ input, textarea, select { font-family: var(--font); }
 }
 
 .sidebar-link:hover,
-.sidebar-link.active {
+.sidebar-link.active,
+.sidebar-nav-link:hover,
+.sidebar-nav-link.active {
   background: rgba(255,255,255,.15);
   color: #fff;
   text-decoration: none;
@@ -411,7 +469,8 @@ input, textarea, select { font-family: var(--font); }
   flex-shrink: 0;
 }
 
-.sidebar-user {
+.sidebar-user,
+.sidebar-profile-link {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -424,13 +483,15 @@ input, textarea, select { font-family: var(--font); }
   transition: background var(--transition);
 }
 
-.sidebar-user:hover {
+.sidebar-user:hover,
+.sidebar-profile-link:hover {
   background: rgba(255,255,255,.10);
   color: #fff;
   text-decoration: none;
 }
 
-.sidebar-logout {
+.sidebar-logout,
+.sidebar-logout-btn {
   display: flex;
   align-items: center;
   gap: .6rem;
@@ -446,7 +507,8 @@ input, textarea, select { font-family: var(--font); }
   transition: background var(--transition), color var(--transition);
 }
 
-.sidebar-logout:hover {
+.sidebar-logout:hover,
+.sidebar-logout-btn:hover {
   background: rgba(255,255,255,.10);
   color: #fff;
 }
@@ -776,7 +838,8 @@ select.form-control {
    10. NOTIFICATION BADGE
    ──────────────────────────────────────────────────────────────── */
 
-.notification-badge {
+.notification-badge,
+.notif-badge {
   display: none;
   background: var(--color-danger);
   color: #fff;
@@ -789,7 +852,8 @@ select.form-control {
   text-align: center;
 }
 
-.notification-badge.visible {
+.notification-badge.visible,
+.notif-badge.visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -15,7 +15,7 @@
     <div class="top-bar-actions">
       <?php if (isset($session) && $session->isLoggedIn()): ?>
       <a href="/notifications" class="top-bar-bell" id="notif-bell-mobile" aria-label="Oznámení">
-        🔔<span class="notif-badge" id="notif-count-mobile" style="display:none"></span>
+        <span aria-hidden="true">🔔</span><span class="notif-badge" id="notif-count-mobile" style="display:none"></span>
       </a>
       <?php endif; ?>
     </div>
@@ -27,24 +27,24 @@
       <a href="/">Bike<span>Swap</span></a>
     </div>
     <nav class="sidebar-nav">
-      <a href="/" class="sidebar-nav-link <?= isActiveRoute('/') ?>">🏠 Domů</a>
-      <a href="/bike/public" class="sidebar-nav-link <?= isActiveRoute('/bike/public') ?>">🌍 Veřejná kola</a>
-      <a href="/shared" class="sidebar-nav-link <?= isActiveRoute('/shared') ?>">🔄 Sdílená kola</a>
+      <a href="/" class="sidebar-nav-link <?= isActiveRoute('/') ?>"><span aria-hidden="true">🏠</span> Domů</a>
+      <a href="/bike/public" class="sidebar-nav-link <?= isActiveRoute('/bike/public') ?>"><span aria-hidden="true">🌍</span> Veřejná kola</a>
+      <a href="/shared" class="sidebar-nav-link <?= isActiveRoute('/shared') ?>"><span aria-hidden="true">🔄</span> Sdílená kola</a>
       <?php if (isset($session) && $session->isLoggedIn()): ?>
-      <a href="/dashboard" class="sidebar-nav-link <?= isActiveRoute('/dashboard') ?>">📊 Přehled</a>
-      <a href="/bike/my" class="sidebar-nav-link <?= isActiveRoute('/bike/my') ?>">🚲 Moje kola</a>
-      <a href="/reservations" class="sidebar-nav-link <?= isActiveRoute('/reservations') ?>">📅 Rezervace</a>
+      <a href="/dashboard" class="sidebar-nav-link <?= isActiveRoute('/dashboard') ?>"><span aria-hidden="true">📊</span> Přehled</a>
+      <a href="/bike/my" class="sidebar-nav-link <?= isActiveRoute('/bike/my') ?>"><span aria-hidden="true">🚲</span> Moje kola</a>
+      <a href="/reservations" class="sidebar-nav-link <?= isActiveRoute('/reservations') ?>"><span aria-hidden="true">📅</span> Rezervace</a>
       <a href="/notifications" class="sidebar-nav-link <?= isActiveRoute('/notifications') ?>" id="notif-link-desktop">
-        🔔 Oznámení<span class="notif-badge" id="notif-count-desktop" style="display:none"></span>
+        <span aria-hidden="true">🔔</span> Oznámení<span class="notif-badge" id="notif-count-desktop" style="display:none"></span>
       </a>
       <?php endif; ?>
     </nav>
     <div class="sidebar-qr">
-      <button type="button" class="sidebar-qr-btn" id="open-qr-scanner">📷 Skenovat QR</button>
+      <button type="button" class="sidebar-qr-btn" id="open-qr-scanner"><span aria-hidden="true">📷</span> Skenovat QR</button>
     </div>
     <div class="sidebar-footer">
       <?php if (isset($session) && $session->isLoggedIn()): ?>
-      <a href="/profile" class="sidebar-profile-link">👤 <?= isset($currentUser) ? e($currentUser->getName()) : '' ?></a>
+      <a href="/profile" class="sidebar-profile-link"><span aria-hidden="true">👤</span> <?= isset($currentUser) ? e($currentUser->getName()) : '' ?></a>
       <form method="POST" action="/logout">
         <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
         <button type="submit" class="sidebar-logout-btn">Odhlásit se</button>
@@ -67,34 +67,34 @@
     <div class="alert alert-info"><?= e($flashInfo) ?></div>
     <?php endif; ?>
 
-    <?= $content ?? '' ?>
+    <?= $content ?? '' /* pre-rendered template HTML — must not be escaped */ ?>
   </main>
 
   <!-- MOBILE BOTTOM NAV -->
   <nav class="bottom-nav">
     <a href="/" class="bottom-nav-item <?= isActiveRoute('/') ?>">
-      <span class="bottom-nav-icon">🏠</span>
+      <span class="bottom-nav-icon" aria-hidden="true">🏠</span>
       <span class="bottom-nav-label">Domů</span>
     </a>
     <a href="/bike/public" class="bottom-nav-item <?= isActiveRoute('/bike/public') ?>">
-      <span class="bottom-nav-icon">🌍</span>
+      <span class="bottom-nav-icon" aria-hidden="true">🌍</span>
       <span class="bottom-nav-label">Veřejná</span>
     </a>
     <div class="bottom-nav-item bottom-nav-qr-wrap">
-      <button type="button" class="bottom-nav-qr-btn" id="open-qr-scanner-mobile" aria-label="Skenovat QR">📷</button>
+      <button type="button" class="bottom-nav-qr-btn" id="open-qr-scanner-mobile" aria-label="Skenovat QR"><span aria-hidden="true">📷</span></button>
     </div>
     <a href="/shared" class="bottom-nav-item <?= isActiveRoute('/shared') ?>">
-      <span class="bottom-nav-icon">🔄</span>
+      <span class="bottom-nav-icon" aria-hidden="true">🔄</span>
       <span class="bottom-nav-label">Sdílená</span>
     </a>
     <?php if (isset($session) && $session->isLoggedIn()): ?>
     <a href="/profile" class="bottom-nav-item <?= isActiveRoute('/profile') ?>">
-      <span class="bottom-nav-icon">👤</span>
+      <span class="bottom-nav-icon" aria-hidden="true">👤</span>
       <span class="bottom-nav-label">Profil</span>
     </a>
     <?php else: ?>
     <a href="/login" class="bottom-nav-item <?= isActiveRoute('/login') ?>">
-      <span class="bottom-nav-icon">🔑</span>
+      <span class="bottom-nav-icon" aria-hidden="true">🔑</span>
       <span class="bottom-nav-label">Přihlásit</span>
     </a>
     <?php endif; ?>
@@ -103,7 +103,7 @@
 </div><!-- .app-shell -->
 
 <!-- QR SCANNER MODAL -->
-<div class="modal-overlay" id="qr-modal" style="display:none">
+<div class="modal-overlay" id="qr-modal">
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
       <h2 class="modal-title">Skenovat QR kód</h2>
@@ -163,7 +163,7 @@
     var tc = document.getElementById('toast-container');
     if (!tc) return;
     var t = document.createElement('div');
-    t.className = 'toast';
+    t.className = 'toast toast-info';
     t.textContent = msg;
     tc.appendChild(t);
     setTimeout(function() { t.remove(); }, 4000);
