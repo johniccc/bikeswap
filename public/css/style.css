@@ -11,6 +11,7 @@
   /* Brand colours */
   --color-primary:       #2D7A4F;
   --color-primary-hover: #235f3d;
+  --color-primary-light: #3d9e6b;
   --color-accent:        #4CAF7D;
   --color-bg:            #F4F7F4;
   --color-surface:       #FFFFFF;
@@ -19,9 +20,26 @@
   --color-text:          #1A2E1A;
   --color-text-muted:    #5A6E5A;
   --color-danger:        #DC2626;
+  --color-danger-hover:  #b91c1c;
   --color-warning:       #D97706;
+  --color-warning-hover: #b45309;
   --color-success:       #16A34A;
+  --color-success-hover: #15803d;
   --color-info:          #2563EB;
+
+  /* Alert palette */
+  --alert-success-bg:     #dcfce7;
+  --alert-success-text:   #166534;
+  --alert-success-border: #bbf7d0;
+  --alert-error-bg:       #fee2e2;
+  --alert-error-text:     #991b1b;
+  --alert-error-border:   #fecaca;
+  --alert-info-bg:        #dbeafe;
+  --alert-info-text:      #1e40af;
+  --alert-info-border:    #bfdbfe;
+  --alert-warning-bg:     #fef3c7;
+  --alert-warning-text:   #92400e;
+  --alert-warning-border: #fde68a;
 
   /* Layout */
   --sidebar-width:     220px;
@@ -378,7 +396,7 @@ input, textarea, select { font-family: var(--font); }
 }
 
 .sidebar-qr-btn:hover {
-  background: #3d9e6b;
+  background: var(--color-primary-light);
   text-decoration: none;
   color: var(--color-text);
   transform: translateY(-1px);
@@ -508,8 +526,8 @@ input, textarea, select { font-family: var(--font); }
 }
 
 .btn-success:hover {
-  background: #15803d;
-  border-color: #15803d;
+  background: var(--color-success-hover);
+  border-color: var(--color-success-hover);
   color: #fff;
 }
 
@@ -521,8 +539,8 @@ input, textarea, select { font-family: var(--font); }
 }
 
 .btn-danger:hover {
-  background: #b91c1c;
-  border-color: #b91c1c;
+  background: var(--color-danger-hover);
+  border-color: var(--color-danger-hover);
   color: #fff;
 }
 
@@ -534,8 +552,8 @@ input, textarea, select { font-family: var(--font); }
 }
 
 .btn-warning:hover {
-  background: #b45309;
-  border-color: #b45309;
+  background: var(--color-warning-hover);
+  border-color: var(--color-warning-hover);
   color: #fff;
 }
 
@@ -574,31 +592,31 @@ input, textarea, select { font-family: var(--font); }
 }
 
 .alert-success {
-  background: #dcfce7;
-  color: #166534;
-  border-color: #bbf7d0;
+  background: var(--alert-success-bg);
+  color: var(--alert-success-text);
+  border-color: var(--alert-success-border);
 }
 
 .alert-error {
-  background: #fee2e2;
-  color: #991b1b;
-  border-color: #fecaca;
+  background: var(--alert-error-bg);
+  color: var(--alert-error-text);
+  border-color: var(--alert-error-border);
 }
 
 .alert-info {
-  background: #dbeafe;
-  color: #1e40af;
-  border-color: #bfdbfe;
+  background: var(--alert-info-bg);
+  color: var(--alert-info-text);
+  border-color: var(--alert-info-border);
 }
 
 .alert-warning {
-  background: #fef3c7;
-  color: #92400e;
-  border-color: #fde68a;
+  background: var(--alert-warning-bg);
+  color: var(--alert-warning-text);
+  border-color: var(--alert-warning-border);
 }
 
 .alert-stolen {
-  background: #fee2e2;
+  background: var(--alert-error-bg);
   color: #7f1d1d;
   border-color: #fca5a5;
   font-weight: 600;
@@ -967,7 +985,6 @@ select.form-control {
   flex: 1;
   resize: none;
   height: 72px;
-  /* inherits .form-control rules below when class is applied */
   display: block;
   width: 100%;
   padding: .55rem .8rem;
