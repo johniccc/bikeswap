@@ -1,283 +1,187 @@
-<h1>Rezervovat kolo</h1>
-
-<?php if (isset($session) && $session->hasFlash('error')): ?>
-    <div class="alert alert-error"><?= e($session->getFlash('error')) ?></div>
-<?php endif; ?>
-
-<!-- Bike preview card -->
-<div class="card mb-2">
-    <div class="card-body">
-        <div class="bike-preview">
-            <?php $photo = $bike->getPrimaryPhoto(); ?>
-            <?php if ($photo): ?>
-                <img src="<?= e($photo->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>"
-                     class="bike-preview-photo">
-            <?php endif; ?>
-            <div class="bike-preview-info">
-                <h2><?= e($bike->getFullName()) ?></h2>
-                <p class="text-muted">Barva: <?= e($bike->getColor()) ?></p>
-                <a href="/bike/<?= e($bike->getQrHash()) ?>">Zobrazit detail kola</a>
-            </div>
-        </div>
-    </div>
+<div class="page-header">
+  <h1>Rezervovat kolo</h1>
 </div>
 
-<!-- Calendar legend -->
-<div class="card mb-2">
-    <div class="card-body">
-        <h2>Vyberte termín výpůjčky</h2>
-        <div class="calendar-legend">
-            <span><span class="legend-dot legend-available"></span> Volné</span>
-            <span><span class="legend-dot legend-unavailable"></span> Obsazené</span>
-            <span><span class="legend-dot legend-selected"></span> Váš výběr</span>
-        </div>
-
-        <!-- Calendar widget -->
-        <div id="calendar-container"></div>
+<!-- Bike preview -->
+<div class="card mb-lg">
+  <div class="card-body">
+    <div class="flex gap-lg items-center flex-wrap">
+      <?php $photo = $bike->getPrimaryPhoto(); ?>
+      <?php if ($photo): ?>
+        <img src="<?= e($photo->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>"
+             style="width:100px;height:75px;object-fit:cover;border-radius:var(--radius-md)">
+      <?php endif; ?>
+      <div>
+        <h3 style="margin-bottom:0.15rem"><?= e($bike->getFullName()) ?></h3>
+        <p class="text-muted text-sm">Barva: <?= e($bike->getColor()) ?></p>
+        <a href="/bike/<?= e($bike->getQrHash()) ?>" class="text-sm">Zobrazit detail kola</a>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- Calendar -->
+<div class="card mb-lg">
+  <div class="card-body">
+    <h3 class="section-title">Vyberte termin vypujcky</h3>
+    <div class="calendar-legend mb-md">
+      <span class="calendar-legend-item">
+        <span class="calendar-legend-dot" style="background:var(--primary)"></span> Vas vyber
+      </span>
+      <span class="calendar-legend-item">
+        <span class="calendar-legend-dot" style="background:var(--danger)"></span> Obsazene
+      </span>
+      <span class="calendar-legend-item">
+        <span class="calendar-legend-dot" style="background:var(--primary-light)"></span> Rozsah
+      </span>
+    </div>
+
+    <div id="calendar-container" class="calendar-container"></div>
+  </div>
 </div>
 
 <!-- Reservation form -->
 <form method="POST" action="/reservation/new/<?= $bike->getId() ?>" id="reservation-form">
-    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-    <input type="hidden" name="date_from" id="input-date-from" value="">
-    <input type="hidden" name="date_to" id="input-date-to" value="">
+  <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+  <input type="hidden" name="date_from" id="input-date-from" value="">
+  <input type="hidden" name="date_to" id="input-date-to" value="">
 
-    <div class="card mb-2">
-        <div class="card-body">
-            <h3>Vybraný termín</h3>
-            <p id="selected-range-text" class="text-muted">Klikněte na kalendář pro výběr datumů.</p>
+  <div class="card mb-lg">
+    <div class="card-body">
+      <h3 class="section-title">Vybrany termin</h3>
+      <p id="selected-range-text" class="text-muted">Kliknete na kalendar pro vyber datumu.</p>
 
-            <div class="form-group">
-                <label for="message">Zpráva pro majitele (volitelné)</label>
-                <textarea id="message" name="message" rows="3"
-                          placeholder="Představte se, sdělte účel výpůjčky…"></textarea>
-            </div>
-        </div>
+      <div class="form-group mt-lg">
+        <label for="message">Zprava pro majitele (volitelne)</label>
+        <textarea id="message" name="message" rows="3"
+                  placeholder="Predstavte se, sdelte ucel vypujcky..."></textarea>
+      </div>
     </div>
+  </div>
 
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Odeslat žádost o výpůjčku</button>
-        <a href="/shared" class="btn">Zpět na seznam</a>
-    </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" disabled>
+      <i data-lucide="calendar-check"></i> Odeslat zadost o vypujcku
+    </button>
+    <a href="/shared" class="btn btn-ghost">Zpet na seznam</a>
+  </div>
 </form>
 
 <script>
+// Calendar widget - all values are locally generated (dates, month names),
+// no user-supplied content is rendered, so DOM construction via createElement is used.
 (function() {
     'use strict';
 
     var unavailableRanges = <?= json_encode($unavailableDates) ?>;
-
-    var unavailableDates = new Set();
+    var unavailableSet = new Set();
     unavailableRanges.forEach(function(range) {
         var d = new Date(range.date_from);
         var end = new Date(range.date_to);
         while (d <= end) {
-            unavailableDates.add(d.toISOString().split('T')[0]);
+            unavailableSet.add(d.toISOString().split('T')[0]);
             d.setDate(d.getDate() + 1);
         }
     });
 
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    var selectedFrom = null;
-    var selectedTo = null;
-
+    var today = new Date(); today.setHours(0,0,0,0);
+    var selectedFrom = null, selectedTo = null;
     var baseMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
     var container = document.getElementById('calendar-container');
     var inputFrom = document.getElementById('input-date-from');
     var inputTo = document.getElementById('input-date-to');
     var rangeText = document.getElementById('selected-range-text');
     var submitBtn = document.getElementById('submit-btn');
 
-    function formatDate(d) {
-        return d.getFullYear() + '-' +
-            String(d.getMonth() + 1).padStart(2, '0') + '-' +
-            String(d.getDate()).padStart(2, '0');
+    function fmt(d) {
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    }
+    function fmtCz(d) { return d.getDate()+'. '+(d.getMonth()+1)+'. '+d.getFullYear(); }
+    function isUnavail(s) { return unavailableSet.has(s); }
+    function isPast(d) { return d < today; }
+    function inRange(d) { return selectedFrom && selectedTo && d >= selectedFrom && d <= selectedTo; }
+    function isSel(d) {
+        return (selectedFrom && fmt(d)===fmt(selectedFrom)) || (selectedTo && fmt(d)===fmt(selectedTo));
+    }
+    function rangeConflict(a,b) {
+        var d=new Date(a); while(d<=b){if(isUnavail(fmt(d)))return true;d.setDate(d.getDate()+1);} return false;
     }
 
-    function formatCzech(d) {
-        return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear();
-    }
-
-    function isUnavailable(dateStr) {
-        return unavailableDates.has(dateStr);
-    }
-
-    function isPast(d) {
-        return d < today;
-    }
-
-    function rangeHasConflict(from, to) {
-        var d = new Date(from);
-        while (d <= to) {
-            if (isUnavailable(formatDate(d))) return true;
-            d.setDate(d.getDate() + 1);
+    function handleClick(dateStr) {
+        var d = new Date(dateStr+'T00:00:00');
+        if (isPast(d)||isUnavail(dateStr)) return;
+        if (!selectedFrom||(selectedFrom&&selectedTo)) { selectedFrom=d; selectedTo=null; }
+        else {
+            if (d<selectedFrom){selectedTo=selectedFrom;selectedFrom=d;} else {selectedTo=d;}
+            var diff=Math.ceil((selectedTo-selectedFrom)/(864e5))+1;
+            if(diff>30){alert('Max 30 dni.');selectedTo=null;render();return;}
+            if(rangeConflict(selectedFrom,selectedTo)){alert('Rozsah obsahuje obsazene dny.');selectedFrom=null;selectedTo=null;render();return;}
         }
-        return false;
+        updateInputs(); render();
     }
 
-    function isInRange(d) {
-        if (!selectedFrom || !selectedTo) return false;
-        return d >= selectedFrom && d <= selectedTo;
-    }
-
-    function isSelected(d) {
-        if (selectedFrom && formatDate(d) === formatDate(selectedFrom)) return true;
-        if (selectedTo && formatDate(d) === formatDate(selectedTo)) return true;
-        return false;
-    }
-
-    function handleDayClick(dateStr) {
-        var d = new Date(dateStr + 'T00:00:00');
-
-        if (isPast(d) || isUnavailable(dateStr)) return;
-
-        if (!selectedFrom || (selectedFrom && selectedTo)) {
-            selectedFrom = d;
-            selectedTo = null;
-        } else {
-            if (d < selectedFrom) {
-                selectedTo = selectedFrom;
-                selectedFrom = d;
-            } else {
-                selectedTo = d;
-            }
-
-            var diffDays = Math.ceil((selectedTo - selectedFrom) / (1000 * 60 * 60 * 24)) + 1;
-            if (diffDays > 30) {
-                alert('Maximální délka výpůjčky je 30 dní.');
-                selectedTo = null;
-                render();
-                return;
-            }
-
-            if (rangeHasConflict(selectedFrom, selectedTo)) {
-                alert('Vybraný rozsah obsahuje obsazené dny. Vyberte jiný termín.');
-                selectedFrom = null;
-                selectedTo = null;
-                render();
-                return;
-            }
-        }
-
-        updateFormInputs();
-        render();
-    }
-
-    function updateFormInputs() {
-        if (selectedFrom && selectedTo) {
-            inputFrom.value = formatDate(selectedFrom);
-            inputTo.value = formatDate(selectedTo);
-            var days = Math.ceil((selectedTo - selectedFrom) / (1000 * 60 * 60 * 24)) + 1;
-            rangeText.innerHTML = '<strong>' + formatCzech(selectedFrom) + '</strong> – <strong>' +
-                formatCzech(selectedTo) + '</strong> (' + days + ' ' + (days === 1 ? 'den' : days < 5 ? 'dny' : 'dní') + ')';
-            submitBtn.disabled = false;
+    function updateInputs() {
+        if (selectedFrom&&selectedTo) {
+            inputFrom.value=fmt(selectedFrom); inputTo.value=fmt(selectedTo);
+            var days=Math.ceil((selectedTo-selectedFrom)/864e5)+1;
+            rangeText.textContent=fmtCz(selectedFrom)+' – '+fmtCz(selectedTo)+' ('+days+' '+(days===1?'den':days<5?'dny':'dni')+')';
+            submitBtn.disabled=false;
         } else if (selectedFrom) {
-            inputFrom.value = formatDate(selectedFrom);
-            inputTo.value = '';
-            rangeText.textContent = 'Vyberte koncové datum.';
-            submitBtn.disabled = true;
+            inputFrom.value=fmt(selectedFrom); inputTo.value='';
+            rangeText.textContent='Vyberte koncove datum.'; submitBtn.disabled=true;
         } else {
-            inputFrom.value = '';
-            inputTo.value = '';
-            rangeText.textContent = 'Klikněte na kalendář pro výběr datumů.';
-            submitBtn.disabled = true;
+            inputFrom.value=''; inputTo.value='';
+            rangeText.textContent='Kliknete na kalendar pro vyber datumu.'; submitBtn.disabled=true;
         }
     }
 
-    function renderMonth(year, month) {
-        var firstDay = new Date(year, month, 1);
-        var lastDay = new Date(year, month + 1, 0);
-        var startDow = (firstDay.getDay() + 6) % 7;
+    var monthNames=['Leden','Unor','Brezen','Duben','Kveten','Cerven','Cervenec','Srpen','Zari','Rijen','Listopad','Prosinec'];
+    var dayNames=['Po','Ut','St','Ct','Pa','So','Ne'];
 
-        var monthNames = ['Leden','Únor','Březen','Duben','Květen','Červen',
-                          'Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
-
-        var html = '<div class="calendar">';
-        html += '<div class="calendar-month-title">' + monthNames[month] + ' ' + year + '</div>';
-        html += '<div class="calendar-grid">';
-
-        var dayNames = ['Po','Út','St','Čt','Pá','So','Ne'];
-        dayNames.forEach(function(n) {
-            html += '<div class="day-header">' + n + '</div>';
-        });
-
-        for (var i = 0; i < startDow; i++) {
-            html += '<div class="day day-empty"></div>';
+    function buildMonth(year, month) {
+        var first=new Date(year,month,1), last=new Date(year,month+1,0), start=(first.getDay()+6)%7;
+        var cal=document.createElement('div'); cal.className='calendar';
+        var hdr=document.createElement('div'); hdr.className='calendar-header';
+        var h4=document.createElement('h4'); h4.textContent=monthNames[month]+' '+year;
+        hdr.appendChild(h4); cal.appendChild(hdr);
+        var wk=document.createElement('div'); wk.className='calendar-weekdays';
+        dayNames.forEach(function(n){var dv=document.createElement('div');dv.className='calendar-weekday';dv.textContent=n;wk.appendChild(dv);});
+        cal.appendChild(wk);
+        var grid=document.createElement('div'); grid.className='calendar-grid';
+        for(var i=0;i<start;i++){var e=document.createElement('div');e.className='day day-empty';grid.appendChild(e);}
+        for(var d=1;d<=last.getDate();d++){
+            var dateObj=new Date(year,month,d), dateStr=fmt(dateObj);
+            var cell=document.createElement('div'); cell.className='day'; cell.textContent=String(d);
+            cell.setAttribute('data-date',dateStr);
+            if(isPast(dateObj))cell.classList.add('day-disabled');
+            else if(isUnavail(dateStr))cell.classList.add('day-unavailable');
+            if(isSel(dateObj))cell.classList.add('day-selected');
+            else if(inRange(dateObj))cell.classList.add('day-range');
+            if(fmt(dateObj)===fmt(today))cell.classList.add('day-today');
+            cell.addEventListener('click',function(){handleClick(this.getAttribute('data-date'));});
+            grid.appendChild(cell);
         }
-
-        for (var d = 1; d <= lastDay.getDate(); d++) {
-            var dateObj = new Date(year, month, d);
-            var dateStr = formatDate(dateObj);
-            var classes = ['day'];
-
-            if (isPast(dateObj)) {
-                classes.push('day-past');
-            } else if (isUnavailable(dateStr)) {
-                classes.push('day-unavailable');
-            } else {
-                classes.push('day-available');
-            }
-
-            if (isSelected(dateObj)) {
-                classes.push('day-selected');
-            } else if (isInRange(dateObj)) {
-                classes.push('day-in-range');
-            }
-
-            if (formatDate(dateObj) === formatDate(today)) {
-                classes.push('day-today');
-            }
-
-            html += '<div class="' + classes.join(' ') + '" data-date="' + dateStr + '">' + d + '</div>';
-        }
-
-        html += '</div></div>';
-        return html;
+        cal.appendChild(grid);
+        return cal;
     }
 
     function render() {
-        var m1 = new Date(baseMonth);
-        var m2 = new Date(baseMonth.getFullYear(), baseMonth.getMonth() + 1, 1);
-
-        var html = '<div class="calendar-header">';
-        html += '<button type="button" id="cal-prev">&larr; Předchozí</button>';
-        html += '<button type="button" id="cal-next">Další &rarr;</button>';
-        html += '</div>';
-        html += '<div class="calendars-row">';
-        html += renderMonth(m1.getFullYear(), m1.getMonth());
-        html += renderMonth(m2.getFullYear(), m2.getMonth());
-        html += '</div>';
-
-        container.innerHTML = html;
-
-        document.getElementById('cal-prev').addEventListener('click', function() {
-            baseMonth.setMonth(baseMonth.getMonth() - 1);
-            var minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            if (baseMonth < minMonth) baseMonth = minMonth;
-            render();
-        });
-
-        document.getElementById('cal-next').addEventListener('click', function() {
-            baseMonth.setMonth(baseMonth.getMonth() + 1);
-            render();
-        });
-
-        container.querySelectorAll('.day[data-date]').forEach(function(el) {
-            el.addEventListener('click', function() {
-                handleDayClick(this.getAttribute('data-date'));
-            });
-        });
+        while(container.firstChild)container.removeChild(container.firstChild);
+        var nav=document.createElement('div');nav.className='flex justify-between items-center mb-md';
+        var prev=document.createElement('button');prev.type='button';prev.className='btn btn-ghost btn-sm';prev.textContent='Predchozi';
+        prev.addEventListener('click',function(){baseMonth.setMonth(baseMonth.getMonth()-1);var mn=new Date(today.getFullYear(),today.getMonth(),1);if(baseMonth<mn)baseMonth=mn;render();});
+        var next=document.createElement('button');next.type='button';next.className='btn btn-ghost btn-sm';next.textContent='Dalsi';
+        next.addEventListener('click',function(){baseMonth.setMonth(baseMonth.getMonth()+1);render();});
+        nav.appendChild(prev);nav.appendChild(next);container.appendChild(nav);
+        var row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:1rem';
+        var m1=new Date(baseMonth),m2=new Date(baseMonth.getFullYear(),baseMonth.getMonth()+1,1);
+        row.appendChild(buildMonth(m1.getFullYear(),m1.getMonth()));
+        row.appendChild(buildMonth(m2.getFullYear(),m2.getMonth()));
+        container.appendChild(row);
     }
 
-    document.getElementById('reservation-form').addEventListener('submit', function(e) {
-        if (!inputFrom.value || !inputTo.value) {
-            e.preventDefault();
-            alert('Nejprve vyberte termín výpůjčky.');
-        }
+    document.getElementById('reservation-form').addEventListener('submit',function(e){
+        if(!inputFrom.value||!inputTo.value){e.preventDefault();alert('Nejprve vyberte termin.');}
     });
 
     render();

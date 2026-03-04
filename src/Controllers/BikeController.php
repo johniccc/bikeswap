@@ -92,7 +92,7 @@ class BikeController
             'qrDataUri' => $this->qrService->generateQrDataUri($hash),
             'session' => $this->session,
             'csrf' => $this->session->csrfToken(),
-        ]);
+        ])->withLayout('layouts/public');
     }
 
     /**
@@ -105,7 +105,7 @@ class BikeController
             'title' => 'Registrovat kolo – BikeSwap',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     /**
@@ -198,7 +198,7 @@ class BikeController
             'bike' => $bike,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     /**
@@ -325,7 +325,7 @@ class BikeController
             'foundReportCounts' => $foundReportCounts,
             'currentUser' => $currentUser,
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     /**

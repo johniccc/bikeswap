@@ -61,7 +61,7 @@ class ReservationController
             'currentUser' => $currentUser,
             'unavailableIds' => $unavailableIds,
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/public');
     }
 
     // ── Create reservation ─────────────────────────────────
@@ -99,7 +99,7 @@ class ReservationController
             'unavailableDates' => $unavailableDates,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     /**
@@ -188,7 +188,7 @@ class ReservationController
             'myRole' => $myRole,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     // ── Status actions ─────────────────────────────────────
@@ -369,7 +369,7 @@ class ReservationController
             'overdue' => $overdue,
             'currentUser' => $currentUser,
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     // ── JSON endpoint for calendar ─────────────────────────

@@ -29,6 +29,6 @@ class HomeController
         return view('home/index', [
             'title' => 'BikeSwap – Ochrana vašeho kola',
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/public');
     }
 }

@@ -1,47 +1,125 @@
-<div class="hero">
-    <h1>BikeSwap</h1>
-    <p>Registrujte své kolo, chraňte ho proti krádeži, sdílejte s ostatními</p>
-    <?php if (!isset($session) || !$session->isLoggedIn()): ?>
-        <a href="/register" class="btn btn-primary btn-large">Začít zdarma</a>
-    <?php else: ?>
-        <a href="/dashboard" class="btn btn-primary btn-large">Moje kola</a>
-    <?php endif; ?>
-</div>
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-bg" style="background-image:url('https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=1920&q=80')"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <i data-lucide="shield-check"></i> Ochrana a sdileni kol
+    </div>
+    <h1 class="hero-title">
+      Chranime vase kolo.<br>
+      <span class="hero-title-accent">Sdilime radost z jizdy.</span>
+    </h1>
+    <p class="hero-subtitle">
+      Zaregistrujte sve kolo, ziskejte unikatni QR kod a chranite ho proti kradezi.
+      Nebo ho nabidnete k vypujcce ostatnim cyklistum.
+    </p>
+    <div class="hero-actions">
+      <?php if (!isset($session) || !$session->isLoggedIn()): ?>
+        <button type="button" class="btn btn-primary btn-lg open-auth-modal" data-tab="register">
+          <i data-lucide="user-plus"></i> Zacit zdarma
+        </button>
+        <button type="button" class="btn btn-secondary btn-lg open-auth-modal" data-tab="login">
+          <i data-lucide="log-in"></i> Prihlasit se
+        </button>
+      <?php else: ?>
+        <a href="/dashboard" class="btn btn-primary btn-lg">
+          <i data-lucide="layout-dashboard"></i> Moje kola
+        </a>
+        <a href="/shared" class="btn btn-secondary btn-lg">
+          <i data-lucide="repeat"></i> Pujcit si kolo
+        </a>
+      <?php endif; ?>
+    </div>
+  </div>
+</section>
 
-<div class="features">
-    <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Ochrana proti krádeži</h3>
-        <p>Zaregistrujte kolo a získejte QR kód. V případě krádeže pomůžeme s vyhledáváním.</p>
+<!-- ── Features ── -->
+<section class="features-section">
+  <div class="section-header animate-in">
+    <h2>Proc BikeSwap?</h2>
+    <p>Komplexni platforma pro ochranu, spravu a sdileni vasich kol.</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card animate-in">
+      <div class="feature-icon feature-icon-teal">
+        <i data-lucide="shield-check"></i>
+      </div>
+      <h3>Ochrana proti kradezi</h3>
+      <p>Zaregistrujte kolo a ziskejte QR kod. V pripade kradeze pomuzeme s vyhledavanim.</p>
     </div>
 
-    <div class="feature-card">
-        <div class="feature-icon">🔍</div>
-        <h3>Databáze odcizených kol</h3>
-        <p>Prohledávejte veřejnou databázi odcizených kol. Našli jste podezřelé kolo? Nahlaste nález.</p>
+    <div class="feature-card animate-in">
+      <div class="feature-icon feature-icon-blue">
+        <i data-lucide="search"></i>
+      </div>
+      <h3>Databaze odcizenych kol</h3>
+      <p>Prohledavejte verejnou databazi odcizenych kol. Nasli jste podezrele kolo? Nahlaste nalez.</p>
     </div>
 
-    <div class="feature-card">
-        <div class="feature-icon">🚴</div>
-        <h3>Sdílení kol</h3>
-        <p>Nabídněte své kolo k výpůjčce ostatním nebo si půjčte kolo od jiných uživatelů.</p>
+    <div class="feature-card animate-in">
+      <div class="feature-icon feature-icon-copper">
+        <i data-lucide="repeat"></i>
+      </div>
+      <h3>Sdileni kol</h3>
+      <p>Nabidnete sve kolo k vypujcce ostatnim nebo si pujcte kolo od jinych uzivatelu.</p>
     </div>
 
-    <div class="feature-card">
-        <div class="feature-icon">⭐</div>
-        <h3>Karma systém</h3>
-        <p>Hodnocení a karma body zajišťují důvěryhodnost a bezpečnost výpůjček.</p>
+    <div class="feature-card animate-in">
+      <div class="feature-icon feature-icon-green">
+        <i data-lucide="star"></i>
+      </div>
+      <h3>Karma system</h3>
+      <p>Hodnoceni a karma body zajistuji duveryhodnost a bezpecnost vypujcek.</p>
     </div>
-</div>
+  </div>
+</section>
 
-<div class="card">
-    <div class="card-body">
-        <h2>Jak to funguje?</h2>
-        <ol>
-            <li><strong>Zaregistrujte se</strong> – Vytvoření účtu je zdarma a trvá jen minutu</li>
-            <li><strong>Přidejte své kolo</strong> – Vyplňte základní údaje a přidejte fotografie</li>
-            <li><strong>Získejte QR kód</strong> – Vytiskněte a umístěte na kolo</li>
-            <li><strong>Sdílejte nebo chraňte</strong> – Nabídněte kolo k výpůjčce nebo ho chraňte proti krádeži</li>
-        </ol>
+<!-- ── How it works ── -->
+<section class="how-it-works">
+  <div class="section-header animate-in">
+    <h2>Jak to funguje?</h2>
+    <p>Tri jednoduche kroky ke kompletni ochrane vaseho kola.</p>
+  </div>
+
+  <div class="steps-grid">
+    <div class="step-card animate-in">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h3>Zaregistrujte se</h3>
+        <p>Vytvoreni uctu je zdarma a trva jen minutu. Staci e-mail a heslo.</p>
+      </div>
     </div>
-</div>
+
+    <div class="step-card animate-in">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h3>Pridejte sve kolo</h3>
+        <p>Vyplnte zakladni udaje, nahrajte fotky a ziskejte unikatni QR kod.</p>
+      </div>
+    </div>
+
+    <div class="step-card animate-in">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h3>Chranite a sdilejte</h3>
+        <p>Nalepte QR kod na kolo. Kdokoliv ho naskenuje, muze nahlasit nalez ci si ho pujcit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section animate-in">
+  <h2>Pripraveni chranit sve kolo?</h2>
+  <p>Pridejte se k tisicum cyklistu, kteri uz BikeSwap pouzivaji.</p>
+  <?php if (!isset($session) || !$session->isLoggedIn()): ?>
+    <button type="button" class="btn btn-primary btn-lg open-auth-modal" data-tab="register">
+      <i data-lucide="arrow-right"></i> Zaregistrovat se zdarma
+    </button>
+  <?php else: ?>
+    <a href="/dashboard" class="btn btn-primary btn-lg">
+      <i data-lucide="layout-dashboard"></i> Prejit do dashboardu
+    </a>
+  <?php endif; ?>
+</section>

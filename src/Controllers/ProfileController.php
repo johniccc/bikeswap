@@ -41,7 +41,7 @@ class ProfileController
             'foundReports' => $foundReports,
             'session'      => $this->session,
             'currentUser'  => $user,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     public function settings(Request $request): Response
@@ -56,6 +56,6 @@ class ProfileController
             'user'        => $user,
             'session'     => $this->session,
             'currentUser' => $user,
-        ]);
+        ])->withLayout('layouts/app');
     }
 }

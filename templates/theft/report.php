@@ -1,113 +1,95 @@
-<h1>Nahlásit krádež kola</h1>
-
-<div class="bike-summary">
-    <h2><?= e($bike->getFullName()) ?></h2>
-    <p>Barva: <?= e($bike->getColor()) ?></p>
-    <?php if ($bike->getFrameNumber()): ?>
-        <p>Číslo rámu: <?= e($bike->getFrameNumber()) ?></p>
-    <?php endif; ?>
+<div class="page-header">
+  <h1>Nahlasit kradez kola</h1>
+  <div class="page-header-actions">
+    <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-ghost btn-sm">
+      <i data-lucide="arrow-left"></i> Zpet na detail
+    </a>
+  </div>
 </div>
 
-<?php if (isset($session) && $session->hasFlash('error')): ?>
-    <div class="alert alert-error"><?= e($session->getFlash('error')) ?></div>
-<?php endif; ?>
+<!-- Bike summary -->
+<div class="card mb-lg">
+  <div class="card-body">
+    <div class="flex gap-lg items-center flex-wrap">
+      <?php $photo = $bike->getPrimaryPhoto(); ?>
+      <?php if ($photo): ?>
+        <img src="<?= e($photo->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>"
+             style="width:100px;height:75px;object-fit:cover;border-radius:var(--radius-md)">
+      <?php endif; ?>
+      <div>
+        <h3 style="margin-bottom:0.15rem"><?= e($bike->getFullName()) ?></h3>
+        <p class="text-muted text-sm">
+          <i data-lucide="palette" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
+          <?= e($bike->getColor()) ?>
+        </p>
+        <?php if ($bike->getFrameNumber()): ?>
+          <p class="text-muted text-sm">
+            <i data-lucide="hash" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
+            Ram: <?= e($bike->getFrameNumber()) ?>
+          </p>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+</div>
 
-<form method="POST" action="/theft/report/<?= $bike->getId() ?>">
-    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+<form method="POST" action="/theft/report/<?= $bike->getId() ?>" class="max-w-lg">
+  <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
 
-    <fieldset>
-        <legend>Informace o krádeži</legend>
+  <fieldset>
+    <legend>Informace o kradezi</legend>
 
-        <div class="form-group">
-            <label for="theft_date">Datum krádeže</label>
-            <input type="date" id="theft_date" name="theft_date"
-                   value="<?= date('Y-m-d') ?>"
-                   <?php if ($bike->getYearOfManufacture()): ?>min="<?= e($bike->getYearOfManufacture()) ?>-01-01"<?php endif; ?>
-                   max="<?= date('Y-m-d') ?>">
-        </div>
-
-        <div class="form-group">
-            <label for="theft_location_text">Místo krádeže *</label>
-            <input type="text" id="theft_location_text" name="theft_location_text" required
-                   placeholder="např. Pardubice, ul. Karla IV., u nádraží">
-        </div>
-
-        <!-- Hidden GPS fields (filled by JS geolocation if available) -->
-        <input type="hidden" id="theft_location_lat" name="theft_location_lat">
-        <input type="hidden" id="theft_location_lng" name="theft_location_lng">
-
-        <div class="form-group">
-            <button type="button" id="geolocate-btn" class="btn btn-small">
-                Zjistit moji polohu
-            </button>
-            <small id="geo-status"></small>
-        </div>
-
-        <div class="form-group">
-            <label for="description">Popis okolností</label>
-            <textarea id="description" name="description" rows="4"
-                      placeholder="Popište okolnosti krádeže - kde bylo kolo zamčené, jakým zámkem, kdy jste si krádeže všimli..."></textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="police_case_number">Číslo případu u policie</label>
-            <input type="text" id="police_case_number" name="police_case_number"
-                   placeholder="Pokud jste krádež nahlásili na policii">
-        </div>
-    </fieldset>
-
-    <div class="alert alert-warning">
-        <strong>Upozornění:</strong> Po odeslání bude vaše kolo označeno jako <strong>odcizené</strong>
-        a zobrazí se ve veřejné databázi odcizených kol. Ostatní uživatelé budou moci nahlásit jeho nález.
+    <div class="form-group">
+      <label for="theft_date">Datum kradeze</label>
+      <input type="date" id="theft_date" name="theft_date"
+             value="<?= date('Y-m-d') ?>"
+             <?php if ($bike->getYearOfManufacture()): ?>min="<?= e($bike->getYearOfManufacture()) ?>-01-01"<?php endif; ?>
+             max="<?= date('Y-m-d') ?>">
     </div>
 
-    <button type="submit" class="btn btn-danger">Nahlásit krádež</button>
-    <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn">Zrušit</a>
+    <div class="form-group">
+      <label for="theft_location_text">Misto kradeze *</label>
+      <input type="text" id="theft_location_text" name="theft_location_text" required
+             placeholder="napr. Pardubice, ul. Karla IV., u nadrazi">
+    </div>
+
+    <!-- Hidden GPS fields -->
+    <input type="hidden" id="theft_location_lat" name="theft_location_lat">
+    <input type="hidden" id="theft_location_lng" name="theft_location_lng">
+
+    <div class="form-group">
+      <button type="button" class="btn btn-ghost btn-sm" data-geolocate
+              data-lat-input="theft_location_lat" data-lng-input="theft_location_lng">
+        <i data-lucide="map-pin"></i> Zjistit moji polohu
+      </button>
+      <small class="geo-status text-muted text-sm"></small>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Popis okolnosti</label>
+      <textarea id="description" name="description" rows="4"
+                placeholder="Popiste okolnosti kradeze - kde bylo kolo zamcene, jakym zamkem, kdy jste si kradeze vsimli..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="police_case_number">Cislo pripadu u policie</label>
+      <input type="text" id="police_case_number" name="police_case_number"
+             placeholder="Pokud jste kradez nahlasili na policii">
+    </div>
+  </fieldset>
+
+  <div class="alert alert-warning">
+    <i data-lucide="alert-triangle"></i>
+    <div>
+      <strong>Upozorneni:</strong> Po odeslani bude vase kolo oznaceno jako <strong>odcizene</strong>
+      a zobrazi se ve verejne databazi odcizenych kol. Ostatni uzivatele budou moci nahlasit jeho nalez.
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-danger btn-lg">
+      <i data-lucide="alert-circle"></i> Nahlasit kradez
+    </button>
+    <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-ghost">Zrusit</a>
+  </div>
 </form>
-
-<script>
-document.getElementById('geolocate-btn')?.addEventListener('click', function() {
-    var status = document.getElementById('geo-status');
-    var btn = this;
-
-    // Check if geolocation is available at all
-    if (!navigator.geolocation) {
-        status.textContent = 'Geolokace není podporována vaším prohlížečem.';
-        return;
-    }
-
-    // Check secure context (HTTPS or localhost)
-    if (window.isSecureContext === false) {
-        status.textContent = 'Geolokace vyžaduje HTTPS připojení. Na HTTP nefunguje.';
-        return;
-    }
-
-    status.textContent = 'Zjišťuji polohu...';
-    btn.disabled = true;
-
-    navigator.geolocation.getCurrentPosition(
-        function(position) {
-            document.getElementById('theft_location_lat').value = position.coords.latitude;
-            document.getElementById('theft_location_lng').value = position.coords.longitude;
-            status.textContent = 'Poloha zjištěna (' +
-                position.coords.latitude.toFixed(5) + ', ' +
-                position.coords.longitude.toFixed(5) + ')';
-            btn.disabled = false;
-        },
-        function(error) {
-            var messages = {
-                1: 'Přístup k poloze byl zamítnut. Povolte geolokaci v nastavení prohlížeče.',
-                2: 'Poloha není dostupná. Zařízení nemohlo zjistit vaši pozici.',
-                3: 'Zjišťování polohy vypršelo. Zkuste to znovu.'
-            };
-            status.textContent = messages[error.code] || ('Neznámá chyba geolokace (kód: ' + error.code + ').');
-            btn.disabled = false;
-        },
-        {
-            enableHighAccuracy: false,
-            timeout: 10000,
-            maximumAge: 300000
-        }
-    );
-});
-</script>

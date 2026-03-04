@@ -1,66 +1,65 @@
-<div class="my-bikes">
-    <div class="my-bikes-header">
-        <h1>Moje kola</h1>
-        <a href="/bike/new" class="btn btn-primary">Registrovat kolo</a>
-    </div>
-
-    <?php if (isset($session) && $session->hasFlash('success')): ?>
-        <div class="alert alert-success"><?= e($session->getFlash('success')) ?></div>
-    <?php endif; ?>
-
-    <?php if (isset($session) && $session->hasFlash('error')): ?>
-        <div class="alert alert-error"><?= e($session->getFlash('error')) ?></div>
-    <?php endif; ?>
-
-    <?php if (empty($bikes)): ?>
-        <div class="empty-state">
-            <p>Zatím nemáte registrované žádné kolo.</p>
-            <a href="/bike/new" class="btn btn-primary">Zaregistrovat první kolo</a>
-        </div>
-    <?php else: ?>
-        <div class="bike-grid">
-            <?php foreach ($bikes as $bike): ?>
-                <div class="bike-card">
-                    <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card-link">
-                        <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
-                        <?php if ($primaryPhoto): ?>
-                            <img src="<?= e($primaryPhoto->getUrl()) ?>"
-                                 alt="<?= e($bike->getFullName()) ?>"
-                                 class="bike-card-photo">
-                        <?php else: ?>
-                            <div class="bike-card-photo-placeholder">Bez fotografie</div>
-                        <?php endif; ?>
-
-                        <div class="bike-card-info">
-                            <h2 class="bike-card-name"><?= e($bike->getFullName()) ?></h2>
-                            <span class="bike-card-color"><?= e($bike->getColor()) ?></span>
-
-                            <div class="bike-card-badges">
-                                <span class="status-badge status-<?= e($bike->getStatus()) ?>">
-                                    <?php
-                                        $statusLabels = [
-                                            'active' => 'Aktivní',
-                                            'stolen' => 'Odcizené',
-                                            'shared' => 'Sdílené',
-                                            'inactive' => 'Neaktivní',
-                                        ];
-                                        echo e($statusLabels[$bike->getStatus()] ?? $bike->getStatus());
-                                    ?>
-                                </span>
-
-                                <?php
-                                    $frCount = $foundReportCounts[$bike->getId()] ?? 0;
-                                ?>
-                                <?php if ($frCount > 0): ?>
-                                    <span class="found-report-badge" title="<?= $frCount ?> aktivní<?= $frCount > 1 ? 'ch' : '' ?> nález<?= $frCount > 4 ? 'ů' : ($frCount > 1 ? 'y' : '') ?>">
-                                        <?= $frCount ?> nález<?= $frCount > 4 ? 'ů' : ($frCount > 1 ? 'y' : '') ?>
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+<div class="page-header">
+  <h1>Moje kola</h1>
+  <div class="page-header-actions">
+    <a href="/bike/new" class="btn btn-primary">
+      <i data-lucide="plus"></i> Registrovat kolo
+    </a>
+  </div>
 </div>
+
+<?php if (empty($bikes)): ?>
+  <div class="empty-state">
+    <i data-lucide="bike"></i>
+    <h3>Zatim nemate zadne kolo</h3>
+    <p>Zaregistrujte sve prvni kolo a ziskejte unikatni QR kod pro jeho ochranu.</p>
+    <a href="/bike/new" class="btn btn-primary">
+      <i data-lucide="plus"></i> Zaregistrovat prvni kolo
+    </a>
+  </div>
+<?php else: ?>
+  <div class="bike-grid">
+    <?php foreach ($bikes as $bike): ?>
+      <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
+        <div class="bike-card-photo-wrap">
+          <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
+          <?php if ($primaryPhoto): ?>
+            <img src="<?= e($primaryPhoto->getUrl()) ?>"
+                 alt="<?= e($bike->getFullName()) ?>"
+                 class="bike-card-photo">
+          <?php else: ?>
+            <div class="bike-card-photo-placeholder"><i data-lucide="image"></i></div>
+          <?php endif; ?>
+
+          <div class="bike-card-badges">
+            <?php
+              $statusLabels = [
+                'active' => 'Aktivni',
+                'stolen' => 'Odcizene',
+                'shared' => 'Sdilene',
+                'inactive' => 'Neaktivni',
+              ];
+            ?>
+            <span class="status-badge status-<?= e($bike->getStatus()) ?>">
+              <?= e($statusLabels[$bike->getStatus()] ?? $bike->getStatus()) ?>
+            </span>
+
+            <?php $frCount = $foundReportCounts[$bike->getId()] ?? 0; ?>
+            <?php if ($frCount > 0): ?>
+              <span class="found-report-badge">
+                <i data-lucide="map-pin" style="width:12px;height:12px"></i>
+                <?= $frCount ?> nalez<?= $frCount > 4 ? 'u' : ($frCount > 1 ? 'y' : '') ?>
+              </span>
+            <?php endif; ?>
+          </div>
+        </div>
+
+        <div class="bike-card-body">
+          <div class="bike-card-name"><?= e($bike->getFullName()) ?></div>
+          <div class="bike-card-meta">
+            <i data-lucide="palette"></i> <?= e($bike->getColor()) ?>
+          </div>
+        </div>
+      </a>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>

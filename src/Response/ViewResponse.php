@@ -25,7 +25,7 @@ class ViewResponse extends Response
         string $template,
         array $data = [],
         int $statusCode = 200,
-        string $layout = 'layouts/main'
+        string $layout = 'layouts/public'
     ) {
         parent::__construct($statusCode);
         $this->template = $template;

@@ -57,7 +57,7 @@ class NotificationController
             'title' => 'Oznámení – BikeSwap',
             'notifications' => $notifications,
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     /**

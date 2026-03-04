@@ -64,7 +64,7 @@ class TheftController
             'bike' => $bike,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     /**
@@ -168,7 +168,7 @@ class TheftController
             'bikes' => $stolenBikes,
             'filters' => $filters,
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/public');
     }
 
     /**

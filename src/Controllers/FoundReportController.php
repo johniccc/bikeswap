@@ -75,7 +75,7 @@ class FoundReportController
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
             'turnstileSiteKey' => $this->config['turnstile']['site_key'] ?? '',
-        ]);
+        ])->withLayout('layouts/public');
     }
 
     /**
@@ -210,7 +210,7 @@ class FoundReportController
             'viewerType' => 'finder',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/public');
     }
 
     /**
@@ -289,7 +289,7 @@ class FoundReportController
             'finderLabel' => $finderLabel,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/app');
     }
 
     /**

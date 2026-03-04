@@ -35,7 +35,7 @@ class AuthController
             'title' => 'Registrace – BikeSwap',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/public');
     }
 
     /**
@@ -114,7 +114,7 @@ class AuthController
             'title' => 'Přihlášení – BikeSwap',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ]);
+        ])->withLayout('layouts/public');
     }
 
     /**

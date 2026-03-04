@@ -113,7 +113,7 @@ class App
                 'session' => $session,
             ],
             $code
-        );
+        )->withLayout('layouts/public');
     }
 
     private function isDebug(): bool
