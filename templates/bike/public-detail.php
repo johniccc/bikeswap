@@ -155,6 +155,12 @@
         <div class="bike-qr">
             <h2>QR kód kola</h2>
             <img src="<?= $qrDataUri ?>" alt="QR kód" class="qr-code-image">
+            <div class="flex gap-sm mt-sm" style="justify-content:center;flex-wrap:wrap;">
+                <a href="/file/qr/<?= e($bike->getQrHash()) ?>"
+                   download="qr-kolo-<?= e($bike->getQrHash()) ?>.png"
+                   class="btn btn-secondary btn-sm">⬇ Stáhnout QR</a>
+                <button type="button" onclick="window.print()" class="btn btn-secondary btn-sm">🖨 Tisknout</button>
+            </div>
             <p class="qr-hint">Vytiskněte a umístěte na kolo. Po naskenování zobrazí detail kola.</p>
         </div>
     <?php endif; ?>
