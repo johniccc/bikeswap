@@ -84,6 +84,7 @@ class FoundReport
             'pending'   => 'Čeká na reakci',
             'contacted' => 'Probíhá komunikace',
             'resolved'  => 'Vyřešeno',
+            'closed'    => 'Uzavřeno',
             default     => 'Neznámý',
         };
     }
@@ -94,6 +95,7 @@ class FoundReport
             'pending'   => 'status-found',
             'contacted' => 'status-active',
             'resolved'  => 'status-recovered',
+            'closed'    => 'status-inactive',
             default     => 'status-unknown',
         };
     }
@@ -101,6 +103,7 @@ class FoundReport
     public function isPending(): bool { return $this->status === 'pending'; }
     public function isContacted(): bool { return $this->status === 'contacted'; }
     public function isResolved(): bool { return $this->status === 'resolved'; }
+    public function isClosed(): bool { return $this->status === 'closed'; }
 
     /**
      * Check if the finder was a registered user.

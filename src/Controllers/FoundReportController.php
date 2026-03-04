@@ -346,4 +346,37 @@ class FoundReportController
 
         return redirect('/bike/' . $bike->getQrHash());
     }
+
+    /**
+     * Close a found report conversation — owner dismisses the report.
+     * POST /found/{reportId}/close
+     */
+    public function closeConversation(Request $request): Response
+    {
+        $reportId = (int) $request->param('reportId');
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný token.');
+
+            return redirect("/found/{$reportId}/conversation");
+        }
+
+        $user   = $this->authService->currentUser();
+        $report = $this->foundReportRepository->findById($reportId);
+
+        if ($report === null) {
+            throw new \RuntimeException('Hlášení nenalezeno.', 404);
+        }
+
+        $bike = $report->getBikeId() ? $this->bikeRepository->findById($report->getBikeId()) : null;
+
+        if ($bike === null || (!$bike->isOwnedBy($user->getId()) && !$user->isAdmin())) {
+            throw new \RuntimeException('Přístup odepřen.', 403);
+        }
+
+        $this->foundReportRepository->updateStatus($reportId, 'closed');
+        $this->session->flash('success', 'Konverzace byla uzavřena.');
+
+        return redirect("/found/{$reportId}/conversation");
+    }
 }

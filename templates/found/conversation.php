@@ -71,8 +71,8 @@
         <?php endif; ?>
     </div>
 
-    <!-- Message form (only if report is not resolved) -->
-    <?php if (!$report->isResolved()): ?>
+    <!-- Message form (only if report is not resolved and not closed) -->
+    <?php if (!$report->isResolved() && !$report->isClosed()): ?>
         <div class="conversation-compose">
             <?php if ($viewerType === 'finder'): ?>
                 <form method="POST" action="/found/conversation/<?= e($report->getConversationToken()) ?>/message">
@@ -89,7 +89,7 @@
             </form>
         </div>
 
-        <!-- Owner-only: Resolve button -->
+        <!-- Owner-only: Resolve and Close buttons -->
         <?php if ($viewerType === 'owner'): ?>
             <div class="conversation-actions">
                 <form method="POST" action="/found/<?= $report->getId() ?>/resolve"
@@ -99,8 +99,15 @@
                         Kolo jsem získal zpět — uzavřít
                     </button>
                 </form>
+                <form method="POST" action="/found/<?= $report->getId() ?>/close"
+                      onsubmit="return confirm('Opravdu uzavřít tuto konverzaci?')">
+                    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                    <button type="submit" class="btn btn-secondary">Uzavřít konverzaci</button>
+                </form>
             </div>
         <?php endif; ?>
+    <?php elseif ($report->isClosed()): ?>
+        <div class="alert alert-info">Tato konverzace je uzavřena.</div>
     <?php else: ?>
         <div class="alert alert-info">
             Tato konverzace je uzavřena — kolo bylo úspěšně navráceno majiteli.

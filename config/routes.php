@@ -79,6 +79,7 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->get('/found/{reportId}/conversation', [FoundReportController::class, 'ownerConversation']);
     $router->post('/found/{reportId}/message', [FoundReportController::class, 'ownerSendMessage']);
     $router->post('/found/{reportId}/resolve', [FoundReportController::class, 'resolve']);
+    $router->post('/found/{reportId}/close', [FoundReportController::class, 'closeConversation']);
 
     // Notifications (specific routes BEFORE parametric!)
     $router->get('/notifications', [NotificationController::class, 'index']);
