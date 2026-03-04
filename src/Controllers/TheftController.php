@@ -101,6 +101,15 @@ class TheftController
             return redirect("/theft/report/{$bikeId}");
         }
 
+        // Validate: theft date cannot be before bike manufacture year
+        $bikeYear  = $bike->getYearOfManufacture();
+        $theftDate = $request->input('theft_date', '');
+        if ($bikeYear && $theftDate && (int) date('Y', strtotime($theftDate)) < $bikeYear) {
+            $this->session->flash('error', "Datum krádeže nemůže být před rokem výroby kola ({$bikeYear}).");
+
+            return redirect("/theft/report/{$bikeId}");
+        }
+
         // Report the theft
         try {
             $reportId = $this->theftService->reportTheft($bike, $currentUser->getId(), [

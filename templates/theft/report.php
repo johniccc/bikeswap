@@ -21,7 +21,9 @@
         <div class="form-group">
             <label for="theft_date">Datum krádeže</label>
             <input type="date" id="theft_date" name="theft_date"
-                   value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>">
+                   value="<?= date('Y-m-d') ?>"
+                   <?php if ($bike->getYearOfManufacture()): ?>min="<?= e($bike->getYearOfManufacture()) ?>-01-01"<?php endif; ?>
+                   max="<?= date('Y-m-d') ?>">
         </div>
 
         <div class="form-group">
