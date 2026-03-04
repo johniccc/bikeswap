@@ -29,14 +29,19 @@
                         <p class="text-muted"><?= e(mb_substr($bike->getDescription(), 0, 120)) ?><?= mb_strlen($bike->getDescription()) > 120 ? '…' : '' ?></p>
                     <?php endif; ?>
 
+                    <?php $unavailable = in_array($bike->getId(), $unavailableIds ?? [], true); ?>
+                    <span class="availability-badge <?= $unavailable ? 'availability-unavailable' : 'availability-available' ?>">
+                        <?= $unavailable ? '✕ Nedostupné' : '✓ Dostupné' ?>
+                    </span>
+
                     <div class="bike-card-actions">
                         <?php
                         $isLoggedIn = isset($currentUser) && $currentUser !== null;
                         $isOwner    = $isLoggedIn && $bike->isOwnedBy($currentUser->getId());
                         ?>
-                        <?php if ($isLoggedIn && !$isOwner): ?>
+                        <?php if (!$unavailable && $isLoggedIn && !$isOwner): ?>
                             <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-primary">Rezervovat</a>
-                        <?php elseif (!$isLoggedIn): ?>
+                        <?php elseif (!$unavailable && !$isLoggedIn): ?>
                             <a href="/login?redirect=/shared" class="btn btn-primary">Přihlásit a rezervovat</a>
                         <?php endif; ?>
                         <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn">Detail</a>

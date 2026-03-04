@@ -53,11 +53,13 @@ class ReservationController
     {
         $bikes = $this->bikeRepo->findShared(withPhotos: true);
         $currentUser = $this->authService->currentUser();
+        $unavailableIds = $this->reservationRepo->findUnavailableBikeIds();
 
         return view('reservation/shared-bikes', [
             'title' => 'Sdílená kola – BikeSwap',
             'bikes' => $bikes,
             'currentUser' => $currentUser,
+            'unavailableIds' => $unavailableIds,
             'session' => $this->session,
         ]);
     }

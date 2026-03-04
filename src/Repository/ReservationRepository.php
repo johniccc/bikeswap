@@ -191,6 +191,17 @@ class ReservationRepository
     }
 
     /**
+     * Get bike IDs that are currently reserved (status approved or active, end date >= today).
+     */
+    public function findUnavailableBikeIds(): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT bike_id FROM reservations WHERE status IN ('approved', 'active') AND date_to >= CURDATE()"
+        );
+        return array_column($rows, 'bike_id');
+    }
+
+    /**
      * Count reservations by status for a bike.
      */
     public function countByBikeAndStatus(int $bikeId, string $status): int
