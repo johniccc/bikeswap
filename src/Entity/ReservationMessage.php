@@ -76,6 +76,6 @@ class ReservationMessage
 
     public function getFormattedTime(): string
     {
-        return date('j. n. Y H:i', strtotime($this->createdAt));
+        return date('d/m/Y H:i', strtotime($this->createdAt));
     }
 }

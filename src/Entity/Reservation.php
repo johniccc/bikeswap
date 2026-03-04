@@ -177,12 +177,12 @@ class Reservation
 
     public function getFormattedDateFrom(): string
     {
-        return date('j. n. Y', strtotime($this->dateFrom));
+        return date('d/m/Y', strtotime($this->dateFrom));
     }
 
     public function getFormattedDateTo(): string
     {
-        return date('j. n. Y', strtotime($this->dateTo));
+        return date('d/m/Y', strtotime($this->dateTo));
     }
 
     public function getDateRangeText(): string

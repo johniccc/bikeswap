@@ -135,6 +135,6 @@ class Notification
             return 'Včera ' . date('H:i', $timestamp);
         }
 
-        return date('j. n. Y', $timestamp);
+        return date('d/m/Y', $timestamp);
     }
 }

@@ -57,6 +57,32 @@ if (!function_exists('json')) {
     }
 }
 
+if (!function_exists('formatDate')) {
+    /**
+     * Format a date value as dd/mm/yyyy.
+     */
+    function formatDate(mixed $d): string
+    {
+        if ($d === null || $d === '') return '';
+        if ($d instanceof \DateTimeInterface) return $d->format('d/m/Y');
+        $ts = is_int($d) ? $d : strtotime((string)$d);
+        return $ts !== false ? date('d/m/Y', $ts) : (string)$d;
+    }
+}
+
+if (!function_exists('formatDateTime')) {
+    /**
+     * Format a date-time value as dd/mm/yyyy H:i.
+     */
+    function formatDateTime(mixed $d): string
+    {
+        if ($d === null || $d === '') return '';
+        if ($d instanceof \DateTimeInterface) return $d->format('d/m/Y H:i');
+        $ts = is_int($d) ? $d : strtotime((string)$d);
+        return $ts !== false ? date('d/m/Y H:i', $ts) : (string)$d;
+    }
+}
+
 if (!function_exists('isActiveRoute')) {
     /**
      * Return 'active' if the given path matches the current request URI.

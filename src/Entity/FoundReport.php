@@ -121,7 +121,7 @@ class FoundReport
 
         $date = \DateTime::createFromFormat('Y-m-d', $this->foundDate);
 
-        return $date ? $date->format('j. n. Y') : $this->foundDate;
+        return $date ? $date->format('d/m/Y') : $this->foundDate;
     }
 
     /**

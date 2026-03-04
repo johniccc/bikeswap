@@ -92,6 +92,6 @@ class FoundReportMessage
     {
         $date = \DateTime::createFromFormat('Y-m-d H:i:s', $this->createdAt);
 
-        return $date ? $date->format('j. n. Y H:i') : $this->createdAt;
+        return $date ? $date->format('d/m/Y H:i') : $this->createdAt;
     }
 }

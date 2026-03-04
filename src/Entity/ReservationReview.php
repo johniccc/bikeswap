@@ -73,7 +73,7 @@ class ReservationReview
 
     public function getFormattedDate(): string
     {
-        return date('j. n. Y', strtotime($this->createdAt));
+        return date('d/m/Y', strtotime($this->createdAt));
     }
 
     /**
