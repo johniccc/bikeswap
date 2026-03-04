@@ -113,7 +113,29 @@ class FoundReportController
             $validator->required('reporter_email', 'E-mail je povinný.')
                       ->email('reporter_email');
 
-            // TODO: Validate Turnstile captcha for anonymous users
+            // Turnstile CAPTCHA verification for anonymous users
+            $secretKey = $_ENV['TURNSTILE_SECRET_KEY'] ?? '';
+            if ($secretKey !== '') {
+                $token = $request->input('cf-turnstile-response', '');
+                $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+                curl_setopt_array($ch, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT        => 5,
+                    CURLOPT_POSTFIELDS     => http_build_query([
+                        'secret'   => $secretKey,
+                        'response' => $token,
+                    ]),
+                ]);
+                $result = curl_exec($ch);
+                curl_close($ch);
+                $data = json_decode($result ?: '', true) ?? [];
+                if (!($data['success'] ?? false)) {
+                    $this->session->flash('error', 'Ověření CAPTCHA selhalo. Zkuste to znovu.');
+
+                    return redirect("/found/report/{$qrHash}");
+                }
+            }
         }
 
         $validator->required('found_location_text', 'Místo nálezu je povinné.');
