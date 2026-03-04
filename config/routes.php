@@ -99,6 +99,7 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->post('/reservation/{id}/activate', [ReservationController::class, 'activate']);
     $router->post('/reservation/{id}/complete', [ReservationController::class, 'complete']);
     $router->post('/reservation/{id}/not-returned', [ReservationController::class, 'reportNotReturned']);
+    $router->post('/reservation/{id}/dispute', [ReservationController::class, 'dispute']);
     $router->post('/reservation/{id}/message', [ReservationController::class, 'sendMessage']);
     $router->post('/reservation/{id}/review', [ReservationController::class, 'submitReview']);
 });

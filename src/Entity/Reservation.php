@@ -208,6 +208,7 @@ class Reservation
             'completed'    => 'Dokončeno',
             'cancelled'    => 'Zrušeno',
             'not_returned' => 'Kolo nevráceno',
+            'disputed'     => 'Sporné',
             default        => 'Neznámý',
         };
     }
@@ -222,6 +223,7 @@ class Reservation
             'completed'    => 'status-recovered',    // blue-green
             'cancelled'    => 'status-unknown',      // grey
             'not_returned' => 'status-stolen',       // red
+            'disputed'     => 'status-warning',      // warning yellow
             default        => 'status-unknown',
         };
     }

@@ -470,6 +470,46 @@ class ReservationService
         }
     }
 
+    /**
+     * Borrower disputes a not_returned report.
+     */
+    public function dispute(int $reservationId, int $borrowerId): void
+    {
+        $reservation = $this->reservationRepo->findById($reservationId);
+
+        if ($reservation === null) {
+            throw new \RuntimeException('Rezervace nenalezena.', 404);
+        }
+
+        if (!$reservation->isBorrowedBy($borrowerId)) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        if ($reservation->getStatus() !== 'not_returned') {
+            throw new \RuntimeException('Tuto akci nelze provést.', 422);
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $this->reservationRepo->updateStatus($reservationId, 'disputed');
+
+            $this->messageRepo->create($reservationId, 'system', null, 'Výpůjčník podal námitku proti nahlášení nevrácení.');
+
+            $this->notificationService->notify(
+                $reservation->getOwnerId(),
+                'warning',
+                'Výpůjčník zpochybnil nahlášení nevrácení. Případ čeká na řešení.',
+                "/reservation/{$reservationId}"
+            );
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
     // ── Messaging ──────────────────────────────────────────
 
     /**

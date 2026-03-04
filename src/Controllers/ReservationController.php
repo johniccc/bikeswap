@@ -247,6 +247,31 @@ class ReservationController
         return $this->handleStatusAction($request, 'reportNotReturned', 'Nevrácení kola bylo nahlášeno.');
     }
 
+    /**
+     * Borrower disputes a not-returned report.
+     * POST /reservation/{id}/dispute
+     */
+    public function dispute(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return redirect("/reservation/{$id}");
+        }
+
+        $currentUser = $this->authService->currentUser();
+
+        try {
+            $this->reservationService->dispute($id, $currentUser->getId());
+            $this->session->flash('success', 'Vaše námitka byla zaznamenána. Vlastník kola byl upozorněn.');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
+        }
+
+        return redirect("/reservation/{$id}");
+    }
+
     // ── Messaging ──────────────────────────────────────────
 
     /**

@@ -129,6 +129,22 @@ $bike = $reservation->getBike();
     </div>
 <?php endif; ?>
 
+<?php if ($isBorrower && $reservation->getStatus() === 'not_returned'): ?>
+    <div class="card mb-2">
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <strong>Vlastník nahlásil, že kolo nebylo vráceno.</strong>
+                Pokud kolo skutečně vrátíte, kontaktujte vlastníka. Pokud je situace jinak, můžete podat námitku.
+            </div>
+            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/dispute"
+                  onsubmit="return confirm('Opravdu chcete podat námitku? Vlastník bude upozorněn.')">
+                <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                <button type="submit" class="btn btn-warning">Podat námitku</button>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
 <!-- ═══ REVIEWS SECTION ═══ -->
 <?php if ($reservation->canBeReviewed()): ?>
     <div class="card mb-2">
