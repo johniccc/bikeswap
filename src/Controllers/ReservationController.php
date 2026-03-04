@@ -52,10 +52,12 @@ class ReservationController
     public function sharedBikes(Request $request): Response
     {
         $bikes = $this->bikeRepo->findShared(withPhotos: true);
+        $currentUser = $this->authService->currentUser();
 
         return view('reservation/shared-bikes', [
             'title' => 'Sdílená kola – BikeSwap',
             'bikes' => $bikes,
+            'currentUser' => $currentUser,
             'session' => $this->session,
         ]);
     }

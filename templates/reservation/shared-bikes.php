@@ -30,7 +30,15 @@
                     <?php endif; ?>
 
                     <div class="bike-card-actions">
-                        <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-primary">Rezervovat</a>
+                        <?php
+                        $isLoggedIn = isset($currentUser) && $currentUser !== null;
+                        $isOwner    = $isLoggedIn && $bike->isOwnedBy($currentUser->getId());
+                        ?>
+                        <?php if ($isLoggedIn && !$isOwner): ?>
+                            <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-primary">Rezervovat</a>
+                        <?php elseif (!$isLoggedIn): ?>
+                            <a href="/login?redirect=/shared" class="btn btn-primary">Přihlásit a rezervovat</a>
+                        <?php endif; ?>
                         <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn">Detail</a>
                     </div>
                 </div>

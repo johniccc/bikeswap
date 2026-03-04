@@ -106,11 +106,11 @@ $bike = $reservation->getBike();
                     </form>
                 <?php endif; ?>
 
-                <?php if ($reservation->canBeCancelled()): ?>
+                <?php if ($reservation->isApproved()): ?>
                     <form method="POST" action="/reservation/<?= $reservation->getId() ?>/cancel"
                           onsubmit="return confirm('Opravdu zrušit rezervaci?')">
                         <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                        <button type="submit" class="btn">Zrušit rezervaci</button>
+                        <button type="submit" class="btn btn-warning">Zrušit rezervaci</button>
                     </form>
                 <?php endif; ?>
 
