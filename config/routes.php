@@ -17,6 +17,7 @@ use App\Controllers\TheftController;
 use App\Controllers\FoundReportController;
 use App\Controllers\NotificationController;
 use App\Controllers\ReservationController;
+use App\Controllers\ProfileController;
 
 use App\Middleware\AuthMiddleware;
 
@@ -51,6 +52,10 @@ $router->post('/found/conversation/{token}/message', [FoundReportController::cla
 $router->group('', [AuthMiddleware::class], function ($router) {
     // Dashboard
     $router->get('/dashboard', [BikeController::class, 'myBikes']);
+
+    // Profile
+    $router->get('/profile', [ProfileController::class, 'index']);
+    $router->get('/profile/settings', [ProfileController::class, 'settings']);
 
     // Bike CRUD (BEFORE the public /bike/{hash} route!)
     $router->get('/bike/new', [BikeController::class, 'createForm']);
