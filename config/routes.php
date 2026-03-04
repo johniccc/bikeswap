@@ -15,6 +15,7 @@ use App\Controllers\BikeController;
 use App\Controllers\FileController;
 use App\Controllers\TheftController;
 use App\Controllers\FoundReportController;
+use App\Controllers\MessagePollController;
 use App\Controllers\NotificationController;
 use App\Controllers\ReservationController;
 use App\Controllers\ProfileController;
@@ -46,6 +47,7 @@ $router->get('/found/report/{qrHash}', [FoundReportController::class, 'reportFor
 $router->post('/found/report/{qrHash}', [FoundReportController::class, 'report']);
 $router->get('/found/conversation/{token}', [FoundReportController::class, 'finderConversation']);
 $router->post('/found/conversation/{token}/message', [FoundReportController::class, 'finderSendMessage']);
+$router->get('/found/{token}/poll', [MessagePollController::class, 'foundMessages']);
 
 // ── Authenticated routes ───────────────────────────────────────
 
@@ -89,6 +91,7 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->get('/reservation/new/{bikeId}', [ReservationController::class, 'createForm']);
     $router->post('/reservation/new/{bikeId}', [ReservationController::class, 'store']);
     $router->get('/reservation/{bikeId}/unavailable-dates', [ReservationController::class, 'unavailableDates']);
+    $router->get('/reservation/{id}/poll', [MessagePollController::class, 'reservationMessages']);
     $router->get('/reservation/{id}', [ReservationController::class, 'detail']);
     $router->post('/reservation/{id}/approve', [ReservationController::class, 'approve']);
     $router->post('/reservation/{id}/reject', [ReservationController::class, 'reject']);

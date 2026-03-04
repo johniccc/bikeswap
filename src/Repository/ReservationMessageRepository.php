@@ -48,6 +48,21 @@ class ReservationMessageRepository
     }
 
     /**
+     * Get all messages for a reservation with id > $afterId, ordered chronologically.
+     *
+     * @return ReservationMessage[]
+     */
+    public function findAfter(int $reservationId, int $afterId): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT * FROM reservation_messages WHERE reservation_id = ? AND id > ? ORDER BY id ASC",
+            [$reservationId, $afterId]
+        );
+
+        return array_map(fn(array $row) => ReservationMessage::fromRow($row), $rows);
+    }
+
+    /**
      * Mark all messages as read for a specific viewer.
      * Owner reads messages from borrower, borrower reads messages from owner.
      */

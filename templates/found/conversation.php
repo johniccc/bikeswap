@@ -50,7 +50,9 @@
     </div>
 
     <!-- Messages -->
-    <div class="conversation-messages" id="messages">
+    <div class="conversation-messages" id="messages"
+         data-poll-url="/found/<?= e($report->getConversationToken()) ?>/poll"
+         data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>">
         <?php if (empty($messages)): ?>
             <p class="conversation-empty">Zatím žádné zprávy.</p>
         <?php else: ?>

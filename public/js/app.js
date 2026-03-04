@@ -193,3 +193,58 @@
         });
     }
 })();
+
+// ── Chat message polling (3s long polling) ──────────────────────
+(function() {
+    'use strict';
+
+    var container = document.getElementById('messages');
+    if (!container) return;
+
+    var pollUrl = container.getAttribute('data-poll-url');
+    var lastId  = parseInt(container.getAttribute('data-last-id') || '0', 10);
+
+    if (!pollUrl) return;
+
+    function appendMessage(msg) {
+        var div = document.createElement('div');
+        div.className = 'message' +
+            (msg.mine   ? ' mine'           : '') +
+            (msg.system ? ' message-system' : '');
+
+        var bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.textContent = msg.text; // NEVER innerHTML — textContent is XSS-safe
+
+        div.appendChild(bubble);
+
+        if (!msg.system) {
+            var meta = document.createElement('div');
+            meta.className = 'message-meta';
+            meta.textContent = (msg.label || '') + ' · ' + (msg.time || '');
+            div.appendChild(meta);
+        }
+
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function poll() {
+        fetch(pollUrl + '?after=' + lastId, { credentials: 'same-origin' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (data && data.messages && data.messages.length > 0) {
+                    data.messages.forEach(function(msg) {
+                        appendMessage(msg);
+                        if (msg.id > lastId) { lastId = msg.id; }
+                    });
+                }
+            })
+            .catch(function() {})
+            .finally(function() {
+                setTimeout(poll, 3000);
+            });
+    }
+
+    setTimeout(poll, 3000);
+})();

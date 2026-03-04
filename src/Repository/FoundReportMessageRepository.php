@@ -38,6 +38,25 @@ class FoundReportMessageRepository
     }
 
     /**
+     * Get all messages for a found report (looked up by conversation token)
+     * with id > $afterId, ordered chronologically.
+     *
+     * @return FoundReportMessage[]
+     */
+    public function findAfterByToken(string $token, int $afterId): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT m.* FROM found_report_messages m
+             JOIN found_reports r ON r.id = m.found_report_id
+             WHERE r.conversation_token = ? AND m.id > ?
+             ORDER BY m.id ASC",
+            [$token, $afterId]
+        );
+
+        return array_map(fn(array $row) => FoundReportMessage::fromRow($row), $rows);
+    }
+
+    /**
      * Create a new message. Returns the message ID.
      */
     public function create(int $reportId, string $senderType, ?int $senderUserId, string $message): int
