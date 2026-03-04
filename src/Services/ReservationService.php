@@ -270,6 +270,15 @@ class ReservationService
             throw new \RuntimeException('Tuto rezervaci nelze zrušit.');
         }
 
+        // Apply karma penalty for late cancellation (< 24h before start)
+        if ($reservation->isApproved() || $reservation->isPending()) {
+            $start = new \DateTime($reservation->getDateFrom());
+            $diffHours = ($start->getTimestamp() - (new \DateTime())->getTimestamp()) / 3600;
+            if ($diffHours > 0 && $diffHours < 24) {
+                $this->karmaService->addPoints($userId, -5, 'Pozdní zrušení rezervace');
+            }
+        }
+
         try {
             $this->db->beginTransaction();
 
