@@ -26,6 +26,11 @@ class AuthController
      */
     public function registerForm(Request $request): Response
     {
+        $redirect = $request->query('redirect', '');
+        if ($redirect && str_starts_with($redirect, '/')) {
+            $this->session->set('auth_redirect', $redirect);
+        }
+
         return view('auth/register', [
             'title' => 'Registrace – BikeSwap',
             'csrf' => $this->session->csrfToken(),
@@ -89,7 +94,10 @@ class AuthController
 
         $this->session->flash('success', 'Registrace proběhla úspěšně. Můžete se přihlásit.');
 
-        return redirect('/login');
+        $redirect = $this->session->get('auth_redirect', '/login');
+        $this->session->remove('auth_redirect');
+
+        return redirect($redirect);
     }
 
     /**
@@ -97,6 +105,11 @@ class AuthController
      */
     public function loginForm(Request $request): Response
     {
+        $redirect = $request->query('redirect', '');
+        if ($redirect && str_starts_with($redirect, '/')) {
+            $this->session->set('auth_redirect', $redirect);
+        }
+
         return view('auth/login', [
             'title' => 'Přihlášení – BikeSwap',
             'csrf' => $this->session->csrfToken(),
@@ -154,7 +167,10 @@ class AuthController
 
         $this->session->flash('success', 'Vítejte zpět!');
 
-        return redirect('/dashboard');
+        $redirect = $this->session->get('auth_redirect', '/dashboard');
+        $this->session->remove('auth_redirect');
+
+        return redirect($redirect);
     }
 
     /**
