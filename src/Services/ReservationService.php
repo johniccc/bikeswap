@@ -110,10 +110,15 @@ class ReservationService
             throw new \RuntimeException('Maximální délka výpůjčky je 30 dní.');
         }
 
-        // 3. Generate unique conversation token
+        // 3. Check for duplicate pending reservation
+        if ($this->reservationRepo->hasPendingOverlap($borrowerId, $bikeId, $dateFrom, $dateTo)) {
+            throw new \RuntimeException('Již máte nevyřízenou žádost na tento termín pro toto kolo.');
+        }
+
+        // 4. Generate unique conversation token
         $token = bin2hex(random_bytes(32));
 
-        // 4. Create reservation
+        // 5. Create reservation
         $reservationId = $this->reservationRepo->create([
             'bike_id'            => $bikeId,
             'borrower_id'        => $borrowerId,
@@ -124,12 +129,12 @@ class ReservationService
             'message'            => $message,
         ]);
 
-        // 5. Add initial message if provided
+        // 6. Add initial message if provided
         if ($message !== null && trim($message) !== '') {
             $this->messageRepo->create($reservationId, 'borrower', $borrowerId, $message);
         }
 
-        // 6. Notify owner
+        // 7. Notify owner
         $this->notificationService->notify(
             $bike->getOwnerId(),
             'reservation',
@@ -137,7 +142,7 @@ class ReservationService
             "/reservation/{$reservationId}"
         );
 
-        // 7. Send email to owner
+        // 8. Send email to owner
         $this->emailService->sendReservationRequest($bike->getOwnerId(), $bike, $reservationId);
 
         return ['reservation_id' => $reservationId, 'token' => $token];

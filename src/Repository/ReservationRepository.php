@@ -191,6 +191,20 @@ class ReservationRepository
     }
 
     /**
+     * Check if borrower already has a pending reservation for the same bike and overlapping dates.
+     */
+    public function hasPendingOverlap(int $borrowerId, int $bikeId, string $dateFrom, string $dateTo): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id FROM reservations
+             WHERE borrower_id = ? AND bike_id = ? AND status = 'pending'
+               AND date_from <= ? AND date_to >= ?",
+            [$borrowerId, $bikeId, $dateTo, $dateFrom]
+        );
+        return $row !== null && $row !== false;
+    }
+
+    /**
      * Get bike IDs that are currently reserved (status approved or active, end date >= today).
      */
     public function findUnavailableBikeIds(): array
