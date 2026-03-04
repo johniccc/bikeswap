@@ -1189,6 +1189,38 @@ select.form-control {
   background: var(--color-primary);
 }
 
+.photo-preview-card {
+  position: relative;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  width: 140px;
+}
+
+.photo-preview-card.photo-preview-primary {
+  border-color: var(--color-primary);
+}
+
+.photo-preview-img {
+  width: 140px;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-preview-actions {
+  display: flex;
+  gap: .25rem;
+  padding: .35rem;
+  flex-wrap: wrap;
+}
+
+.badge-primary-photo {
+  font-size: .75rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
 /* ────────────────────────────────────────────────────────────────
    17. QR SCANNER MODAL
    ──────────────────────────────────────────────────────────────── */

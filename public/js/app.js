@@ -248,3 +248,85 @@
 
     setTimeout(poll, 3000);
 })();
+
+// ── Dynamic photo preview ─────────────────────
+(function() {
+    'use strict';
+
+    var input   = document.getElementById('photo-input');
+    var preview = document.getElementById('photo-preview');
+    var hiddenPrimary = document.getElementById('primary-index');
+
+    if (!input || !preview) return;
+
+    var files = [];        // DataTransfer list of selected files
+    var primaryIdx = 0;
+
+    function render() {
+        while (preview.firstChild) { preview.removeChild(preview.firstChild); }
+        files.forEach(function(file, i) {
+            var card = document.createElement('div');
+            card.className = 'photo-preview-card' + (i === primaryIdx ? ' photo-preview-primary' : '');
+
+            var img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.alt = '';
+            img.className = 'photo-preview-img';
+            card.appendChild(img);
+
+            var actions = document.createElement('div');
+            actions.className = 'photo-preview-actions';
+
+            if (i !== primaryIdx) {
+                var setPrimary = document.createElement('button');
+                setPrimary.type = 'button';
+                setPrimary.className = 'btn btn-sm';
+                setPrimary.textContent = 'Primární';
+                (function(idx) {
+                    setPrimary.addEventListener('click', function() {
+                        primaryIdx = idx;
+                        hiddenPrimary.value = String(idx);
+                        render();
+                    });
+                })(i);
+                actions.appendChild(setPrimary);
+            } else {
+                var badge = document.createElement('span');
+                badge.className = 'badge-primary-photo';
+                badge.textContent = '\u2713 Primární';
+                actions.appendChild(badge);
+            }
+
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn btn-sm btn-danger';
+            remove.textContent = '\u2715 Odebrat';
+            (function(idx) {
+                remove.addEventListener('click', function() {
+                    URL.revokeObjectURL(img.src);
+                    files.splice(idx, 1);
+                    if (primaryIdx >= files.length) primaryIdx = Math.max(0, files.length - 1);
+                    hiddenPrimary.value = String(primaryIdx);
+                    syncFileInput();
+                    render();
+                });
+            })(i);
+            actions.appendChild(remove);
+
+            card.appendChild(actions);
+            preview.appendChild(card);
+        });
+    }
+
+    function syncFileInput() {
+        var dt = new DataTransfer();
+        files.forEach(function(f) { dt.items.add(f); });
+        input.files = dt.files;
+    }
+
+    input.addEventListener('change', function() {
+        Array.from(input.files).forEach(function(f) { files.push(f); });
+        input.value = '';
+        render();
+    });
+})();

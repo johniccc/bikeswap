@@ -162,7 +162,8 @@ class BikeController
         // Handle photo upload(s)
         $photos = $request->file('photos');
         if ($photos !== null) {
-            $this->handlePhotoUploads($photos, $bikeId, $currentUser->getId());
+            $primaryIndex = max(0, (int) $request->input('primary_index', '0'));
+            $this->handlePhotoUploads($photos, $bikeId, $currentUser->getId(), $primaryIndex);
         }
 
         if ($request->wantsJson()) {
@@ -250,7 +251,8 @@ class BikeController
         // Handle new photo uploads
         $photos = $request->file('photos');
         if ($photos !== null) {
-            $this->handlePhotoUploads($photos, $bikeId, $currentUser->getId());
+            $primaryIndex = max(0, (int) $request->input('primary_index', '0'));
+            $this->handlePhotoUploads($photos, $bikeId, $currentUser->getId(), $primaryIndex);
         }
 
         $this->session->flash('success', 'Kolo bylo úspěšně upraveno.');
@@ -412,12 +414,15 @@ class BikeController
     /**
      * Handle multiple file uploads for a bike.
      */
-    private function handlePhotoUploads(array $files, int $bikeId, int $uploadedBy): void
+    private function handlePhotoUploads(array $files, int $bikeId, int $uploadedBy, int $primaryIndex = 0): void
     {
         // Normalize files array (PHP's $_FILES structure for multiple files is weird)
         if (isset($files['tmp_name']) && is_array($files['tmp_name'])) {
             $count = count($files['tmp_name']);
             $isFirstBikePhoto = empty($this->bikeRepository->findPhotosByBikeId($bikeId));
+
+            // Clamp primaryIndex to valid range
+            $primaryIndex = min($primaryIndex, $count - 1);
 
             for ($i = 0; $i < $count; $i++) {
                 if ($files['error'][$i] !== UPLOAD_ERR_OK) {
@@ -435,7 +440,7 @@ class BikeController
                 $result = $this->fileUploadService->uploadBikePhoto($singleFile);
 
                 if ($result['success']) {
-                    $isPrimary = ($i === 0 && $isFirstBikePhoto);
+                    $isPrimary = ($i === $primaryIndex && $isFirstBikePhoto);
                     $this->bikeRepository->addPhoto($bikeId, $result['path'], $uploadedBy, $isPrimary);
                 }
             }

@@ -66,9 +66,11 @@
     <fieldset>
         <legend>Přidat nové fotografie</legend>
         <div class="form-group">
-            <label for="photos">Vyberte soubory (JPEG, PNG, WebP)</label>
-            <input type="file" id="photos" name="photos[]" multiple
-                   accept="image/jpeg,image/png,image/webp">
+            <label for="photo-input">Vyberte soubory (JPEG, PNG, WebP)</label>
+            <input type="file" name="photos[]" id="photo-input" multiple accept="image/*" class="form-control">
+            <div class="photo-preview-grid" id="photo-preview"></div>
+            <input type="hidden" name="primary_index" id="primary-index" value="0">
+            <p class="form-text">První fotografie bude primární (nebo vyberte jinou). Podporované formáty: JPG, PNG, WebP.</p>
         </div>
     </fieldset>
 
