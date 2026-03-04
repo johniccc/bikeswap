@@ -24,31 +24,31 @@
           <line x1="16" y1="18.5" x2="16" y2="27" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
           <line x1="5" y1="16" x2="13.5" y2="16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
           <line x1="18.5" y1="16" x2="27" y2="16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-          <path d="M10.5 12.5L15 16L10.5 19.5" stroke="#D4915E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M21.5 12.5L17 16L21.5 19.5" stroke="#D4915E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10.5 12.5L15 16L10.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21.5 12.5L17 16L21.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Bike<span class="navbar-logo-accent">Swap</span>
       </a>
     </div>
 
     <nav class="sidebar-nav">
-      <span class="sidebar-nav-label">Hlavni</span>
+      <span class="sidebar-nav-label">Hlavní</span>
       <a href="/dashboard" class="sidebar-link <?= isActiveRoute('/dashboard') ?>">
-        <i data-lucide="layout-dashboard"></i> Prehled
+        <i data-lucide="layout-dashboard"></i> Přehled
       </a>
       <a href="/stolen" class="sidebar-link <?= isActiveRoute('/stolen') ?>">
-        <i data-lucide="shield-alert"></i> Odcizena kola
+        <i data-lucide="shield-alert"></i> Odcizená kola
       </a>
       <a href="/shared" class="sidebar-link <?= isActiveRoute('/shared') ?>">
-        <i data-lucide="repeat"></i> Sdilena kola
+        <i data-lucide="repeat"></i> Sdílená kola
       </a>
 
-      <span class="sidebar-nav-label">Sprava</span>
+      <span class="sidebar-nav-label">Správa</span>
       <a href="/reservations" class="sidebar-link <?= isActiveRoute('/reservations') ?>">
         <i data-lucide="calendar-check"></i> Rezervace
       </a>
       <a href="/notifications" class="sidebar-link <?= isActiveRoute('/notifications') ?>" id="notif-link-desktop" style="position:relative">
-        <i data-lucide="bell"></i> Oznameni
+        <i data-lucide="bell"></i> Oznámení
         <span class="notif-badge" id="notif-count-desktop" style="display:none;position:relative;top:auto;right:auto;margin-left:auto"></span>
       </a>
     </nav>
@@ -69,7 +69,7 @@
         <form method="POST" action="/logout" style="margin:0">
           <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
           <button type="submit" class="sidebar-logout-btn">
-            <i data-lucide="log-out"></i> Odhlasit se
+            <i data-lucide="log-out"></i> Odhlásit se
           </button>
         </form>
       <?php endif; ?>
@@ -80,15 +80,15 @@
   <header class="top-bar">
     <a href="/" class="top-bar-logo">
       <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="16" cy="16" r="13" stroke="#0D9488" stroke-width="2.5"/>
-        <circle cx="16" cy="16" r="2.5" fill="#0D9488"/>
-        <path d="M10.5 12.5L15 16L10.5 19.5" stroke="#D4915E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21.5 12.5L17 16L21.5 19.5" stroke="#D4915E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="16" cy="16" r="13" stroke="#1B4332" stroke-width="2.5"/>
+        <circle cx="16" cy="16" r="2.5" fill="#1B4332"/>
+        <path d="M10.5 12.5L15 16L10.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21.5 12.5L17 16L21.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       Bike<span class="navbar-logo-accent">Swap</span>
     </a>
     <div class="top-bar-actions">
-      <a href="/notifications" class="top-bar-bell" aria-label="Oznameni" style="position:relative">
+      <a href="/notifications" class="top-bar-bell" aria-label="Oznámení" style="position:relative">
         <i data-lucide="bell"></i>
         <span class="notif-badge" id="notif-count-mobile" style="display:none"></span>
       </a>
@@ -108,11 +108,11 @@
   <nav class="bottom-nav">
     <a href="/dashboard" class="bottom-nav-item <?= isActiveRoute('/dashboard') ?>">
       <i data-lucide="layout-dashboard"></i>
-      <span>Prehled</span>
+      <span>Přehled</span>
     </a>
     <a href="/stolen" class="bottom-nav-item <?= isActiveRoute('/stolen') ?>">
       <i data-lucide="shield-alert"></i>
-      <span>Kradeze</span>
+      <span>Krádeže</span>
     </a>
     <div class="bottom-nav-item bottom-nav-qr-wrap">
       <button type="button" class="bottom-nav-qr-btn" id="open-qr-scanner-mobile" aria-label="Skenovat QR">

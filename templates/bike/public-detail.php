@@ -18,10 +18,10 @@
       <div class="alert alert-stolen mb-lg">
         <i data-lucide="alert-triangle"></i>
         <div>
-          <strong>Toto kolo je hlaseno jako odcizene!</strong>
+          <strong>Toto kolo je hlášeno jako odcizené!</strong>
           <?php if ($theftReport): ?>
             <p class="mt-sm" style="font-weight:400">
-              Datum kradeze: <?= e($theftReport->getFormattedTheftDate()) ?>
+              Datum krádeže: <?= e($theftReport->getFormattedTheftDate()) ?>
               <?php if ($theftReport->getTheftLocationText()): ?>
                 — <?= e($theftReport->getTheftLocationText()) ?>
               <?php endif; ?>
@@ -29,10 +29,10 @@
           <?php endif; ?>
           <?php if (!$isOwner): ?>
             <p class="mt-sm" style="font-weight:400">
-              Poznavate toto kolo nebo jste ho nasli? Pomozte majiteli nahlasenim nalezu.
+              Poznáváte toto kolo nebo jste ho našli? Pomozte majiteli nahlášením nálezu.
             </p>
             <a href="/found/report/<?= e($bike->getQrHash()) ?>" class="btn btn-success mt-sm">
-              <i data-lucide="map-pin"></i> Nahlasit nalez tohoto kola
+              <i data-lucide="map-pin"></i> Nahlásit nález tohoto kola
             </a>
           <?php endif; ?>
         </div>
@@ -47,24 +47,24 @@
         <div class="flex gap-sm mt-sm mb-lg">
           <?php
             $statusLabels = [
-              'active' => 'Aktivni',
-              'stolen' => 'Odcizene',
-              'shared' => 'Sdilene',
-              'inactive' => 'Neaktivni',
+              'active' => 'Aktivní',
+              'stolen' => 'Odcizené',
+              'shared' => 'Sdílené',
+              'inactive' => 'Neaktivní',
             ];
           ?>
           <span class="status-badge status-<?= e($bike->getStatus()) ?>">
             <?= e($statusLabels[$bike->getStatus()] ?? $bike->getStatus()) ?>
           </span>
           <?php if ($bike->isShared()): ?>
-            <span class="status-badge status-shared">Sdilene</span>
+            <span class="status-badge status-shared">Sdílené</span>
           <?php endif; ?>
         </div>
 
         <div class="card">
           <div class="card-body">
             <div class="info-row">
-              <span class="info-label">Znacka</span>
+              <span class="info-label">Značka</span>
               <span class="info-value"><?= e($bike->getBrand()) ?></span>
             </div>
             <?php if ($bike->getModel()): ?>
@@ -79,13 +79,13 @@
             </div>
             <?php if ($bike->getYearOfManufacture()): ?>
               <div class="info-row">
-                <span class="info-label">Rok vyroby</span>
+                <span class="info-label">Rok výroby</span>
                 <span class="info-value"><?= e((string)$bike->getYearOfManufacture()) ?></span>
               </div>
             <?php endif; ?>
-            <?php if ($bike->getFrameNumber() && $isOwner): ?>
+            <?php if ($bike->getFrameNumber() && $currentUser): ?>
               <div class="info-row">
-                <span class="info-label">Cislo ramu</span>
+                <span class="info-label">Sériové číslo</span>
                 <span class="info-value"><?= e($bike->getFrameNumber()) ?></span>
               </div>
             <?php endif; ?>
@@ -105,7 +105,7 @@
     <?php if ($isOwner): ?>
       <div class="card mt-lg">
         <div class="card-header">
-          <h3><i data-lucide="settings" style="width:18px;height:18px;display:inline"></i> Sprava kola</h3>
+          <h3><i data-lucide="settings" style="width:18px;height:18px;display:inline"></i> Správa kola</h3>
         </div>
         <div class="card-body">
           <div class="btn-group">
@@ -114,15 +114,15 @@
             </a>
             <?php if (!$bike->isStolen()): ?>
               <a href="/theft/report/<?= $bike->getId() ?>" class="btn btn-danger">
-                <i data-lucide="shield-alert"></i> Nahlasit kradez
+                <i data-lucide="shield-alert"></i> Nahlásit krádež
               </a>
             <?php else: ?>
               <?php if ($theftReport): ?>
                 <form method="POST" action="/theft/<?= $theftReport->getId() ?>/resolve"
-                      onsubmit="return confirm('Opravdu chcete zrusit hlaseni kradeze?')">
+                      onsubmit="return confirm('Opravdu chcete zrušit hlášení krádeže?')">
                   <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
                   <button type="submit" class="btn btn-success">
-                    <i data-lucide="check-circle"></i> Kolo jsem ziskal zpet
+                    <i data-lucide="check-circle"></i> Kolo jsem získal zpět
                   </button>
                 </form>
               <?php endif; ?>
@@ -135,7 +135,7 @@
       <?php if (!empty($foundReports)): ?>
         <div class="mt-lg">
           <h3 class="section-title">
-            Nahlasene nalezy
+            Nahlášené nálezy
             <span class="badge-count"><?= count($foundReports) ?></span>
           </h3>
 
@@ -161,7 +161,7 @@
                 <?php endif; ?>
 
                 <a href="/found/<?= $fr->getId() ?>/conversation" class="btn btn-sm btn-primary mt-sm">
-                  <i data-lucide="message-circle"></i> Otevrit konverzaci
+                  <i data-lucide="message-circle"></i> Otevřít konverzaci
                 </a>
               </div>
             </div>
@@ -172,19 +172,19 @@
       <!-- QR Code -->
       <?php if (isset($qrDataUri)): ?>
         <div class="bike-qr mt-lg">
-          <h3 class="section-title">QR kod kola</h3>
-          <img src="<?= $qrDataUri ?>" alt="QR kod" class="qr-code-image">
+          <h3 class="section-title">QR kód kola</h3>
+          <img src="<?= $qrDataUri ?>" alt="QR kód" class="qr-code-image">
           <div class="bike-qr-actions">
             <a href="/file/qr/<?= e($bike->getQrHash()) ?>"
                download="qr-kolo-<?= e($bike->getQrHash()) ?>.png"
                class="btn btn-secondary btn-sm">
-              <i data-lucide="download"></i> Stahnout QR
+              <i data-lucide="download"></i> Stáhnout QR
             </a>
             <button type="button" onclick="window.print()" class="btn btn-secondary btn-sm">
               <i data-lucide="printer"></i> Tisknout
             </button>
           </div>
-          <p class="text-sm text-muted mt-md">Vytisknete a umistete na kolo. Po naskenovani zobrazi detail kola.</p>
+          <p class="text-sm text-muted mt-md">Vytiskněte a umístěte na kolo. Po naskenování zobrazí detail kola.</p>
         </div>
       <?php endif; ?>
     <?php endif; ?>

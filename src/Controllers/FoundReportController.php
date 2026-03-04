@@ -287,6 +287,7 @@ class FoundReportController
             'bike' => $bike,
             'viewerType' => 'owner',
             'finderLabel' => $finderLabel,
+            'currentUser' => $currentUser,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
         ])->withLayout('layouts/app');

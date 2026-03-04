@@ -4,8 +4,8 @@
   </div>
   <h1>500</h1>
   <p class="error-page-title">Chyba serveru</p>
-  <p class="text-muted"><?= e($message ?? 'Neco se pokazilo. Zkuste to prosim znovu pozdeji.') ?></p>
+  <p class="text-muted"><?= e($message ?? 'Něco se pokazilo. Zkuste to prosím znovu později.') ?></p>
   <a href="/" class="btn btn-primary mt-lg">
-    <i data-lucide="home"></i> Zpet na hlavni stranku
+    <i data-lucide="home"></i> Zpět na hlavní stránku
   </a>
 </div>

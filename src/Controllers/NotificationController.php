@@ -56,6 +56,7 @@ class NotificationController
         return view('notifications/index', [
             'title' => 'Oznámení – BikeSwap',
             'notifications' => $notifications,
+            'currentUser' => $currentUser,
             'session' => $this->session,
         ])->withLayout('layouts/app');
     }

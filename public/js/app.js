@@ -19,26 +19,31 @@
     // ── 2. Burger menu toggle (public layout mobile) ──
     var burgerToggle = document.getElementById('burger-toggle');
     var mobileMenu = document.getElementById('mobile-menu');
-    var burgerIcon = document.getElementById('burger-icon');
+    function closeMobileMenu() {
+        if (!mobileMenu) return;
+        mobileMenu.classList.remove('open');
+        // Re-query since initIcons replaces the element
+        var icon = document.getElementById('burger-icon');
+        if (icon) {
+            icon.setAttribute('data-lucide', 'menu');
+            initIcons();
+        }
+    }
 
     if (burgerToggle && mobileMenu) {
         burgerToggle.addEventListener('click', function() {
             var isOpen = mobileMenu.classList.toggle('open');
-            if (burgerIcon) {
-                burgerIcon.setAttribute('data-lucide', isOpen ? 'x' : 'menu');
+            // Re-query since initIcons replaces the element
+            var icon = document.getElementById('burger-icon');
+            if (icon) {
+                icon.setAttribute('data-lucide', isOpen ? 'x' : 'menu');
                 initIcons();
             }
         });
 
-        // Close menu when clicking a link
-        mobileMenu.querySelectorAll('a').forEach(function(link) {
-            link.addEventListener('click', function() {
-                mobileMenu.classList.remove('open');
-                if (burgerIcon) {
-                    burgerIcon.setAttribute('data-lucide', 'menu');
-                    initIcons();
-                }
-            });
+        // Close menu when clicking any link or button
+        mobileMenu.querySelectorAll('a, button').forEach(function(el) {
+            el.addEventListener('click', closeMobileMenu);
         });
     }
 
@@ -60,22 +65,30 @@
 
     function switchAuthTab(tab) {
         if (!authModal) return;
-        var loginForm = document.getElementById('auth-login-form');
-        var registerForm = document.getElementById('auth-register-form');
-        var loginTab = document.getElementById('auth-tab-login');
-        var registerTab = document.getElementById('auth-tab-register');
+        var loginForm = document.getElementById('auth-form-login');
+        var registerForm = document.getElementById('auth-form-register');
+        var tabs = authModal.querySelectorAll('.auth-tab');
+        var title = document.getElementById('auth-modal-title');
 
+        // Toggle forms
         if (tab === 'login') {
-            if (loginForm) loginForm.style.display = '';
-            if (registerForm) registerForm.style.display = 'none';
-            if (loginTab) loginTab.classList.add('active');
-            if (registerTab) registerTab.classList.remove('active');
+            if (loginForm) loginForm.classList.add('active');
+            if (registerForm) registerForm.classList.remove('active');
+            if (title) title.textContent = 'Přihlášení';
         } else {
-            if (loginForm) loginForm.style.display = 'none';
-            if (registerForm) registerForm.style.display = '';
-            if (loginTab) loginTab.classList.remove('active');
-            if (registerTab) registerTab.classList.add('active');
+            if (loginForm) loginForm.classList.remove('active');
+            if (registerForm) registerForm.classList.add('active');
+            if (title) title.textContent = 'Registrace';
         }
+
+        // Toggle tab buttons
+        tabs.forEach(function(t) {
+            if (t.getAttribute('data-tab') === tab) {
+                t.classList.add('active');
+            } else {
+                t.classList.remove('active');
+            }
+        });
     }
 
     // Open auth modal buttons
@@ -85,8 +98,8 @@
         });
     });
 
-    // Auth tab switching
-    document.querySelectorAll('.auth-switch-btn').forEach(function(btn) {
+    // Auth tab switching (tabs + inline "switch" links)
+    document.querySelectorAll('.auth-tab, .auth-switch-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             switchAuthTab(this.getAttribute('data-tab'));
@@ -381,7 +394,7 @@
                     var setPrimary = document.createElement('button');
                     setPrimary.type = 'button';
                     setPrimary.className = 'btn btn-sm btn-ghost';
-                    setPrimary.textContent = 'Primarni';
+                    setPrimary.textContent = 'Primární';
                     (function(idx) {
                         setPrimary.addEventListener('click', function() {
                             primaryIdx = idx;
@@ -392,8 +405,8 @@
                     actions.appendChild(setPrimary);
                 } else {
                     var badge = document.createElement('span');
-                    badge.className = 'badge-primary-photo';
-                    badge.textContent = '\u2713 Primarni';
+                    badge.className = 'photo-preview-badge';
+                    badge.textContent = '\u2713 Primární';
                     actions.appendChild(badge);
                 }
 
@@ -426,7 +439,7 @@
 
         input.addEventListener('change', function() {
             Array.from(input.files).forEach(function(f) { files.push(f); });
-            input.value = '';
+            syncFileInput();
             render();
         });
     })();
@@ -435,11 +448,12 @@
     (function() {
         var desktopBadge = document.getElementById('notif-count-desktop');
         var mobileBadge = document.getElementById('notif-count-mobile');
+        var publicBadge = document.getElementById('notif-count-public');
 
-        if (!desktopBadge && !mobileBadge) return;
+        if (!desktopBadge && !mobileBadge && !publicBadge) return;
 
         function updateBadges(count) {
-            [desktopBadge, mobileBadge].forEach(function(badge) {
+            [desktopBadge, mobileBadge, publicBadge].forEach(function(badge) {
                 if (!badge) return;
                 if (count > 0) {
                     badge.textContent = count > 99 ? '99+' : String(count);
@@ -450,12 +464,24 @@
             });
         }
 
+        var lastKnownCount = -1;
+
         function pollNotifications() {
             fetch('/notifications/count', { credentials: 'same-origin' })
                 .then(function(r) { return r.ok ? r.json() : null; })
                 .then(function(data) {
                     if (data && typeof data.unread_count === 'number') {
-                        updateBadges(data.unread_count);
+                        var count = data.unread_count;
+                        // Show toast when count increases (not on first poll)
+                        if (lastKnownCount >= 0 && count > lastKnownCount && window.BikeSwap && window.BikeSwap.toast) {
+                            var diff = count - lastKnownCount;
+                            window.BikeSwap.toast(
+                                diff === 1 ? 'Máte nové oznámení' : 'Máte ' + diff + ' nová oznámení',
+                                'info'
+                            );
+                        }
+                        lastKnownCount = count;
+                        updateBadges(count);
                     }
                 })
                 .catch(function() {})

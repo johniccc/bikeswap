@@ -149,7 +149,7 @@ class Reservation
     /** Can the owner mark as completed (bike returned)? */
     public function canBeCompleted(): bool
     {
-        return $this->status === 'active';
+        return in_array($this->status, ['active', 'disputed'], true);
     }
 
     /** Can the owner report non-return? */

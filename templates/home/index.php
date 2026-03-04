@@ -3,30 +3,30 @@
   <div class="hero-bg" style="background-image:url('https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=1920&q=80')"></div>
   <div class="hero-content">
     <div class="hero-badge">
-      <i data-lucide="shield-check"></i> Ochrana a sdileni kol
+      <i data-lucide="shield-check"></i> Ochrana a sdílení kol
     </div>
     <h1 class="hero-title">
-      Chranime vase kolo.<br>
-      <span class="hero-title-accent">Sdilime radost z jizdy.</span>
+      Chráníme vaše kolo.<br>
+      <span class="hero-title-accent">Sdílíme radost z jízdy.</span>
     </h1>
     <p class="hero-subtitle">
-      Zaregistrujte sve kolo, ziskejte unikatni QR kod a chranite ho proti kradezi.
-      Nebo ho nabidnete k vypujcce ostatnim cyklistum.
+      Zaregistrujte své kolo, získejte unikátní QR kód a chraňte ho proti krádeži.
+      Nebo ho nabídněte k výpůjčce ostatním cyklistům.
     </p>
     <div class="hero-actions">
       <?php if (!isset($session) || !$session->isLoggedIn()): ?>
         <button type="button" class="btn btn-primary btn-lg open-auth-modal" data-tab="register">
-          <i data-lucide="user-plus"></i> Zacit zdarma
+          <i data-lucide="user-plus"></i> Začít zdarma
         </button>
         <button type="button" class="btn btn-secondary btn-lg open-auth-modal" data-tab="login">
-          <i data-lucide="log-in"></i> Prihlasit se
+          <i data-lucide="log-in"></i> Přihlásit se
         </button>
       <?php else: ?>
         <a href="/dashboard" class="btn btn-primary btn-lg">
           <i data-lucide="layout-dashboard"></i> Moje kola
         </a>
         <a href="/shared" class="btn btn-secondary btn-lg">
-          <i data-lucide="repeat"></i> Pujcit si kolo
+          <i data-lucide="repeat"></i> Půjčit si kolo
         </a>
       <?php endif; ?>
     </div>
@@ -36,8 +36,8 @@
 <!-- ── Features ── -->
 <section class="features-section">
   <div class="section-header animate-in">
-    <h2>Proc BikeSwap?</h2>
-    <p>Komplexni platforma pro ochranu, spravu a sdileni vasich kol.</p>
+    <h2>Proč BikeSwap?</h2>
+    <p>Komplexní platforma pro ochranu, správu a sdílení vašich kol.</p>
   </div>
 
   <div class="features-grid">
@@ -45,32 +45,32 @@
       <div class="feature-icon feature-icon-teal">
         <i data-lucide="shield-check"></i>
       </div>
-      <h3>Ochrana proti kradezi</h3>
-      <p>Zaregistrujte kolo a ziskejte QR kod. V pripade kradeze pomuzeme s vyhledavanim.</p>
+      <h3>Ochrana proti krádeži</h3>
+      <p>Zaregistrujte kolo a získejte QR kód. V případě krádeže pomůžeme s vyhledáváním.</p>
     </div>
 
     <div class="feature-card animate-in">
       <div class="feature-icon feature-icon-blue">
         <i data-lucide="search"></i>
       </div>
-      <h3>Databaze odcizenych kol</h3>
-      <p>Prohledavejte verejnou databazi odcizenych kol. Nasli jste podezrele kolo? Nahlaste nalez.</p>
+      <h3>Databáze odcizených kol</h3>
+      <p>Prohledávejte veřejnou databázi odcizených kol. Našli jste podezřelé kolo? Nahlaste nález.</p>
     </div>
 
     <div class="feature-card animate-in">
       <div class="feature-icon feature-icon-copper">
         <i data-lucide="repeat"></i>
       </div>
-      <h3>Sdileni kol</h3>
-      <p>Nabidnete sve kolo k vypujcce ostatnim nebo si pujcte kolo od jinych uzivatelu.</p>
+      <h3>Sdílení kol</h3>
+      <p>Nabídněte své kolo k výpůjčce ostatním nebo si půjčte kolo od jiných uživatelů.</p>
     </div>
 
     <div class="feature-card animate-in">
       <div class="feature-icon feature-icon-green">
         <i data-lucide="star"></i>
       </div>
-      <h3>Karma system</h3>
-      <p>Hodnoceni a karma body zajistuji duveryhodnost a bezpecnost vypujcek.</p>
+      <h3>Karma systém</h3>
+      <p>Hodnocení a karma body zajišťují důvěryhodnost a bezpečnost výpůjček.</p>
     </div>
   </div>
 </section>
@@ -79,7 +79,7 @@
 <section class="how-it-works">
   <div class="section-header animate-in">
     <h2>Jak to funguje?</h2>
-    <p>Tri jednoduche kroky ke kompletni ochrane vaseho kola.</p>
+    <p>Tři jednoduché kroky ke kompletní ochraně vašeho kola.</p>
   </div>
 
   <div class="steps-grid">
@@ -87,23 +87,23 @@
       <div class="step-number">1</div>
       <div class="step-content">
         <h3>Zaregistrujte se</h3>
-        <p>Vytvoreni uctu je zdarma a trva jen minutu. Staci e-mail a heslo.</p>
+        <p>Vytvoření účtu je zdarma a trvá jen minutu. Stačí e-mail a heslo.</p>
       </div>
     </div>
 
     <div class="step-card animate-in">
       <div class="step-number">2</div>
       <div class="step-content">
-        <h3>Pridejte sve kolo</h3>
-        <p>Vyplnte zakladni udaje, nahrajte fotky a ziskejte unikatni QR kod.</p>
+        <h3>Přidejte své kolo</h3>
+        <p>Vyplňte základní údaje, nahrajte fotky a získejte unikátní QR kód.</p>
       </div>
     </div>
 
     <div class="step-card animate-in">
       <div class="step-number">3</div>
       <div class="step-content">
-        <h3>Chranite a sdilejte</h3>
-        <p>Nalepte QR kod na kolo. Kdokoliv ho naskenuje, muze nahlasit nalez ci si ho pujcit.</p>
+        <h3>Chraňte a sdílejte</h3>
+        <p>Nalepte QR kód na kolo. Kdokoliv ho naskenuje, může nahlásit nález či si ho půjčit.</p>
       </div>
     </div>
   </div>
@@ -111,15 +111,15 @@
 
 <!-- ── CTA ── -->
 <section class="cta-section animate-in">
-  <h2>Pripraveni chranit sve kolo?</h2>
-  <p>Pridejte se k tisicum cyklistu, kteri uz BikeSwap pouzivaji.</p>
+  <h2>Připraveni chránit své kolo?</h2>
+  <p>Přidejte se k tisícům cyklistů, kteří už BikeSwap používají.</p>
   <?php if (!isset($session) || !$session->isLoggedIn()): ?>
     <button type="button" class="btn btn-primary btn-lg open-auth-modal" data-tab="register">
       <i data-lucide="arrow-right"></i> Zaregistrovat se zdarma
     </button>
   <?php else: ?>
     <a href="/dashboard" class="btn btn-primary btn-lg">
-      <i data-lucide="layout-dashboard"></i> Prejit do dashboardu
+      <i data-lucide="layout-dashboard"></i> Přejít do dashboardu
     </a>
   <?php endif; ?>
 </section>

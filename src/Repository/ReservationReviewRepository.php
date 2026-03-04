@@ -114,6 +114,21 @@ class ReservationReviewRepository
     }
 
     /**
+     * Get reservation IDs that a user has reviewed.
+     *
+     * @return int[]
+     */
+    public function getReviewedReservationIds(int $userId): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT reservation_id FROM reservation_reviews WHERE reviewer_id = ?",
+            [$userId]
+        );
+
+        return array_map(fn(array $row) => (int) $row['reservation_id'], $rows);
+    }
+
+    /**
      * Create a new review. Returns the new ID.
      */
     public function create(array $data): int

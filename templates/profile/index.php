@@ -2,7 +2,7 @@
   <h1>Profil</h1>
   <div class="page-header-actions">
     <a href="/profile/settings" class="btn btn-secondary btn-sm">
-      <i data-lucide="settings"></i> Nastaveni
+      <i data-lucide="settings"></i> Nastavení
     </a>
   </div>
 </div>
@@ -33,9 +33,9 @@
   </div>
   <div class="card-body">
     <?php if (empty($bikes)): ?>
-      <p class="text-muted">Nemate zadna registrovana kola.</p>
+      <p class="text-muted">Nemáte žádná registrovaná kola.</p>
       <a href="/bike/new" class="btn btn-primary btn-sm mt-sm">
-        <i data-lucide="plus"></i> Pridat kolo
+        <i data-lucide="plus"></i> Přidat kolo
       </a>
     <?php else: ?>
       <div class="table-wrapper">
@@ -79,7 +79,7 @@
   </div>
   <div class="card-body">
     <?php if (empty($reservations)): ?>
-      <p class="text-muted">Nemate zadne rezervace jako vypujcitel.</p>
+      <p class="text-muted">Nemáte žádné rezervace jako vypůjčitel.</p>
     <?php else: ?>
       <div class="table-wrapper">
         <table>
@@ -115,27 +115,33 @@
 <?php if (!empty($foundReports)): ?>
 <div class="card">
   <div class="card-header">
-    <h3><i data-lucide="map-pin" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Moje nalezy</h3>
+    <h3><i data-lucide="map-pin" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Moje nálezy</h3>
   </div>
   <div class="card-body">
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Nalez</th>
+            <th>Nález</th>
             <th>Datum</th>
             <th>Stav</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($foundReports as $report): ?>
             <tr>
-              <td>Nalez #<?= e((string)$report->getId()) ?></td>
+              <td>Nález #<?= e((string)$report->getId()) ?></td>
               <td class="text-sm"><?= e($report->getFormattedFoundDate()) ?></td>
               <td>
                 <span class="status-badge <?= e($report->getStatusClass()) ?>">
                   <?= e($report->getStatusLabel()) ?>
                 </span>
+              </td>
+              <td>
+                <a href="/found/conversation/<?= e($report->getConversationToken()) ?>" class="btn btn-sm btn-ghost">
+                  <i data-lucide="message-circle"></i> Konverzace
+                </a>
               </td>
             </tr>
           <?php endforeach; ?>

@@ -1,6 +1,6 @@
 <div class="main-public-padded">
   <div class="text-center" style="padding:4rem 0">
-    <p class="text-muted">Nacitam prihlaseni...</p>
+    <p class="text-muted">Načítám přihlášení...</p>
   </div>
 </div>
 <script>

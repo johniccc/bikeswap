@@ -1,7 +1,9 @@
+<?php if ($viewerType === 'finder'): ?><div class="main-public-padded"><?php endif; ?>
+
 <div class="page-header">
   <h1>
     <?php if ($viewerType === 'owner'): ?>
-      Konverzace s nalezcem
+      Konverzace s nálezcem
     <?php else: ?>
       Konverzace s majitelem kola
     <?php endif; ?>
@@ -9,7 +11,7 @@
   <div class="page-header-actions">
     <?php if ($viewerType === 'owner' && $bike): ?>
       <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-ghost btn-sm">
-        <i data-lucide="arrow-left"></i> Zpet na detail kola
+        <i data-lucide="arrow-left"></i> Zpět na detail kola
       </a>
     <?php endif; ?>
   </div>
@@ -45,7 +47,7 @@
       <?php if ($report->getFoundLocationText()): ?>
         <div class="reservation-detail-item">
           <span class="text-muted text-sm">
-            <i data-lucide="map-pin" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Misto nalezu
+            <i data-lucide="map-pin" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Místo nálezu
           </span>
           <strong><?= e($report->getFoundLocationText()) ?></strong>
         </div>
@@ -54,7 +56,7 @@
       <?php if ($report->getFoundDate()): ?>
         <div class="reservation-detail-item">
           <span class="text-muted text-sm">
-            <i data-lucide="calendar" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Datum nalezu
+            <i data-lucide="calendar" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Datum nálezu
           </span>
           <strong><?= e($report->getFormattedFoundDate()) ?></strong>
         </div>
@@ -63,7 +65,7 @@
       <?php if ($viewerType === 'owner' && isset($finderLabel)): ?>
         <div class="reservation-detail-item">
           <span class="text-muted text-sm">
-            <i data-lucide="user" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Nalezce
+            <i data-lucide="user" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Nálezce
           </span>
           <strong><?= e($finderLabel) ?></strong>
         </div>
@@ -75,14 +77,14 @@
 <!-- Messages -->
 <div class="card">
   <div class="card-header">
-    <h3><i data-lucide="message-circle" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Zpravy</h3>
+    <h3><i data-lucide="message-circle" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Zprávy</h3>
   </div>
   <div class="card-body" style="padding-bottom:0">
     <div class="conversation-messages" id="messages"
          data-poll-url="/found/<?= e($report->getConversationToken()) ?>/poll"
          data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>">
       <?php if (empty($messages)): ?>
-        <p class="text-muted" style="text-align:center;padding:2rem 0">Zatim zadne zpravy.</p>
+        <p class="text-muted" style="text-align:center;padding:2rem 0">Zatím žádné zprávy.</p>
       <?php else: ?>
         <?php foreach ($messages as $msg): ?>
           <?php
@@ -107,7 +109,7 @@
       <?php endif; ?>
           <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
           <div class="conversation-compose">
-            <textarea name="message" rows="2" required placeholder="Napiste zpravu..."></textarea>
+            <textarea name="message" rows="2" required placeholder="Napište zprávu..."></textarea>
             <button type="submit" class="btn btn-primary">
               <i data-lucide="send"></i>
             </button>
@@ -118,17 +120,17 @@
       <?php if ($viewerType === 'owner'): ?>
         <div class="flex gap-sm mt-md mb-md flex-wrap">
           <form method="POST" action="/found/<?= $report->getId() ?>/resolve"
-                onsubmit="return confirm('Opravdu jste kolo ziskali zpet? Tim se uzavre tato konverzace a kolo bude oznaceno jako aktivni.')">
+                onsubmit="return confirm('Opravdu jste kolo získali zpět? Tím se uzavře tato konverzace a kolo bude označeno jako aktivní.')">
             <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
             <button type="submit" class="btn btn-primary">
-              <i data-lucide="check-circle"></i> Kolo jsem ziskal zpet
+              <i data-lucide="check-circle"></i> Kolo jsem získal zpět
             </button>
           </form>
           <form method="POST" action="/found/<?= $report->getId() ?>/close"
-                onsubmit="return confirm('Opravdu uzavrit tuto konverzaci?')">
+                onsubmit="return confirm('Opravdu uzavřít tuto konverzaci?')">
             <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
             <button type="submit" class="btn btn-ghost">
-              <i data-lucide="x-circle"></i> Uzavrit konverzaci
+              <i data-lucide="x-circle"></i> Uzavřít konverzaci
             </button>
           </form>
         </div>
@@ -137,12 +139,12 @@
     <?php elseif ($report->isClosed()): ?>
       <div class="alert alert-info mt-md mb-md">
         <i data-lucide="info"></i>
-        <span>Tato konverzace je uzavrena.</span>
+        <span>Tato konverzace je uzavřena.</span>
       </div>
     <?php else: ?>
       <div class="alert alert-info mt-md mb-md">
         <i data-lucide="check-circle"></i>
-        <span>Tato konverzace je uzavrena — kolo bylo uspesne navraceno majiteli.</span>
+        <span>Tato konverzace je uzavřena — kolo bylo úspěšně navráceno majiteli.</span>
       </div>
     <?php endif; ?>
   </div>
@@ -151,9 +153,11 @@
 <?php if ($viewerType === 'finder'): ?>
   <div class="alert alert-warning mt-lg">
     <i data-lucide="bookmark"></i>
-    <span>Ulozte si odkaz na tuto stranku — je to vas jediny pristup ke konverzaci.</span>
+    <span>Uložte si odkaz na tuto stránku — je to váš jediný přístup ke konverzaci.</span>
   </div>
 <?php endif; ?>
+
+<?php if ($viewerType === 'finder'): ?></div><!-- .main-public-padded --><?php endif; ?>
 
 <script>
 (function() {

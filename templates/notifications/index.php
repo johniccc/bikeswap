@@ -6,13 +6,13 @@ foreach ($notifications as $n) {
 ?>
 
 <div class="page-header">
-  <h1>Oznameni</h1>
+  <h1>Oznámení</h1>
   <div class="page-header-actions">
     <?php if ($unreadCount > 0): ?>
       <form method="POST" action="/notifications/read-all">
         <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
         <button type="submit" class="btn btn-ghost btn-sm">
-          <i data-lucide="check-check"></i> Oznacit vse jako prectene
+          <i data-lucide="check-check"></i> Označit vše jako přečtené
         </button>
       </form>
     <?php endif; ?>
@@ -22,8 +22,8 @@ foreach ($notifications as $n) {
 <?php if (empty($notifications)): ?>
   <div class="empty-state">
     <i data-lucide="bell-off"></i>
-    <h3>Zadna oznameni</h3>
-    <p>Zatim nemate zadna oznameni.</p>
+    <h3>Žádná oznámení</h3>
+    <p>Zatím nemáte žádná oznámení.</p>
   </div>
 <?php else: ?>
   <div class="notifications-list">

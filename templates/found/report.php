@@ -1,5 +1,6 @@
+<div class="main-public-padded">
 <div class="page-header">
-  <h1>Nahlasit nalez kola</h1>
+  <h1>Nahlásit nález kola</h1>
 </div>
 
 <!-- Bike summary -->
@@ -17,7 +18,7 @@
           <i data-lucide="palette" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
           <?= e($bike->getColor()) ?>
         </p>
-        <span class="status-badge status-stolen">Odcizene</span>
+        <span class="status-badge status-stolen">Odcizené</span>
       </div>
     </div>
   </div>
@@ -34,22 +35,22 @@
 
   <?php if ($currentUser === null): ?>
     <fieldset>
-      <legend>Vase kontaktni udaje</legend>
+      <legend>Vaše kontaktní údaje</legend>
       <p class="text-muted text-sm mb-md">
-        Vase udaje nebudou zobrazeny verejne. Slouzi pouze pro komunikaci s majitelem kola.
-        <a href="/login">Prihlaste se</a> pro jednodussi nahlaseni.
+        Vaše údaje nebudou zobrazeny veřejně. Slouží pouze pro komunikaci s majitelem kola.
+        <a href="/login">Přihlaste se</a> pro jednodušší nahlášení.
       </p>
 
       <div class="form-group">
         <label for="reporter_email">E-mail *</label>
         <input type="email" id="reporter_email" name="reporter_email" required
-               placeholder="Na tento e-mail vam prijde odkaz ke konverzaci">
+               placeholder="Na tento e-mail vám přijde odkaz ke konverzaci">
       </div>
 
       <div class="form-group">
-        <label for="reporter_phone">Telefon (nepovinne)</label>
+        <label for="reporter_phone">Telefon (nepovinné)</label>
         <input type="tel" id="reporter_phone" name="reporter_phone"
-               placeholder="Pro rychlejsi kontakt">
+               placeholder="Pro rychlejší kontakt">
       </div>
 
       <?php if (!empty($turnstileSiteKey)): ?>
@@ -59,23 +60,23 @@
   <?php else: ?>
     <div class="alert alert-info mb-lg">
       <i data-lucide="user-check"></i>
-      <span>Nahlasujete nalez jako <strong><?= e($currentUser->getName()) ?></strong> (<?= e($currentUser->getEmail()) ?>).</span>
+      <span>Nahlašujete nález jako <strong><?= e($currentUser->getName()) ?></strong> (<?= e($currentUser->getEmail()) ?>).</span>
     </div>
   <?php endif; ?>
 
   <fieldset>
-    <legend>Informace o nalezu</legend>
+    <legend>Informace o nálezu</legend>
 
     <div class="form-group">
-      <label for="found_date">Datum nalezu</label>
+      <label for="found_date">Datum nálezu</label>
       <input type="date" id="found_date" name="found_date"
              value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>">
     </div>
 
     <div class="form-group">
-      <label for="found_location_text">Misto nalezu *</label>
+      <label for="found_location_text">Místo nálezu *</label>
       <input type="text" id="found_location_text" name="found_location_text" required
-             placeholder="napr. Pardubice, park u Labe, u lavicky">
+             placeholder="např. Pardubice, park u Labe, u lavičky">
     </div>
 
     <!-- Hidden GPS fields -->
@@ -93,28 +94,30 @@
     <div class="form-group">
       <label for="description">Popis situace</label>
       <textarea id="description" name="description" rows="4"
-                placeholder="Popiste okolnosti nalezu - kde presne kolo stoji/lezelo, v jakem je stavu, jestli je zamcene..."></textarea>
+                placeholder="Popište okolnosti nálezu - kde přesně kolo stojí/leželo, v jakém je stavu, jestli je zamčené..."></textarea>
     </div>
   </fieldset>
 
   <div class="alert alert-info mb-lg">
     <i data-lucide="info"></i>
     <div>
-      <strong>Co se stane dal?</strong> Majitel kola bude okamzite upozornen na vas nalez.
-      Budete presmerovani do anonymni konverzace, kde se muzete domluvit na predani kola.
+      <strong>Co se stane dál?</strong> Majitel kola bude okamžitě upozorněn na váš nález.
+      Budete přesměrováni do anonymní konverzace, kde se můžete domluvit na předání kola.
       <?php if ($currentUser === null): ?>
-        Odkaz ke konverzaci vam prijde take na e-mail — ulozte si ho.
+        Odkaz ke konverzaci vám přijde také na e-mail — uložte si ho.
       <?php endif; ?>
     </div>
   </div>
 
   <div class="form-actions">
     <button type="submit" class="btn btn-primary btn-lg">
-      <i data-lucide="map-pin"></i> Nahlasit nalez
+      <i data-lucide="map-pin"></i> Nahlásit nález
     </button>
-    <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-ghost">Zrusit</a>
+    <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-ghost">Zrušit</a>
   </div>
 </form>
+
+</div><!-- .main-public-padded -->
 
 <?php if (!empty($turnstileSiteKey)): ?>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>

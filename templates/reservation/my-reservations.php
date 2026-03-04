@@ -2,7 +2,7 @@
   <h1>Moje rezervace</h1>
   <div class="page-header-actions">
     <a href="/shared" class="btn btn-secondary btn-sm">
-      <i data-lucide="repeat"></i> Sdilena kola
+      <i data-lucide="repeat"></i> Sdílená kola
     </a>
   </div>
 </div>
@@ -12,13 +12,13 @@
   <div class="overdue-banner">
     <i data-lucide="alert-triangle"></i>
     <div>
-      <strong>Mate <?= count($overdue) ?> nevracene <?= count($overdue) === 1 ? 'kolo' : 'kola' ?>!</strong>
+      <strong>Máte <?= count($overdue) ?> nevrácené <?= count($overdue) === 1 ? 'kolo' : 'kola' ?>!</strong>
       <?php foreach ($overdue as $r): ?>
         <div class="mt-sm">
           <a href="/reservation/<?= $r->getId() ?>">
             <?= e($r->getBike() ? $r->getBike()->getFullName() : 'Kolo #' . $r->getBikeId()) ?>
           </a>
-          — melo byt vraceno <?= $r->getFormattedDateTo() ?>
+          — mělo být vráceno <?= $r->getFormattedDateTo() ?>
         </div>
       <?php endforeach; ?>
     </div>
@@ -27,12 +27,12 @@
 
 <!-- As owner -->
 <section class="mb-xl">
-  <h2 class="section-title">Jako majitel <span class="text-muted text-sm" style="font-weight:400">(zadosti o moje kola)</span></h2>
+  <h2 class="section-title">Jako majitel <span class="text-muted text-sm" style="font-weight:400">(žádosti o moje kola)</span></h2>
 
   <?php if (empty($asOwner)): ?>
     <div class="empty-state">
       <i data-lucide="inbox"></i>
-      <p>Zatim zadne zadosti o vase kola.</p>
+      <p>Zatím žádné žádosti o vaše kola.</p>
     </div>
   <?php else: ?>
     <div class="table-wrapper">
@@ -40,8 +40,8 @@
         <thead>
           <tr>
             <th>Kolo</th>
-            <th>Vypujcitel</th>
-            <th>Termin</th>
+            <th>Vypůjčitel</th>
+            <th>Termín</th>
             <th>Stav</th>
             <th></th>
           </tr>
@@ -67,7 +67,10 @@
                   <?= e($r->getStatusLabel()) ?>
                 </span>
                 <?php if ($r->isOverdue()): ?>
-                  <span class="status-badge status-stolen">Po terminu!</span>
+                  <span class="status-badge status-stolen">Po termínu!</span>
+                <?php endif; ?>
+                <?php if ($r->isCompleted() && !in_array($r->getId(), $reviewedIds, true)): ?>
+                  <span class="status-badge status-review">Nehodnoceno</span>
                 <?php endif; ?>
               </td>
               <td>
@@ -83,14 +86,14 @@
 
 <!-- As borrower -->
 <section>
-  <h2 class="section-title">Jako vypujcitel <span class="text-muted text-sm" style="font-weight:400">(moje zadosti)</span></h2>
+  <h2 class="section-title">Jako vypůjčitel <span class="text-muted text-sm" style="font-weight:400">(moje žádosti)</span></h2>
 
   <?php if (empty($asBorrower)): ?>
     <div class="empty-state">
       <i data-lucide="search"></i>
-      <p>Zatim jste nepozadali o vypujcku zadneho kola.</p>
+      <p>Zatím jste nepožádali o výpůjčku žádného kola.</p>
       <a href="/shared" class="btn btn-primary btn-sm">
-        <i data-lucide="repeat"></i> Prohlednout sdilena kola
+        <i data-lucide="repeat"></i> Prohlédnout sdílená kola
       </a>
     </div>
   <?php else: ?>
@@ -100,7 +103,7 @@
           <tr>
             <th>Kolo</th>
             <th>Majitel</th>
-            <th>Termin</th>
+            <th>Termín</th>
             <th>Stav</th>
             <th></th>
           </tr>
@@ -125,6 +128,9 @@
                 <span class="status-badge <?= $r->getStatusClass() ?>">
                   <?= e($r->getStatusLabel()) ?>
                 </span>
+                <?php if ($r->isCompleted() && !in_array($r->getId(), $reviewedIds, true)): ?>
+                  <span class="status-badge status-review">Nehodnoceno</span>
+                <?php endif; ?>
               </td>
               <td>
                 <a href="/reservation/<?= $r->getId() ?>" class="btn btn-sm btn-ghost">Detail</a>

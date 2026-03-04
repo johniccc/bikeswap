@@ -62,6 +62,7 @@ class TheftController
         return view('theft/report', [
             'title' => 'Nahlásit krádež – BikeSwap',
             'bike' => $bike,
+            'currentUser' => $currentUser,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
         ])->withLayout('layouts/app');

@@ -1,8 +1,8 @@
 <div class="page-header">
-  <h1>Nastaveni profilu</h1>
+  <h1>Nastavení profilu</h1>
   <div class="page-header-actions">
     <a href="/profile" class="btn btn-ghost btn-sm">
-      <i data-lucide="arrow-left"></i> Zpet na profil
+      <i data-lucide="arrow-left"></i> Zpět na profil
     </a>
   </div>
 </div>
@@ -21,7 +21,7 @@
 
     <div class="alert alert-info">
       <i data-lucide="info"></i>
-      <span>Zmena e-mailu nebo hesla momentalne neni dostupna pres web. Kontaktujte spravce.</span>
+      <span>Změna e-mailu nebo hesla momentálně není dostupná přes web. Kontaktujte správce.</span>
     </div>
   </div>
 </div>

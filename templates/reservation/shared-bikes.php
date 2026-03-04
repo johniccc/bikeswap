@@ -1,16 +1,16 @@
 <div class="main-public-padded">
   <div class="page-header">
     <div>
-      <h1>Sdilena kola k vypujcce</h1>
-      <p class="text-muted">Prohlizejte kola nabizena k vypujcce od ostatnich uzivatelu.</p>
+      <h1>Sdílená kola k výpůjčce</h1>
+      <p class="text-muted">Prohlížejte kola nabízená k výpůjčce od ostatních uživatelů.</p>
     </div>
   </div>
 
   <?php if (empty($bikes)): ?>
     <div class="empty-state">
       <i data-lucide="repeat"></i>
-      <h3>Zadna kola momentalne nejsou k dispozici</h3>
-      <p>Momentalne nikdo nenabizi sve kolo k vypujcce. Zkuste to pozdeji.</p>
+      <h3>Žádná kola momentálně nejsou k dispozici</h3>
+      <p>Momentálně nikdo nenabízí své kolo k výpůjčce. Zkuste to později.</p>
     </div>
   <?php else: ?>
     <div class="bike-grid">
@@ -26,7 +26,7 @@
             <div class="bike-card-badges">
               <?php $unavailable = in_array($bike->getId(), $unavailableIds ?? [], true); ?>
               <span class="availability-badge <?= $unavailable ? 'availability-unavailable' : 'availability-available' ?>">
-                <?= $unavailable ? 'Nedostupne' : 'Dostupne' ?>
+                <?= $unavailable ? 'Nedostupné' : 'Dostupné' ?>
               </span>
             </div>
           </div>
@@ -59,10 +59,10 @@
               </a>
             <?php elseif (!$unavailable && !$isLoggedIn): ?>
               <a href="/login?redirect=/shared" class="btn btn-sm btn-primary">
-                <i data-lucide="log-in"></i> Prihlasit a rezervovat
+                <i data-lucide="log-in"></i> Přihlásit a rezervovat
               </a>
             <?php elseif ($unavailable): ?>
-              <span class="btn btn-sm btn-ghost" style="opacity:0.5;pointer-events:none">Nedostupne</span>
+              <span class="btn btn-sm btn-ghost" style="opacity:0.5;pointer-events:none">Nedostupné</span>
             <?php endif; ?>
           </div>
         </div>

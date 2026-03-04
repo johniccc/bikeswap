@@ -7,13 +7,44 @@
   </div>
 </div>
 
+<?php
+  // Collect active cases for dashboard highlights
+  $stolenBikes = array_filter($bikes, fn($b) => $b->isStolen());
+  $bikesWithFinds = array_filter($bikes, fn($b) => ($foundReportCounts[$b->getId()] ?? 0) > 0);
+?>
+<?php if (!empty($stolenBikes) || !empty($bikesWithFinds)): ?>
+  <div class="dashboard-alerts mb-lg">
+    <?php foreach ($stolenBikes as $bike): ?>
+      <a href="/bike/<?= e($bike->getQrHash()) ?>" class="dashboard-alert-card dashboard-alert-danger">
+        <i data-lucide="shield-alert"></i>
+        <div>
+          <strong><?= e($bike->getFullName()) ?></strong>
+          <span class="text-sm">Nahlášeno jako odcizené</span>
+        </div>
+        <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+      </a>
+    <?php endforeach; ?>
+    <?php foreach ($bikesWithFinds as $bike): ?>
+      <a href="/bike/<?= e($bike->getQrHash()) ?>" class="dashboard-alert-card dashboard-alert-success">
+        <i data-lucide="map-pin"></i>
+        <div>
+          <strong><?= e($bike->getFullName()) ?></strong>
+          <?php $fc = $foundReportCounts[$bike->getId()]; ?>
+          <span class="text-sm"><?= $fc ?> nový nález<?= $fc > 4 ? 'ů' : ($fc > 1 ? 'y' : '') ?> — zkontrolujte konverzaci</span>
+        </div>
+        <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+      </a>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>
+
 <?php if (empty($bikes)): ?>
   <div class="empty-state">
     <i data-lucide="bike"></i>
-    <h3>Zatim nemate zadne kolo</h3>
-    <p>Zaregistrujte sve prvni kolo a ziskejte unikatni QR kod pro jeho ochranu.</p>
+    <h3>Zatím nemáte žádné kolo</h3>
+    <p>Zaregistrujte své první kolo a získejte unikátní QR kód pro jeho ochranu.</p>
     <a href="/bike/new" class="btn btn-primary">
-      <i data-lucide="plus"></i> Zaregistrovat prvni kolo
+      <i data-lucide="plus"></i> Zaregistrovat první kolo
     </a>
   </div>
 <?php else: ?>
@@ -33,10 +64,10 @@
           <div class="bike-card-badges">
             <?php
               $statusLabels = [
-                'active' => 'Aktivni',
-                'stolen' => 'Odcizene',
-                'shared' => 'Sdilene',
-                'inactive' => 'Neaktivni',
+                'active' => 'Aktivní',
+                'stolen' => 'Odcizené',
+                'shared' => 'Sdílené',
+                'inactive' => 'Neaktivní',
               ];
             ?>
             <span class="status-badge status-<?= e($bike->getStatus()) ?>">
@@ -47,7 +78,7 @@
             <?php if ($frCount > 0): ?>
               <span class="found-report-badge">
                 <i data-lucide="map-pin" style="width:12px;height:12px"></i>
-                <?= $frCount ?> nalez<?= $frCount > 4 ? 'u' : ($frCount > 1 ? 'y' : '') ?>
+                <?= $frCount ?> nález<?= $frCount > 4 ? 'ů' : ($frCount > 1 ? 'y' : '') ?>
               </span>
             <?php endif; ?>
           </div>

@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `found_reports` (
     `found_location_lat`  DECIMAL(10, 7)  NULL DEFAULT NULL,
     `found_location_lng`  DECIMAL(10, 7)  NULL DEFAULT NULL,
     `description`         TEXT            NULL DEFAULT NULL,
-    `status`              ENUM('pending', 'verified', 'contacted', 'resolved') NOT NULL DEFAULT 'pending',
+    `status`              ENUM('pending', 'verified', 'contacted', 'resolved', 'closed') NOT NULL DEFAULT 'pending',
     `verified_by`         INT UNSIGNED    NULL DEFAULT NULL,
     `verified_at`         DATETIME        NULL DEFAULT NULL,
     `created_at`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS `reservations` (
     `date_from`          DATE            NOT NULL,
     `date_to`            DATE            NOT NULL,
     `message`            TEXT            NULL DEFAULT NULL,
-    `status`             ENUM('pending','approved','rejected','active','completed','cancelled','not_returned') NOT NULL DEFAULT 'pending',
+    `status`             ENUM('pending','approved','rejected','active','completed','cancelled','not_returned','disputed') NOT NULL DEFAULT 'pending',
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

@@ -103,6 +103,7 @@ class BikeController
     {
         return view('bike/create', [
             'title' => 'Registrovat kolo – BikeSwap',
+            'currentUser' => $this->authService->currentUser(),
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
         ])->withLayout('layouts/app');
@@ -196,6 +197,7 @@ class BikeController
         return view('bike/edit', [
             'title' => 'Upravit kolo – BikeSwap',
             'bike' => $bike,
+            'currentUser' => $currentUser,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
         ])->withLayout('layouts/app');

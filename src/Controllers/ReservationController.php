@@ -24,6 +24,7 @@ class ReservationController
     private ReservationService $reservationService;
     private AuthService $authService;
     private Session $session;
+    private array $config;
 
     public function __construct(
         ReservationRepository $reservationRepo,
@@ -32,7 +33,8 @@ class ReservationController
         BikeRepository $bikeRepo,
         ReservationService $reservationService,
         AuthService $authService,
-        Session $session
+        Session $session,
+        array $config = []
     ) {
         $this->reservationRepo = $reservationRepo;
         $this->messageRepo = $messageRepo;
@@ -41,6 +43,7 @@ class ReservationController
         $this->reservationService = $reservationService;
         $this->authService = $authService;
         $this->session = $session;
+        $this->config = $config;
     }
 
     // ── Shared bikes list ──────────────────────────────────
@@ -97,6 +100,8 @@ class ReservationController
             'title' => 'Rezervovat kolo – BikeSwap',
             'bike' => $bike,
             'unavailableDates' => $unavailableDates,
+            'currentUser' => $currentUser,
+            'turnstileSiteKey' => $this->config['turnstile']['site_key'] ?? '',
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
         ])->withLayout('layouts/app');
@@ -113,6 +118,26 @@ class ReservationController
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
             return redirect("/reservation/new/{$bikeId}");
+        }
+
+        // Turnstile CAPTCHA verification
+        $secretKey = $this->config['turnstile']['secret_key'] ?? '';
+        if ($secretKey !== '') {
+            $token = $request->input('cf-turnstile-response', '');
+            $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                'secret' => $secretKey,
+                'response' => $token,
+            ]));
+            $result = json_decode(curl_exec($ch) ?: '{}', true);
+            curl_close($ch);
+
+            if (empty($result['success'])) {
+                $this->session->flash('error', 'Ověření proti botům selhalo. Zkuste to prosím znovu.');
+                return redirect("/reservation/new/{$bikeId}");
+            }
         }
 
         $validator = new Validator($request->all());
@@ -362,11 +387,15 @@ class ReservationController
         // Find overdue reservations for reminder banner
         $overdue = $this->reservationRepo->findOverdueByOwner($currentUser->getId(), withRelations: true);
 
+        // Get IDs of reservations the user has already reviewed
+        $reviewedIds = $this->reviewRepo->getReviewedReservationIds($currentUser->getId());
+
         return view('reservation/my-reservations', [
             'title' => 'Moje rezervace – BikeSwap',
             'asOwner' => $asOwner,
             'asBorrower' => $asBorrower,
             'overdue' => $overdue,
+            'reviewedIds' => $reviewedIds,
             'currentUser' => $currentUser,
             'session' => $this->session,
         ])->withLayout('layouts/app');

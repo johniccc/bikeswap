@@ -23,13 +23,13 @@
 <!-- Calendar -->
 <div class="card mb-lg">
   <div class="card-body">
-    <h3 class="section-title">Vyberte termin vypujcky</h3>
+    <h3 class="section-title">Vyberte termín výpůjčky</h3>
     <div class="calendar-legend mb-md">
       <span class="calendar-legend-item">
-        <span class="calendar-legend-dot" style="background:var(--primary)"></span> Vas vyber
+        <span class="calendar-legend-dot" style="background:var(--primary)"></span> Váš výběr
       </span>
       <span class="calendar-legend-item">
-        <span class="calendar-legend-dot" style="background:var(--danger)"></span> Obsazene
+        <span class="calendar-legend-dot" style="background:var(--danger)"></span> Obsazené
       </span>
       <span class="calendar-legend-item">
         <span class="calendar-legend-dot" style="background:var(--primary-light)"></span> Rozsah
@@ -48,24 +48,32 @@
 
   <div class="card mb-lg">
     <div class="card-body">
-      <h3 class="section-title">Vybrany termin</h3>
-      <p id="selected-range-text" class="text-muted">Kliknete na kalendar pro vyber datumu.</p>
+      <h3 class="section-title">Vybraný termín</h3>
+      <p id="selected-range-text" class="text-muted">Klikněte na kalendář pro výběr datumu.</p>
 
       <div class="form-group mt-lg">
-        <label for="message">Zprava pro majitele (volitelne)</label>
+        <label for="message">Zpráva pro majitele (volitelné)</label>
         <textarea id="message" name="message" rows="3"
-                  placeholder="Predstavte se, sdelte ucel vypujcky..."></textarea>
+                  placeholder="Představte se, sdělte účel výpůjčky..."></textarea>
       </div>
     </div>
   </div>
 
+  <?php if (!empty($turnstileSiteKey)): ?>
+    <div class="cf-turnstile mb-md" data-sitekey="<?= e($turnstileSiteKey) ?>"></div>
+  <?php endif; ?>
+
   <div class="form-actions">
     <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" disabled>
-      <i data-lucide="calendar-check"></i> Odeslat zadost o vypujcku
+      <i data-lucide="calendar-check"></i> Odeslat žádost o výpůjčku
     </button>
-    <a href="/shared" class="btn btn-ghost">Zpet na seznam</a>
+    <a href="/shared" class="btn btn-ghost">Zpět na seznam</a>
   </div>
 </form>
+
+<?php if (!empty($turnstileSiteKey)): ?>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<?php endif; ?>
 
 <script>
 // Calendar widget - all values are locally generated (dates, month names),
@@ -114,8 +122,8 @@
         else {
             if (d<selectedFrom){selectedTo=selectedFrom;selectedFrom=d;} else {selectedTo=d;}
             var diff=Math.ceil((selectedTo-selectedFrom)/(864e5))+1;
-            if(diff>30){alert('Max 30 dni.');selectedTo=null;render();return;}
-            if(rangeConflict(selectedFrom,selectedTo)){alert('Rozsah obsahuje obsazene dny.');selectedFrom=null;selectedTo=null;render();return;}
+            if(diff>30){alert('Max 30 dní.');selectedTo=null;render();return;}
+            if(rangeConflict(selectedFrom,selectedTo)){alert('Rozsah obsahuje obsazené dny.');selectedFrom=null;selectedTo=null;render();return;}
         }
         updateInputs(); render();
     }
@@ -124,19 +132,19 @@
         if (selectedFrom&&selectedTo) {
             inputFrom.value=fmt(selectedFrom); inputTo.value=fmt(selectedTo);
             var days=Math.ceil((selectedTo-selectedFrom)/864e5)+1;
-            rangeText.textContent=fmtCz(selectedFrom)+' – '+fmtCz(selectedTo)+' ('+days+' '+(days===1?'den':days<5?'dny':'dni')+')';
+            rangeText.textContent=fmtCz(selectedFrom)+' – '+fmtCz(selectedTo)+' ('+days+' '+(days===1?'den':days<5?'dny':'dní')+')';
             submitBtn.disabled=false;
         } else if (selectedFrom) {
             inputFrom.value=fmt(selectedFrom); inputTo.value='';
-            rangeText.textContent='Vyberte koncove datum.'; submitBtn.disabled=true;
+            rangeText.textContent='Vyberte koncové datum.'; submitBtn.disabled=true;
         } else {
             inputFrom.value=''; inputTo.value='';
-            rangeText.textContent='Kliknete na kalendar pro vyber datumu.'; submitBtn.disabled=true;
+            rangeText.textContent='Klikněte na kalendář pro výběr datumu.'; submitBtn.disabled=true;
         }
     }
 
-    var monthNames=['Leden','Unor','Brezen','Duben','Kveten','Cerven','Cervenec','Srpen','Zari','Rijen','Listopad','Prosinec'];
-    var dayNames=['Po','Ut','St','Ct','Pa','So','Ne'];
+    var monthNames=['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+    var dayNames=['Po','Út','St','Čt','Pá','So','Ne'];
 
     function buildMonth(year, month) {
         var first=new Date(year,month,1), last=new Date(year,month+1,0), start=(first.getDay()+6)%7;
@@ -168,9 +176,9 @@
     function render() {
         while(container.firstChild)container.removeChild(container.firstChild);
         var nav=document.createElement('div');nav.className='flex justify-between items-center mb-md';
-        var prev=document.createElement('button');prev.type='button';prev.className='btn btn-ghost btn-sm';prev.textContent='Predchozi';
+        var prev=document.createElement('button');prev.type='button';prev.className='btn btn-ghost btn-sm';prev.textContent='Předchozí';
         prev.addEventListener('click',function(){baseMonth.setMonth(baseMonth.getMonth()-1);var mn=new Date(today.getFullYear(),today.getMonth(),1);if(baseMonth<mn)baseMonth=mn;render();});
-        var next=document.createElement('button');next.type='button';next.className='btn btn-ghost btn-sm';next.textContent='Dalsi';
+        var next=document.createElement('button');next.type='button';next.className='btn btn-ghost btn-sm';next.textContent='Další';
         next.addEventListener('click',function(){baseMonth.setMonth(baseMonth.getMonth()+1);render();});
         nav.appendChild(prev);nav.appendChild(next);container.appendChild(nav);
         var row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:1rem';
@@ -181,7 +189,7 @@
     }
 
     document.getElementById('reservation-form').addEventListener('submit',function(e){
-        if(!inputFrom.value||!inputTo.value){e.preventDefault();alert('Nejprve vyberte termin.');}
+        if(!inputFrom.value||!inputTo.value){e.preventDefault();alert('Nejprve vyberte termín.');}
     });
 
     render();
