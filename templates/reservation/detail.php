@@ -208,25 +208,28 @@ $bike = $reservation->getBike();
                 <p class="text-muted">Zatím žádné zprávy.</p>
             <?php else: ?>
                 <?php foreach ($messages as $msg): ?>
-                    <div class="message <?= $msg->getSenderClass() ?>">
-                        <div class="message-header">
-                            <strong><?= e($msg->getSenderLabel()) ?></strong>
-                            <span class="message-time"><?= $msg->getFormattedTime() ?></span>
-                        </div>
-                        <div class="message-body"><?= nl2br(e($msg->getMessage())) ?></div>
+                    <?php
+                    $senderType = $msg->getSenderType();
+                    $isMine = ($isOwner && $senderType === 'owner') || (!$isOwner && $senderType === 'borrower');
+                    ?>
+                    <div class="message <?= $msg->getSenderClass() ?> <?= $isMine ? 'mine' : '' ?>">
+                        <div class="message-bubble"><?= nl2br(e($msg->getMessage())) ?></div>
+                        <?php if (!$msg->isSystemMessage()): ?>
+                        <div class="message-meta"><?= e($msg->getSenderLabel()) ?> · <?= e($msg->getFormattedTime()) ?></div>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
 
         <?php if (!in_array($reservation->getStatus(), ['rejected', 'cancelled'], true)): ?>
-            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/message" class="conversation-form">
+            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/message">
                 <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                <div class="form-group">
+                <div class="conversation-compose">
                     <textarea name="message" rows="2" required
                               placeholder="Napište zprávu…"></textarea>
+                    <button type="submit" class="btn btn-primary">Odeslat</button>
                 </div>
-                <button type="submit" class="btn btn-primary">Odeslat</button>
             </form>
         <?php endif; ?>
     </div>

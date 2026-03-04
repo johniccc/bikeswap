@@ -55,20 +55,14 @@
             <p class="conversation-empty">Zatím žádné zprávy.</p>
         <?php else: ?>
             <?php foreach ($messages as $msg): ?>
-                <div class="message <?= e($msg->getSenderClass()) ?> <?= $msg->isSystemMessage() ? 'message-centered' : '' ?>">
-                    <?php if ($msg->isSystemMessage()): ?>
-                        <div class="message-system-text">
-                            <?= e($msg->getMessage()) ?>
-                        </div>
-                        <span class="message-time"><?= e($msg->getFormattedTime()) ?></span>
-                    <?php else: ?>
-                        <div class="message-header">
-                            <strong class="message-sender"><?= e($msg->getSenderLabel()) ?></strong>
-                            <span class="message-time"><?= e($msg->getFormattedTime()) ?></span>
-                        </div>
-                        <div class="message-body">
-                            <?= nl2br(e($msg->getMessage())) ?>
-                        </div>
+                <?php
+                $senderType = $msg->getSenderType();
+                $isMine = isset($viewerType) && $senderType === $viewerType;
+                ?>
+                <div class="message <?= e($msg->getSenderClass()) ?> <?= $isMine ? 'mine' : '' ?>">
+                    <div class="message-bubble"><?= nl2br(e($msg->getMessage())) ?></div>
+                    <?php if (!$msg->isSystemMessage()): ?>
+                    <div class="message-meta"><?= e($msg->getSenderLabel()) ?> · <?= e($msg->getFormattedTime()) ?></div>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
