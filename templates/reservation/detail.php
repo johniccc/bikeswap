@@ -144,10 +144,8 @@ $bike = $reservation->getBike();
                     <div class="form-group star-rating-group">
                         <div class="star-rating" id="star-rating">
                             <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <label>
-                                    <input type="radio" name="rating" value="<?= $i ?>" required>
-                                    <span class="star" data-value="<?= $i ?>">☆</span>
-                                </label>
+                                <input type="radio" name="rating" id="star<?= $i ?>" value="<?= $i ?>" required>
+                                <label for="star<?= $i ?>" data-value="<?= $i ?>">☆</label>
                             <?php endfor; ?>
                         </div>
                     </div>
@@ -243,24 +241,6 @@ $bike = $reservation->getBike();
 <script>
 (function() {
     'use strict';
-
-    var starContainer = document.getElementById('star-rating');
-    if (starContainer) {
-        var stars = starContainer.querySelectorAll('.star');
-        var inputs = starContainer.querySelectorAll('input[type="radio"]');
-
-        inputs.forEach(function(input) {
-            input.addEventListener('change', function() {
-                var val = parseInt(this.value);
-                stars.forEach(function(s) {
-                    var sv = parseInt(s.getAttribute('data-value'));
-                    s.textContent = sv <= val ? '★' : '☆';
-                    s.style.color = sv <= val ? '#f59e0b' : '#ddd';
-                });
-            });
-        });
-    }
-
     var msgContainer = document.getElementById('messages');
     if (msgContainer) {
         msgContainer.scrollTop = msgContainer.scrollHeight;
