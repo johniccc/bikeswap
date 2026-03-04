@@ -65,9 +65,9 @@ class FoundReportMessage
     public function getSenderLabel(): string
     {
         return match ($this->senderType) {
-            'owner'  => 'Majitel',
+            'system' => 'BikeSwap',
+            'owner'  => 'Vlastník',
             'finder' => 'Nálezce',
-            'system' => 'Systém',
             default  => 'Neznámý',
         };
     }

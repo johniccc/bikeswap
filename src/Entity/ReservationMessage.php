@@ -57,9 +57,9 @@ class ReservationMessage
     public function getSenderLabel(): string
     {
         return match ($this->senderType) {
-            'owner'    => 'Majitel',
-            'borrower' => 'Vypůjčitel',
-            'system'   => 'Systém',
+            'system'   => 'BikeSwap',
+            'owner'    => 'Vlastník',
+            'borrower' => 'Výpůjčník',
             default    => 'Neznámý',
         };
     }
