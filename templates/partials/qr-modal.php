@@ -19,10 +19,10 @@
 
       <div class="divider"></div>
 
-      <form action="/bike/" method="GET" id="serial-form" class="flex gap-sm" style="align-items:flex-end">
+      <form action="/bike/search" method="GET" id="serial-form" class="flex gap-sm" style="align-items:flex-end">
         <div class="form-group mb-0" style="flex:1">
           <label for="serial-input">Sériové číslo</label>
-          <input type="text" id="serial-input" placeholder="Zadejte sériové číslo kola" class="form-control">
+          <input type="text" id="serial-input" name="frame_number" placeholder="Zadejte sériové číslo kola" class="form-control" required>
         </div>
         <button type="submit" class="btn btn-primary btn-sm">
           <i data-lucide="search"></i> Hledat

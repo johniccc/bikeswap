@@ -92,12 +92,9 @@ class AuthController
             return json(['user_id' => $result['user_id']], 201);
         }
 
-        $this->session->flash('success', 'Registrace proběhla úspěšně. Můžete se přihlásit.');
+        $this->session->flash('registration_success', 'Registrace proběhla úspěšně! Nyní se můžete přihlásit.');
 
-        $redirect = $this->session->get('auth_redirect', '/login');
-        $this->session->remove('auth_redirect');
-
-        return redirect($redirect);
+        return redirect('/login');
     }
 
     /**
@@ -167,8 +164,13 @@ class AuthController
 
         $this->session->flash('success', 'Vítejte zpět!');
 
-        $redirect = $this->session->get('auth_redirect', '/dashboard');
+        $redirect = $this->session->get('auth_redirect', '');
         $this->session->remove('auth_redirect');
+
+        if (!$redirect) {
+            $user = $this->authService->currentUser();
+            $redirect = ($user && $user->isPolice()) ? '/admin' : '/dashboard';
+        }
 
         return redirect($redirect);
     }

@@ -18,46 +18,59 @@
     <div class="sidebar-logo">
       <a href="/">
         <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="13" stroke="#fff" stroke-width="2.5" opacity="0.9"/>
-          <circle cx="16" cy="16" r="2.5" fill="#fff" opacity="0.9"/>
-          <line x1="16" y1="5" x2="16" y2="13.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-          <line x1="16" y1="18.5" x2="16" y2="27" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-          <line x1="5" y1="16" x2="13.5" y2="16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-          <line x1="18.5" y1="16" x2="27" y2="16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-          <path d="M10.5 12.5L15 16L10.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M21.5 12.5L17 16L21.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="12" stroke="#fff" stroke-width="2.2" opacity="0.9"/>
+          <path d="M11 13.5h8.5M16.5 10.5l3 3-3 3" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 18.5h-8.5M15.5 21.5l-3-3 3-3" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Bike<span class="navbar-logo-accent">Swap</span>
+        <span class="navbar-logo-text">Bike<span class="navbar-logo-accent">Swap</span></span>
       </a>
     </div>
 
     <nav class="sidebar-nav">
-      <span class="sidebar-nav-label">Hlavní</span>
-      <a href="/dashboard" class="sidebar-link <?= isActiveRoute('/dashboard') ?>">
-        <i data-lucide="layout-dashboard"></i> Přehled
-      </a>
-      <a href="/stolen" class="sidebar-link <?= isActiveRoute('/stolen') ?>">
-        <i data-lucide="shield-alert"></i> Odcizená kola
-      </a>
-      <a href="/shared" class="sidebar-link <?= isActiveRoute('/shared') ?>">
-        <i data-lucide="repeat"></i> Sdílená kola
-      </a>
+      <div class="sidebar-qr">
+        <button type="button" class="sidebar-qr-btn" id="open-qr-scanner">
+          <i data-lucide="scan-line"></i> Skenovat QR
+        </button>
+      </div>
 
-      <span class="sidebar-nav-label">Správa</span>
-      <a href="/reservations" class="sidebar-link <?= isActiveRoute('/reservations') ?>">
-        <i data-lucide="calendar-check"></i> Rezervace
-      </a>
-      <a href="/notifications" class="sidebar-link <?= isActiveRoute('/notifications') ?>" id="notif-link-desktop" style="position:relative">
-        <i data-lucide="bell"></i> Oznámení
-        <span class="notif-badge" id="notif-count-desktop" style="display:none;position:relative;top:auto;right:auto;margin-left:auto"></span>
-      </a>
+      <?php if (isset($currentUser) && $currentUser->isPolice()): ?>
+        <span class="sidebar-nav-label">Policie</span>
+        <a href="/admin" class="sidebar-link <?= isActiveRoute('/admin') ?>">
+          <i data-lucide="shield"></i> Administrace
+        </a>
+        <a href="/notifications" class="sidebar-link <?= isActiveRoute('/notifications') ?>" id="notif-link-desktop" style="position:relative">
+          <i data-lucide="bell"></i> Oznámení
+          <span class="notif-badge" id="notif-count-desktop" style="display:none;position:relative;top:auto;right:auto;margin-left:auto"></span>
+        </a>
+      <?php else: ?>
+        <span class="sidebar-nav-label">Hlavní</span>
+        <a href="/dashboard" class="sidebar-link <?= isActiveRoute('/dashboard') ?>">
+          <i data-lucide="layout-dashboard"></i> Přehled
+        </a>
+        <a href="/stolen" class="sidebar-link <?= isActiveRoute('/stolen') ?>">
+          <i data-lucide="shield-alert"></i> Odcizená kola
+        </a>
+        <a href="/shared" class="sidebar-link <?= isActiveRoute('/shared') ?>">
+          <i data-lucide="repeat"></i> Sdílená kola
+        </a>
+
+        <span class="sidebar-nav-label">Správa</span>
+        <a href="/reservations" class="sidebar-link <?= isActiveRoute('/reservations') ?>">
+          <i data-lucide="calendar-check"></i> Rezervace
+        </a>
+        <a href="/notifications" class="sidebar-link <?= isActiveRoute('/notifications') ?>" id="notif-link-desktop" style="position:relative">
+          <i data-lucide="bell"></i> Oznámení
+          <span class="notif-badge" id="notif-count-desktop" style="display:none;position:relative;top:auto;right:auto;margin-left:auto"></span>
+        </a>
+
+        <?php if (isset($currentUser) && $currentUser->isAdmin()): ?>
+          <span class="sidebar-nav-label">Admin</span>
+          <a href="/admin" class="sidebar-link <?= isActiveRoute('/admin') ?>">
+            <i data-lucide="shield"></i> Administrace
+          </a>
+        <?php endif; ?>
+      <?php endif; ?>
     </nav>
-
-    <div class="sidebar-qr">
-      <button type="button" class="sidebar-qr-btn" id="open-qr-scanner">
-        <i data-lucide="scan-line"></i> Skenovat QR
-      </button>
-    </div>
 
     <div class="sidebar-footer">
       <?php if (isset($currentUser)): ?>
@@ -80,17 +93,19 @@
   <header class="top-bar">
     <a href="/" class="top-bar-logo">
       <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="16" cy="16" r="13" stroke="#1B4332" stroke-width="2.5"/>
-        <circle cx="16" cy="16" r="2.5" fill="#1B4332"/>
-        <path d="M10.5 12.5L15 16L10.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21.5 12.5L17 16L21.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="16" cy="16" r="12" stroke="#1B4332" stroke-width="2.2"/>
+        <path d="M11 13.5h8.5M16.5 10.5l3 3-3 3" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 18.5h-8.5M15.5 21.5l-3-3 3-3" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      Bike<span class="navbar-logo-accent">Swap</span>
+      <span class="navbar-logo-text">Bike<span class="navbar-logo-accent">Swap</span></span>
     </a>
     <div class="top-bar-actions">
       <a href="/notifications" class="top-bar-bell" aria-label="Oznámení" style="position:relative">
         <i data-lucide="bell"></i>
         <span class="notif-badge" id="notif-count-mobile" style="display:none"></span>
+      </a>
+      <a href="/profile" class="top-bar-bell" aria-label="Profil">
+        <i data-lucide="user"></i>
       </a>
     </div>
   </header>
@@ -106,27 +121,50 @@
 
   <!-- ── Mobile Bottom Navigation ── -->
   <nav class="bottom-nav">
-    <a href="/dashboard" class="bottom-nav-item <?= isActiveRoute('/dashboard') ?>">
-      <i data-lucide="layout-dashboard"></i>
-      <span>Přehled</span>
-    </a>
-    <a href="/stolen" class="bottom-nav-item <?= isActiveRoute('/stolen') ?>">
-      <i data-lucide="shield-alert"></i>
-      <span>Krádeže</span>
-    </a>
-    <div class="bottom-nav-item bottom-nav-qr-wrap">
-      <button type="button" class="bottom-nav-qr-btn" id="open-qr-scanner-mobile" aria-label="Skenovat QR">
-        <i data-lucide="camera"></i>
-      </button>
-    </div>
-    <a href="/reservations" class="bottom-nav-item <?= isActiveRoute('/reservations') ?>">
-      <i data-lucide="calendar-check"></i>
-      <span>Rezervace</span>
-    </a>
-    <a href="/profile" class="bottom-nav-item <?= isActiveRoute('/profile') ?>">
-      <i data-lucide="user"></i>
-      <span>Profil</span>
-    </a>
+    <?php if (isset($currentUser) && $currentUser->isPolice()): ?>
+      <a href="/admin" class="bottom-nav-item <?= isActiveRoute('/admin') ?>">
+        <i data-lucide="shield"></i>
+        <span>Admin</span>
+      </a>
+      <div class="bottom-nav-item bottom-nav-qr-wrap">
+        <button type="button" class="bottom-nav-qr-btn" id="open-qr-scanner-mobile" aria-label="Skenovat QR">
+          <i data-lucide="camera"></i>
+        </button>
+      </div>
+      <a href="/notifications" class="bottom-nav-item <?= isActiveRoute('/notifications') ?>">
+        <i data-lucide="bell"></i>
+        <span>Oznámení</span>
+      </a>
+    <?php else: ?>
+      <a href="/dashboard" class="bottom-nav-item <?= isActiveRoute('/dashboard') ?>">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Přehled</span>
+      </a>
+      <a href="/stolen" class="bottom-nav-item <?= isActiveRoute('/stolen') ?>">
+        <i data-lucide="shield-alert"></i>
+        <span>Krádeže</span>
+      </a>
+      <div class="bottom-nav-item bottom-nav-qr-wrap">
+        <button type="button" class="bottom-nav-qr-btn" id="open-qr-scanner-mobile" aria-label="Skenovat QR">
+          <i data-lucide="camera"></i>
+        </button>
+      </div>
+      <a href="/reservations" class="bottom-nav-item <?= isActiveRoute('/reservations') ?>">
+        <i data-lucide="calendar-check"></i>
+        <span>Rezervace</span>
+      </a>
+      <?php if (isset($currentUser) && $currentUser->isAdmin()): ?>
+        <a href="/admin" class="bottom-nav-item <?= isActiveRoute('/admin') ?>">
+          <i data-lucide="shield"></i>
+          <span>Admin</span>
+        </a>
+      <?php else: ?>
+        <a href="/shared" class="bottom-nav-item <?= isActiveRoute('/shared') ?>">
+          <i data-lucide="repeat"></i>
+          <span>Sdílená</span>
+        </a>
+      <?php endif; ?>
+    <?php endif; ?>
   </nav>
 
 </div><!-- .app-shell -->

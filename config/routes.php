@@ -20,7 +20,10 @@ use App\Controllers\NotificationController;
 use App\Controllers\ReservationController;
 use App\Controllers\ProfileController;
 
+use App\Controllers\AdminController;
+
 use App\Middleware\AuthMiddleware;
+use App\Middleware\AdminMiddleware;
 
 // ── Public routes ──────────────────────────────────────────────
 
@@ -31,6 +34,7 @@ $router->get('/shared', [ReservationController::class, 'sharedBikes']);
 // ── File serving (images, QR codes) ───────────────────────────
 
 $router->get('/file/bike-photo/{id}', [FileController::class, 'bikePhoto']);
+$router->get('/file/dispute-photo/{id}', [FileController::class, 'disputePhoto']);
 $router->get('/file/qr/{hash}', [FileController::class, 'qrCode']);
 
 // ── Auth routes ────────────────────────────────────────────────
@@ -54,6 +58,7 @@ $router->get('/found/{token}/poll', [MessagePollController::class, 'foundMessage
 $router->group('', [AuthMiddleware::class], function ($router) {
     // Dashboard
     $router->get('/dashboard', [BikeController::class, 'myBikes']);
+    $router->get('/dashboard/poll', [BikeController::class, 'dashboardPoll']);
 
     // Profile
     $router->get('/profile', [ProfileController::class, 'index']);
@@ -80,6 +85,7 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->post('/found/{reportId}/message', [FoundReportController::class, 'ownerSendMessage']);
     $router->post('/found/{reportId}/resolve', [FoundReportController::class, 'resolve']);
     $router->post('/found/{reportId}/close', [FoundReportController::class, 'closeConversation']);
+    $router->get('/found/{reportId}/export-pdf', [FoundReportController::class, 'exportPdf']);
 
     // Notifications (specific routes BEFORE parametric!)
     $router->get('/notifications', [NotificationController::class, 'index']);
@@ -89,6 +95,7 @@ $router->group('', [AuthMiddleware::class], function ($router) {
 
     // Reservation system
     $router->get('/reservations', [ReservationController::class, 'myReservations']);
+    $router->get('/reservations/poll', [ReservationController::class, 'reservationsPoll']);
     $router->get('/reservation/new/{bikeId}', [ReservationController::class, 'createForm']);
     $router->post('/reservation/new/{bikeId}', [ReservationController::class, 'store']);
     $router->get('/reservation/{bikeId}/unavailable-dates', [ReservationController::class, 'unavailableDates']);
@@ -99,18 +106,32 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->post('/reservation/{id}/cancel', [ReservationController::class, 'cancel']);
     $router->post('/reservation/{id}/activate', [ReservationController::class, 'activate']);
     $router->post('/reservation/{id}/complete', [ReservationController::class, 'complete']);
+    $router->get('/reservation/{id}/not-returned', [ReservationController::class, 'notReturnedForm']);
     $router->post('/reservation/{id}/not-returned', [ReservationController::class, 'reportNotReturned']);
+    $router->get('/reservation/{id}/dispute', [ReservationController::class, 'disputeForm']);
     $router->post('/reservation/{id}/dispute', [ReservationController::class, 'dispute']);
+    $router->post('/reservation/{id}/admin-resolve', [ReservationController::class, 'adminResolve']);
     $router->post('/reservation/{id}/message', [ReservationController::class, 'sendMessage']);
     $router->post('/reservation/{id}/review', [ReservationController::class, 'submitReview']);
 });
 
+// ── Bike search by serial/frame number ───────────────────────────
+$router->get('/bike/search', [BikeController::class, 'searchByFrameNumber']);
+
 // ── Public bike detail (QR code scan) ──────────────────────────
-// Must be AFTER /bike/new to avoid matching "new" as a hash
+// Must be AFTER /bike/new and /bike/search to avoid matching as a hash
 $router->get('/bike/{hash}', [BikeController::class, 'publicDetail']);
 
 // ── Admin routes ───────────────────────────────────────────────
 
-// $router->group('/admin', [AuthMiddleware::class], function ($router) {
-//     $router->get('/dashboard', [AdminController::class, 'dashboard']);
-// });
+$router->group('/admin', [AdminMiddleware::class], function ($router) {
+    $router->get('', [AdminController::class, 'dashboard']);
+    $router->get('/users', [AdminController::class, 'users']);
+    $router->get('/users/{id}', [AdminController::class, 'userDetail']);
+    $router->post('/users/{id}/ban', [AdminController::class, 'banUser']);
+    $router->post('/users/{id}/unban', [AdminController::class, 'unbanUser']);
+    $router->post('/users/{id}/role', [AdminController::class, 'changeRole']);
+    $router->get('/bikes', [AdminController::class, 'bikes']);
+    $router->get('/reservations', [AdminController::class, 'reservations']);
+    $router->get('/thefts', [AdminController::class, 'thefts']);
+});

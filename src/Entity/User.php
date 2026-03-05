@@ -24,6 +24,7 @@ class User
     private bool $isVerified;
     private ?string $verificationToken;
     private int $karmaScore;
+    private bool $isBanned;
     private string $createdAt;
     private string $updatedAt;
     private ?string $lastLoginAt;
@@ -47,6 +48,7 @@ class User
         $user->isVerified        = (bool) ($row['is_verified'] ?? false);
         $user->verificationToken = $row['verification_token'] ?? null;
         $user->karmaScore        = (int) ($row['karma_score'] ?? 0);
+        $user->isBanned          = (bool) ($row['is_banned'] ?? false);
         $user->createdAt         = $row['created_at'];
         $user->updatedAt         = $row['updated_at'];
         $user->lastLoginAt       = $row['last_login_at'] ?? null;
@@ -127,6 +129,11 @@ class User
     public function getLastLoginAt(): ?string
     {
         return $this->lastLoginAt;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->isBanned;
     }
 
     // ── Role checks ────────────────────────────────────────────

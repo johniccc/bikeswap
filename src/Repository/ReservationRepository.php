@@ -128,6 +128,23 @@ class ReservationRepository
     }
 
     /**
+     * Find reservations requiring attention (pending, approved, active) for a user.
+     * @return Reservation[]
+     */
+    public function findActionableByUser(int $userId, bool $withRelations = false): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT * FROM reservations
+             WHERE (owner_id = ? OR borrower_id = ?)
+             AND status IN ('pending', 'approved', 'active', 'not_returned', 'disputed')
+             ORDER BY date_from ASC",
+            [$userId, $userId]
+        );
+
+        return $this->hydrateList($rows, $withRelations);
+    }
+
+    /**
      * Check if a date range conflicts with existing approved/active reservations.
      *
      * Two ranges [A_from, A_to] and [B_from, B_to] overlap when:
@@ -191,6 +208,14 @@ class ReservationRepository
     }
 
     /**
+     * Update reservation with additional data (e.g. not_returned_reason, dispute_reason).
+     */
+    public function updateFields(int $id, array $data): void
+    {
+        $this->db->update('reservations', $data, 'id = ?', [$id]);
+    }
+
+    /**
      * Check if borrower already has a pending reservation for the same bike and overlapping dates.
      */
     public function hasPendingOverlap(int $borrowerId, int $bikeId, string $dateFrom, string $dateTo): bool
@@ -235,6 +260,54 @@ class ReservationRepository
             "SELECT COUNT(*) FROM reservations WHERE owner_id = ? AND status = 'pending'",
             [$ownerId]
         );
+    }
+
+    /**
+     * Find all disputed/not_returned reservations (for admin panel).
+     * @return Reservation[]
+     */
+    public function findDisputed(bool $withRelations = false): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT * FROM reservations WHERE status IN ('not_returned', 'disputed') ORDER BY updated_at DESC"
+        );
+
+        return $this->hydrateList($rows, $withRelations);
+    }
+
+    /**
+     * Find all reservations, optionally filtered by status.
+     * @return Reservation[]
+     */
+    public function findAll(?string $status = null, bool $withRelations = false): array
+    {
+        if ($status !== null) {
+            $rows = $this->db->fetchAll(
+                "SELECT * FROM reservations WHERE status = ? ORDER BY created_at DESC",
+                [$status]
+            );
+        } else {
+            $rows = $this->db->fetchAll(
+                "SELECT * FROM reservations ORDER BY created_at DESC"
+            );
+        }
+
+        return $this->hydrateList($rows, $withRelations);
+    }
+
+    /**
+     * Count all reservations, optionally by status.
+     */
+    public function countAll(?string $status = null): int
+    {
+        if ($status !== null) {
+            return (int) $this->db->fetchColumn(
+                "SELECT COUNT(*) FROM reservations WHERE status = ?",
+                [$status]
+            );
+        }
+
+        return (int) $this->db->fetchColumn("SELECT COUNT(*) FROM reservations");
     }
 
     // ── Internal helpers ───────────────────────────────────

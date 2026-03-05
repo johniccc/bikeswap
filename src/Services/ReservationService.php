@@ -9,7 +9,9 @@ use App\Entity\ReservationReview;
 use App\Repository\ReservationRepository;
 use App\Repository\ReservationMessageRepository;
 use App\Repository\ReservationReviewRepository;
+use App\Repository\DisputePhotoRepository;
 use App\Repository\BikeRepository;
+use App\Repository\UserRepository;
 use App\Core\Database;
 
 /**
@@ -28,7 +30,9 @@ class ReservationService
     private ReservationRepository $reservationRepo;
     private ReservationMessageRepository $messageRepo;
     private ReservationReviewRepository $reviewRepo;
+    private DisputePhotoRepository $disputePhotoRepo;
     private BikeRepository $bikeRepo;
+    private UserRepository $userRepo;
     private NotificationService $notificationService;
     private EmailService $emailService;
     private KarmaService $karmaService;
@@ -38,7 +42,9 @@ class ReservationService
         ReservationRepository $reservationRepo,
         ReservationMessageRepository $messageRepo,
         ReservationReviewRepository $reviewRepo,
+        DisputePhotoRepository $disputePhotoRepo,
         BikeRepository $bikeRepo,
+        UserRepository $userRepo,
         NotificationService $notificationService,
         EmailService $emailService,
         KarmaService $karmaService,
@@ -47,7 +53,9 @@ class ReservationService
         $this->reservationRepo = $reservationRepo;
         $this->messageRepo = $messageRepo;
         $this->reviewRepo = $reviewRepo;
+        $this->disputePhotoRepo = $disputePhotoRepo;
         $this->bikeRepo = $bikeRepo;
+        $this->userRepo = $userRepo;
         $this->notificationService = $notificationService;
         $this->emailService = $emailService;
         $this->karmaService = $karmaService;
@@ -425,8 +433,10 @@ class ReservationService
 
     /**
      * Owner reports that bike was not returned.
+     * Requires a mandatory reason/description of the situation.
+     * No karma penalty is applied — only admin can resolve and apply consequences.
      */
-    public function reportNotReturned(int $reservationId, int $ownerId): void
+    public function reportNotReturned(int $reservationId, int $ownerId, string $reason): void
     {
         $reservation = $this->getAndAuthorize($reservationId, $ownerId, 'owner');
 
@@ -434,24 +444,30 @@ class ReservationService
             throw new \RuntimeException('Nelze nahlásit nevrácení.');
         }
 
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw new \RuntimeException('Popis situace je povinný.');
+        }
+
         try {
             $this->db->beginTransaction();
 
-            $this->reservationRepo->updateStatus($reservationId, 'not_returned');
+            $this->reservationRepo->updateFields($reservationId, [
+                'status' => 'not_returned',
+                'not_returned_reason' => $reason,
+            ]);
 
-            $this->messageRepo->create($reservationId, 'system', null, '⚠ Majitel nahlásil, že kolo nebylo vráceno.');
-
-            // Karma penalty for borrower
-            $this->karmaService->addPoints($reservation->getBorrowerId(), -10, 'Kolo nevráceno');
+            $this->messageRepo->create($reservationId, 'system', null,
+                'Majitel nahlásil, že kolo nebylo vráceno. Případ čeká na vyřešení správcem.'
+            );
 
             $this->notificationService->notify(
                 $reservation->getBorrowerId(),
                 'warning',
-                '⚠ Majitel nahlásil, že jste nevrátili kolo!',
+                'Majitel nahlásil, že jste nevrátili kolo. Můžete podat námitku.',
                 "/reservation/{$reservationId}"
             );
 
-            // Send email to borrower
             $bike = $this->bikeRepo->findById($reservation->getBikeId());
             if ($bike !== null) {
                 $this->emailService->sendReservationStatusChange(
@@ -459,7 +475,7 @@ class ReservationService
                     $bike,
                     $reservationId,
                     'not_returned',
-                    '⚠ Majitel nahlásil, že jste nevrátili kolo!'
+                    'Majitel nahlásil, že jste nevrátili kolo. Můžete podat námitku.'
                 );
             }
 
@@ -472,8 +488,11 @@ class ReservationService
 
     /**
      * Borrower disputes a not_returned report.
+     * Requires an explanation and optionally evidence photos.
+     *
+     * @param string[] $photoPaths Paths to uploaded evidence photos
      */
-    public function dispute(int $reservationId, int $borrowerId): void
+    public function dispute(int $reservationId, int $borrowerId, string $reason, array $photoPaths = []): void
     {
         $reservation = $this->reservationRepo->findById($reservationId);
 
@@ -485,23 +504,135 @@ class ReservationService
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
-        if ($reservation->getStatus() !== 'not_returned') {
+        if (!$reservation->canBeDisputed()) {
             throw new \RuntimeException('Tuto akci nelze provést.', 422);
+        }
+
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw new \RuntimeException('Vysvětlení je povinné.');
         }
 
         try {
             $this->db->beginTransaction();
 
-            $this->reservationRepo->updateStatus($reservationId, 'disputed');
+            $this->reservationRepo->updateFields($reservationId, [
+                'status' => 'disputed',
+                'dispute_reason' => $reason,
+            ]);
 
-            $this->messageRepo->create($reservationId, 'system', null, 'Výpůjčník podal námitku proti nahlášení nevrácení.');
+            // Save evidence photos
+            foreach ($photoPaths as $path) {
+                $this->disputePhotoRepo->create($reservationId, $path);
+            }
+
+            $photoNote = !empty($photoPaths) ? ' Přiloženo ' . count($photoPaths) . ' důkazních fotografií.' : '';
+            $this->messageRepo->create($reservationId, 'system', null,
+                'Vypůjčitel podal námitku proti nahlášení nevrácení.' . $photoNote . ' Případ čeká na rozhodnutí správce.'
+            );
 
             $this->notificationService->notify(
                 $reservation->getOwnerId(),
                 'warning',
-                'Výpůjčník zpochybnil nahlášení nevrácení. Případ čeká na řešení.',
+                'Vypůjčitel podal námitku proti nahlášení nevrácení. Případ řeší správce.',
                 "/reservation/{$reservationId}"
             );
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Admin resolves a not_returned / disputed reservation.
+     *
+     * @param string $resolution 'borrower_guilty' or 'owner_guilty'
+     */
+    public function adminResolve(int $reservationId, int $adminId, string $resolution): void
+    {
+        $reservation = $this->reservationRepo->findById($reservationId);
+
+        if ($reservation === null) {
+            throw new \RuntimeException('Rezervace nenalezena.', 404);
+        }
+
+        if (!$reservation->canBeAdminResolved()) {
+            throw new \RuntimeException('Tento spor nelze vyřešit.');
+        }
+
+        if (!in_array($resolution, ['borrower_guilty', 'owner_guilty'], true)) {
+            throw new \RuntimeException('Neplatné rozhodnutí.');
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $this->reservationRepo->updateFields($reservationId, [
+                'status'            => 'completed',
+                'admin_resolution'  => $resolution,
+                'admin_resolved_by' => $adminId,
+                'admin_resolved_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            if ($resolution === 'borrower_guilty') {
+                // Ban borrower + karma penalty
+                $this->karmaService->addPoints($reservation->getBorrowerId(), -20, 'Nevrácení kola — rozhodnutí správce');
+                $this->userRepo->ban($reservation->getBorrowerId());
+
+                $this->messageRepo->create($reservationId, 'system', null,
+                    'Správce rozhodl: vypůjčitel nevrátil kolo. Účet vypůjčitele byl zablokován.'
+                );
+
+                $this->notificationService->notify(
+                    $reservation->getBorrowerId(),
+                    'warning',
+                    'Správce rozhodl, že jste nevrátili kolo. Váš účet byl zablokován.',
+                    "/reservation/{$reservationId}"
+                );
+
+                $this->notificationService->notify(
+                    $reservation->getOwnerId(),
+                    'info',
+                    'Spor byl vyřešen ve váš prospěch. Účet vypůjčitele byl zablokován.',
+                    "/reservation/{$reservationId}"
+                );
+            } else {
+                // Owner lied — karma penalty for owner, reward borrower's reputation back
+                $this->karmaService->addPoints($reservation->getOwnerId(), -20, 'Nepravdivé nahlášení nevrácení — rozhodnutí správce');
+
+                $this->messageRepo->create($reservationId, 'system', null,
+                    'Správce rozhodl: nahlášení nevrácení bylo nepravdivé. Vlastník ztratil karmu.'
+                );
+
+                $this->notificationService->notify(
+                    $reservation->getOwnerId(),
+                    'warning',
+                    'Správce rozhodl, že vaše nahlášení nevrácení bylo nepravdivé. Ztratili jste karmu.',
+                    "/reservation/{$reservationId}"
+                );
+
+                $this->notificationService->notify(
+                    $reservation->getBorrowerId(),
+                    'info',
+                    'Spor byl vyřešen ve váš prospěch. Námitka byla uznána.',
+                    "/reservation/{$reservationId}"
+                );
+            }
+
+            // Email both parties
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getBorrowerId(), $bike, $reservationId,
+                    'completed', 'Spor k rezervaci byl vyřešen správcem.'
+                );
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getOwnerId(), $bike, $reservationId,
+                    'completed', 'Spor k rezervaci byl vyřešen správcem.'
+                );
+            }
 
             $this->db->commit();
         } catch (\Throwable $e) {

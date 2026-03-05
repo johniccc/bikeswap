@@ -13,6 +13,13 @@
         <button type="button" class="auth-tab" data-tab="register">Registrace</button>
       </div>
 
+      <!-- Registration success message (shown inside modal) -->
+      <?php if (isset($session) && ($regSuccess = $session->getFlash('registration_success'))): ?>
+        <div class="alert alert-success mb-md" id="auth-reg-success">
+          <i data-lucide="check-circle"></i> <?= e($regSuccess) ?>
+        </div>
+      <?php endif; ?>
+
       <!-- Login Form -->
       <form method="POST" action="/login" class="auth-form active" id="auth-form-login">
         <?php if (isset($session)): ?>

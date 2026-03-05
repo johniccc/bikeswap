@@ -16,16 +16,11 @@
     <div class="navbar-inner">
       <a href="/" class="navbar-logo">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="13" stroke="#1B4332" stroke-width="2.5"/>
-          <circle cx="16" cy="16" r="2.5" fill="#1B4332"/>
-          <line x1="16" y1="5" x2="16" y2="13.5" stroke="#1B4332" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="16" y1="18.5" x2="16" y2="27" stroke="#1B4332" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="5" y1="16" x2="13.5" y2="16" stroke="#1B4332" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="18.5" y1="16" x2="27" y2="16" stroke="#1B4332" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M10.5 12.5L15 16L10.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M21.5 12.5L17 16L21.5 19.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="12" stroke="#1B4332" stroke-width="2.2"/>
+          <path d="M11 13.5h8.5M16.5 10.5l3 3-3 3" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 18.5h-8.5M15.5 21.5l-3-3 3-3" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Bike<span class="navbar-logo-accent">Swap</span>
+        <span class="navbar-logo-text">Bike<span class="navbar-logo-accent">Swap</span></span>
       </a>
 
       <nav class="navbar-links">
@@ -100,16 +95,11 @@
     <div class="footer-inner">
       <div class="footer-logo">
         <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="2.5"/>
-          <circle cx="16" cy="16" r="2.5" fill="currentColor"/>
-          <line x1="16" y1="5" x2="16" y2="13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="16" y1="18.5" x2="16" y2="27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="5" y1="16" x2="13.5" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="18.5" y1="16" x2="27" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M10.5 12.5L15 16L10.5 19.5" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M21.5 12.5L17 16L21.5 19.5" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"/>
+          <path d="M11 13.5h8.5M16.5 10.5l3 3-3 3" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 18.5h-8.5M15.5 21.5l-3-3 3-3" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Bike<span class="footer-logo-accent">Swap</span>
+        <span class="navbar-logo-text">Bike<span class="footer-logo-accent">Swap</span></span>
       </div>
       <div class="footer-links">
         <a href="/stolen">Odcizená kola</a>

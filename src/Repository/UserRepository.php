@@ -183,6 +183,30 @@ class UserRepository
     }
 
     /**
+     * Count all users.
+     */
+    public function countAll(): int
+    {
+        return (int) $this->db->fetchColumn("SELECT COUNT(*) FROM users");
+    }
+
+    /**
+     * Ban a user.
+     */
+    public function ban(int $userId): void
+    {
+        $this->db->update('users', ['is_banned' => 1], 'id = ?', [$userId]);
+    }
+
+    /**
+     * Unban a user.
+     */
+    public function unban(int $userId): void
+    {
+        $this->db->update('users', ['is_banned' => 0], 'id = ?', [$userId]);
+    }
+
+    /**
      * Delete a user by ID.
      */
     public function delete(int $userId): void

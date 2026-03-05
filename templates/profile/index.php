@@ -4,6 +4,14 @@
     <a href="/profile/settings" class="btn btn-secondary btn-sm">
       <i data-lucide="settings"></i> Nastavení
     </a>
+    <?php if (isset($session)): ?>
+      <form method="POST" action="/logout" style="margin:0">
+        <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
+        <button type="submit" class="btn btn-secondary btn-sm">
+          <i data-lucide="log-out"></i> Odhlásit se
+        </button>
+      </form>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -19,13 +27,18 @@
         <p class="text-muted text-sm"><?= e($user->getEmail()) ?></p>
       </div>
       <div style="margin-left:auto;text-align:right">
-        <div class="karma-score"><?= e((string)$user->getKarmaScore()) ?></div>
-        <span class="status-badge status-active"><?= e($user->getKarmaLevel()) ?></span>
+        <?php if ($user->isPolice()): ?>
+          <span class="police-badge" style="font-size:0.85rem;padding:0.25rem 0.6rem"><i data-lucide="shield" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Policie ČR</span>
+        <?php else: ?>
+          <div class="karma-score"><?= e((string)$user->getKarmaScore()) ?></div>
+          <span class="status-badge status-active"><?= e($user->getKarmaLevel()) ?></span>
+        <?php endif; ?>
       </div>
     </div>
   </div>
 </div>
 
+<?php if (!$user->isPolice()): ?>
 <!-- Bikes -->
 <div class="card mb-lg">
   <div class="card-header">
@@ -110,6 +123,7 @@
     <?php endif; ?>
   </div>
 </div>
+<?php endif; ?>
 
 <!-- Found reports -->
 <?php if (!empty($foundReports)): ?>

@@ -95,17 +95,19 @@
           <img src="<?= e($photo->getUrl()) ?>" alt="Foto kola">
           <div class="existing-photo-actions">
             <?php if ($photo->isPrimary()): ?>
-              <span class="btn btn-sm" style="font-size:0.7rem;opacity:0.6;pointer-events:none">Hlavní</span>
+              <span class="photo-preview-badge" title="Hlavní fotografie"><i data-lucide="star"></i></span>
             <?php else: ?>
               <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/primary" style="margin:0">
                 <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                <button type="submit" class="btn btn-sm btn-ghost" style="font-size:0.7rem">Nastavit hlavní</button>
+                <button type="submit" class="photo-action-btn" title="Nastavit jako hlavní">
+                  <i data-lucide="star"></i>
+                </button>
               </form>
             <?php endif; ?>
             <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete"
                   onsubmit="return confirm('Opravdu smazat tuto fotku?')" style="margin:0">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-              <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:0.7rem">
+              <button type="submit" class="photo-action-btn photo-action-danger" title="Smazat fotku">
                 <i data-lucide="trash-2"></i>
               </button>
             </form>

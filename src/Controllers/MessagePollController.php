@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Repository\BikeRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\ReservationMessageRepository;
+use App\Repository\ReservationReviewRepository;
 use App\Repository\FoundReportRepository;
 use App\Repository\FoundReportMessageRepository;
 use App\Response\Response;
@@ -19,6 +20,7 @@ class MessagePollController
         private AuthService $authService,
         private ReservationRepository $reservationRepo,
         private ReservationMessageRepository $messageRepo,
+        private ReservationReviewRepository $reviewRepo,
         private FoundReportRepository $foundReportRepo,
         private FoundReportMessageRepository $foundMessageRepo,
         private BikeRepository $bikeRepo,
@@ -62,7 +64,16 @@ class MessagePollController
             ];
         }, $msgs);
 
-        return json(['messages' => $messages]);
+        // Count revealed reviews for change detection
+        $revealedReviews = $this->reviewRepo->findRevealedByReservation($id);
+
+        return json([
+            'messages' => $messages,
+            'status' => $reservation->getStatus(),
+            'status_label' => $reservation->getStatusLabel(),
+            'status_class' => $reservation->getStatusClass(),
+            'review_count' => count($revealedReviews),
+        ]);
     }
 
     /**
@@ -113,6 +124,10 @@ class MessagePollController
             ];
         }, $msgs);
 
-        return json(['messages' => $messages]);
+        return json([
+            'messages'     => $messages,
+            'status'       => $report->getStatus(),
+            'status_label' => $report->getStatusLabel(),
+        ]);
     }
 }

@@ -1,4 +1,5 @@
-<?php if ($viewerType === 'finder'): ?><div class="main-public-padded"><?php endif; ?>
+<?php $needsPublicPadding = ($viewerType === 'finder' && empty($currentUser)); ?>
+<?php if ($needsPublicPadding): ?><div class="main-public-padded"><?php endif; ?>
 
 <div class="page-header">
   <h1>
@@ -9,6 +10,11 @@
     <?php endif; ?>
   </h1>
   <div class="page-header-actions">
+    <?php if (isset($currentUser) && $currentUser->hasRole('police')): ?>
+      <a href="/found/<?= e((string)$report->getId()) ?>/export-pdf" class="btn btn-secondary btn-sm">
+        <i data-lucide="file-down"></i> Export PDF
+      </a>
+    <?php endif; ?>
     <?php if ($viewerType === 'owner' && $bike): ?>
       <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-ghost btn-sm">
         <i data-lucide="arrow-left"></i> Zpět na detail kola
@@ -82,7 +88,8 @@
   <div class="card-body" style="padding-bottom:0">
     <div class="conversation-messages" id="messages"
          data-poll-url="/found/<?= e($report->getConversationToken()) ?>/poll"
-         data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>">
+         data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>"
+         data-status="<?= e($report->getStatusLabel()) ?>">
       <?php if (empty($messages)): ?>
         <p class="text-muted" style="text-align:center;padding:2rem 0">Zatím žádné zprávy.</p>
       <?php else: ?>
@@ -91,10 +98,17 @@
           $senderType = $msg->getSenderType();
           $isMine = isset($viewerType) && $senderType === $viewerType;
           ?>
+          <?php $isPoliceMsg = !empty($policeUserIds) && $msg->getSenderUserId() !== null && in_array($msg->getSenderUserId(), $policeUserIds, true); ?>
           <div class="message <?= e($msg->getSenderClass()) ?> <?= $isMine ? 'mine' : '' ?>">
             <div class="message-bubble"><?= nl2br(e($msg->getMessage())) ?></div>
             <?php if (!$msg->isSystemMessage()): ?>
-              <div class="message-meta"><?= e($msg->getSenderLabel()) ?> · <?= e($msg->getFormattedTime()) ?></div>
+              <div class="message-meta">
+                <?= e($msg->getSenderLabel()) ?>
+                <?php if ($isPoliceMsg): ?>
+                  <span class="police-badge"><i data-lucide="shield" style="width:12px;height:12px;display:inline;vertical-align:-2px"></i> Policie ČR</span>
+                <?php endif; ?>
+                · <?= e($msg->getFormattedTime()) ?>
+              </div>
             <?php endif; ?>
           </div>
         <?php endforeach; ?>
@@ -150,14 +164,14 @@
   </div>
 </div>
 
-<?php if ($viewerType === 'finder'): ?>
+<?php if ($viewerType === 'finder' && empty($currentUser)): ?>
   <div class="alert alert-warning mt-lg">
     <i data-lucide="bookmark"></i>
     <span>Uložte si odkaz na tuto stránku — je to váš jediný přístup ke konverzaci.</span>
   </div>
 <?php endif; ?>
 
-<?php if ($viewerType === 'finder'): ?></div><!-- .main-public-padded --><?php endif; ?>
+<?php if ($needsPublicPadding): ?></div><!-- .main-public-padded --><?php endif; ?>
 
 <script>
 (function() {

@@ -148,6 +148,10 @@ class KarmaService
             return 'Neregistrovaný uživatel';
         }
 
+        if ($user->isPolice()) {
+            return 'Policie ČR';
+        }
+
         $level = self::getLevel($user->getKarmaScore());
         $resolvedCount = $this->foundReportRepository->countResolvedByReporter($userId);
 

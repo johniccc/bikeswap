@@ -15,11 +15,8 @@ docker volume rm bikeswap_db_data
 docker compose up -d
 
 ### Dodatečné
-Admin (povinně)
-Napadá tě co by ještě projekt mohl potřebovat?
-Role policie (PDF export)
-Statistiky
-Validace HTML (W3C)
+
+- lepší geolokace
 
 ### Až na konec
 

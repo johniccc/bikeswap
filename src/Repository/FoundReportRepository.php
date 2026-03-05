@@ -68,7 +68,7 @@ class FoundReportRepository
     public function findActiveByBikeId(int $bikeId): array
     {
         $rows = $this->db->fetchAll(
-            "SELECT * FROM found_reports WHERE bike_id = ? AND status != 'resolved' ORDER BY created_at DESC",
+            "SELECT * FROM found_reports WHERE bike_id = ? AND status NOT IN ('resolved', 'closed') ORDER BY created_at DESC",
             [$bikeId]
         );
 
@@ -96,7 +96,7 @@ class FoundReportRepository
     public function countActiveByBikeId(int $bikeId): int
     {
         return (int) $this->db->fetchColumn(
-            "SELECT COUNT(*) FROM found_reports WHERE bike_id = ? AND status != 'resolved'",
+            "SELECT COUNT(*) FROM found_reports WHERE bike_id = ? AND status NOT IN ('resolved', 'closed')",
             [$bikeId]
         );
     }
@@ -126,6 +126,22 @@ class FoundReportRepository
     }
 
     /**
+     * Find open (active) found reports submitted by a specific user.
+     * Used to show finder's pending reports on dashboard.
+     *
+     * @return FoundReport[]
+     */
+    public function findOpenByReporter(int $userId): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT * FROM found_reports WHERE reported_by = ? AND status NOT IN ('resolved', 'closed') ORDER BY created_at DESC",
+            [$userId]
+        );
+
+        return array_map(fn(array $row) => FoundReport::fromRow($row), $rows);
+    }
+
+    /**
      * Create a new found report. Returns the report ID.
      */
     public function create(array $data): int
@@ -152,5 +168,17 @@ class FoundReportRepository
     public function updateStatus(int $reportId, string $status): void
     {
         $this->db->update('found_reports', ['status' => $status], 'id = ?', [$reportId]);
+    }
+
+    /**
+     * Close all active (non-resolved, non-closed) found reports for a bike.
+     * Used when the owner marks the bike as found/recovered.
+     */
+    public function closeAllByBikeId(int $bikeId): void
+    {
+        $this->db->query(
+            "UPDATE found_reports SET status = 'resolved' WHERE bike_id = ? AND status NOT IN ('resolved', 'closed')",
+            [$bikeId]
+        );
     }
 }

@@ -10,6 +10,7 @@ use App\Repository\BikeRepository;
 use App\Repository\FoundReportRepository;
 use App\Repository\FoundReportMessageRepository;
 use App\Repository\TheftReportRepository;
+use App\Repository\UserRepository;
 
 /**
  * Found Report service.
@@ -26,6 +27,7 @@ class FoundReportService
     private FoundReportMessageRepository $messageRepository;
     private BikeRepository $bikeRepository;
     private TheftReportRepository $theftReportRepository;
+    private UserRepository $userRepository;
     private NotificationService $notificationService;
     private EmailService $emailService;
     private KarmaService $karmaService;
@@ -36,6 +38,7 @@ class FoundReportService
         FoundReportMessageRepository $messageRepository,
         BikeRepository $bikeRepository,
         TheftReportRepository $theftReportRepository,
+        UserRepository $userRepository,
         NotificationService $notificationService,
         EmailService $emailService,
         KarmaService $karmaService,
@@ -45,6 +48,7 @@ class FoundReportService
         $this->messageRepository = $messageRepository;
         $this->bikeRepository = $bikeRepository;
         $this->theftReportRepository = $theftReportRepository;
+        $this->userRepository = $userRepository;
         $this->notificationService = $notificationService;
         $this->emailService = $emailService;
         $this->karmaService = $karmaService;
@@ -95,23 +99,43 @@ class FoundReportService
                 'description'          => $data['description'] ?? null,
             ]);
 
+            // Check if the finder is a police user
+            $isPolice = false;
+            if (!empty($data['reported_by'])) {
+                $finderUser = $this->userRepository->findById((int) $data['reported_by']);
+                $isPolice = $finderUser !== null && $finderUser->isPolice();
+            }
+
             // Create initial system message in the conversation
+            $systemMsg = $isPolice
+                ? 'Nález byl nahlášen Policií ČR. Majitel kola byl upozorněn a může odpovědět prostřednictvím této konverzace.'
+                : 'Nález byl nahlášen. Majitel kola byl upozorněn a může vám odpovědět prostřednictvím této konverzace.';
             $this->messageRepository->create(
                 $reportId,
                 'system',
                 null,
-                'Nález byl nahlášen. Majitel kola byl upozorněn a může vám odpovědět prostřednictvím této konverzace.'
+                $systemMsg
             );
 
             // Notify the bike owner (in-app)
             $bikeName = $bike->getFullName();
-            $this->notificationService->notify(
-                $bike->getOwnerId(),
-                'found_report',
-                'Někdo našel vaše kolo!',
-                "/found/{$reportId}/conversation",
-                "Bylo nahlášeno nalezení kola {$bikeName}. Zkontrolujte detaily a odpovězte nálezci."
-            );
+            if ($isPolice) {
+                $this->notificationService->notify(
+                    $bike->getOwnerId(),
+                    'found_report',
+                    'Policie ČR našla vaše kolo!',
+                    "/found/{$reportId}/conversation",
+                    "Policie ČR nahlásila nalezení kola {$bikeName}. Zkontrolujte detaily a odpovězte."
+                );
+            } else {
+                $this->notificationService->notify(
+                    $bike->getOwnerId(),
+                    'found_report',
+                    'Někdo našel vaše kolo!',
+                    "/found/{$reportId}/conversation",
+                    "Bylo nahlášeno nalezení kola {$bikeName}. Zkontrolujte detaily a odpovězte nálezci."
+                );
+            }
 
             // Send email to the bike owner (if they have it enabled)
             $this->emailService->sendFoundReportNotification($bike->getOwnerId(), $bike, $reportId);
@@ -178,14 +202,25 @@ class FoundReportService
         $bike = $this->bikeRepository->findById($report->getBikeId());
 
         if ($senderType === 'finder' && $bike !== null) {
+            // Check if the finder is police
+            $isPolice = false;
+            if ($senderUserId !== null) {
+                $senderUser = $this->userRepository->findById($senderUserId);
+                $isPolice = $senderUser !== null && $senderUser->isPolice();
+            }
+
             // Finder sent a message → notify owner
             $bikeName = $bike->getFullName();
+            $notifTitle = $isPolice ? 'Nová zpráva od Policie ČR' : 'Nová zpráva od nálezce';
+            $notifBody = $isPolice
+                ? "Policie ČR vám poslala zprávu v konverzaci o kole {$bikeName}."
+                : "Máte novou zprávu v konverzaci o kole {$bikeName}.";
             $this->notificationService->notify(
                 $bike->getOwnerId(),
                 'message',
-                'Nová zpráva od nálezce',
+                $notifTitle,
                 "/found/{$reportId}/conversation",
-                "Máte novou zprávu v konverzaci o kole {$bikeName}."
+                $notifBody
             );
             $this->emailService->sendMessageNotification($bike->getOwnerId(), $bike, $reportId);
         } elseif ($senderType === 'owner' && !empty($report->getReporterEmail())) {

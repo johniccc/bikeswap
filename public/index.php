@@ -9,15 +9,18 @@ declare(strict_types=1);
  * Apache's .htaccess rewrites all URLs here.
  */
 
+// Base path — supports both local dev (public/../) and server (everything in web/)
+$basePath = is_dir(__DIR__ . '/vendor') ? __DIR__ : __DIR__ . '/..';
+
 // Autoloading (Composer)
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once $basePath . '/vendor/autoload.php';
 
 // Load environment variables
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv = Dotenv\Dotenv::createImmutable($basePath);
 $dotenv->load();
 
 // Load application config
-$config = require __DIR__ . '/../config/app.php';
+$config = require $basePath . '/config/app.php';
 
 // Bootstrap and run
 $app = new App\Core\App($config);

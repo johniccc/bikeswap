@@ -1,3 +1,5 @@
+<div data-auto-refresh="/reservations/poll" data-refresh-interval="8000"></div>
+
 <div class="page-header">
   <h1>Moje rezervace</h1>
   <div class="page-header-actions">

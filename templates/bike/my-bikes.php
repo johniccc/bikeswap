@@ -1,3 +1,5 @@
+<div data-auto-refresh="/dashboard/poll" data-refresh-interval="8000"></div>
+
 <div class="page-header">
   <h1>Moje kola</h1>
   <div class="page-header-actions">
@@ -11,8 +13,9 @@
   // Collect active cases for dashboard highlights
   $stolenBikes = array_filter($bikes, fn($b) => $b->isStolen());
   $bikesWithFinds = array_filter($bikes, fn($b) => ($foundReportCounts[$b->getId()] ?? 0) > 0);
+  $hasAlerts = !empty($stolenBikes) || !empty($bikesWithFinds) || !empty($myOpenFinds) || !empty($actionableReservations);
 ?>
-<?php if (!empty($stolenBikes) || !empty($bikesWithFinds)): ?>
+<?php if ($hasAlerts): ?>
   <div class="dashboard-alerts mb-lg">
     <?php foreach ($stolenBikes as $bike): ?>
       <a href="/bike/<?= e($bike->getQrHash()) ?>" class="dashboard-alert-card dashboard-alert-danger">
@@ -35,6 +38,76 @@
         <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
       </a>
     <?php endforeach; ?>
+    <?php if (!empty($myOpenFinds)): ?>
+      <?php foreach ($myOpenFinds as $find): ?>
+        <?php $findBike = $findBikes[$find->getId()] ?? null; ?>
+        <a href="/found/conversation/<?= e($find->getConversationToken()) ?>" class="dashboard-alert-card dashboard-alert-info">
+          <i data-lucide="search"></i>
+          <div>
+            <strong>Váš nález: <?= $findBike ? e($findBike->getFullName()) : 'Kolo #' . $find->getBikeId() ?></strong>
+            <span class="text-sm">
+              <?= e($find->getStatusLabel()) ?>
+              <?php if ($find->getFoundLocationText()): ?>
+                — <?= e($find->getFoundLocationText()) ?>
+              <?php endif; ?>
+            </span>
+          </div>
+          <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+        </a>
+      <?php endforeach; ?>
+    <?php endif; ?>
+    <?php if (!empty($actionableReservations)): ?>
+      <?php foreach ($actionableReservations as $res): ?>
+        <?php
+          $isOwner = $res->isOwnedBy($currentUser->getId());
+          $resBike = $res->getBike();
+          $otherUser = $isOwner ? $res->getBorrower() : $res->getOwner();
+          $status = $res->getStatus();
+
+          // Determine alert style and message
+          if ($status === 'pending' && $isOwner) {
+              $alertClass = 'dashboard-alert-warning';
+              $icon = 'clock';
+              $label = 'Čeká na vaše schválení';
+          } elseif ($status === 'pending' && !$isOwner) {
+              $alertClass = 'dashboard-alert-info';
+              $icon = 'clock';
+              $label = 'Čeká na schválení majitelem';
+          } elseif ($status === 'approved') {
+              $alertClass = 'dashboard-alert-success';
+              $icon = 'calendar-check';
+              $label = 'Schváleno — výpůjčka začíná ' . $res->getFormattedDateFrom();
+          } elseif ($status === 'active') {
+              $alertClass = 'dashboard-alert-info';
+              $icon = 'bike';
+              $label = 'Probíhající výpůjčka — vrácení do ' . $res->getFormattedDateTo();
+          } elseif ($status === 'not_returned') {
+              $alertClass = 'dashboard-alert-danger';
+              $icon = 'alert-triangle';
+              $label = 'Kolo nahlášeno jako nevrácené';
+          } elseif ($status === 'disputed') {
+              $alertClass = 'dashboard-alert-danger';
+              $icon = 'flag';
+              $label = 'Spor — čeká na rozhodnutí správce';
+          } else {
+              continue;
+          }
+        ?>
+        <a href="/reservation/<?= $res->getId() ?>" class="dashboard-alert-card <?= $alertClass ?>">
+          <i data-lucide="<?= $icon ?>"></i>
+          <div>
+            <strong><?= $resBike ? e($resBike->getFullName()) : 'Rezervace #' . $res->getId() ?></strong>
+            <span class="text-sm">
+              <?= $label ?>
+              <?php if ($otherUser): ?>
+                — <?= $isOwner ? 'vypůjčitel' : 'majitel' ?>: <?= e($otherUser->getName()) ?>
+              <?php endif; ?>
+            </span>
+          </div>
+          <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+        </a>
+      <?php endforeach; ?>
+    <?php endif; ?>
   </div>
 <?php endif; ?>
 

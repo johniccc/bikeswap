@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `is_verified`        TINYINT(1)      NOT NULL DEFAULT 0,
     `verification_token` VARCHAR(64)     NULL DEFAULT NULL,
     `karma_score`        INT             NOT NULL DEFAULT 0,
+    `is_banned`          TINYINT(1)      NOT NULL DEFAULT 0,
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `last_login_at`      DATETIME        NULL DEFAULT NULL,
@@ -208,6 +209,11 @@ CREATE TABLE IF NOT EXISTS `reservations` (
     `date_to`            DATE            NOT NULL,
     `message`            TEXT            NULL DEFAULT NULL,
     `status`             ENUM('pending','approved','rejected','active','completed','cancelled','not_returned','disputed') NOT NULL DEFAULT 'pending',
+    `not_returned_reason`  TEXT          NULL DEFAULT NULL,
+    `dispute_reason`       TEXT          NULL DEFAULT NULL,
+    `admin_resolution`     ENUM('borrower_guilty','owner_guilty') NULL DEFAULT NULL,
+    `admin_resolved_by`    INT UNSIGNED  NULL DEFAULT NULL,
+    `admin_resolved_at`    DATETIME      NULL DEFAULT NULL,
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -218,7 +224,22 @@ CREATE TABLE IF NOT EXISTS `reservations` (
     KEY `idx_reservations_owner` (`owner_id`, `status`),
     CONSTRAINT `fk_reservations_bike` FOREIGN KEY (`bike_id`) REFERENCES `bikes` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_reservations_borrower` FOREIGN KEY (`borrower_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_reservations_owner` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    CONSTRAINT `fk_reservations_owner` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_reservations_admin` FOREIGN KEY (`admin_resolved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
+-- ── DISPUTE PHOTOS ───────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `dispute_photos` (
+    `id`              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `reservation_id`  INT UNSIGNED    NOT NULL,
+    `file_path`       VARCHAR(255)    NOT NULL,
+    `uploaded_at`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    KEY `idx_dispute_photos_reservation` (`reservation_id`),
+    CONSTRAINT `fk_dispute_photos_reservation` FOREIGN KEY (`reservation_id`) REFERENCES `reservations` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
 

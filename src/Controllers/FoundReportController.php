@@ -10,6 +10,7 @@ use App\Core\Validator;
 use App\Repository\BikeRepository;
 use App\Repository\FoundReportRepository;
 use App\Repository\FoundReportMessageRepository;
+use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\FoundReportService;
@@ -20,6 +21,7 @@ class FoundReportController
     private BikeRepository $bikeRepository;
     private FoundReportRepository $foundReportRepository;
     private FoundReportMessageRepository $messageRepository;
+    private UserRepository $userRepository;
     private FoundReportService $foundReportService;
     private AuthService $authService;
     private KarmaService $karmaService;
@@ -30,6 +32,7 @@ class FoundReportController
         BikeRepository $bikeRepository,
         FoundReportRepository $foundReportRepository,
         FoundReportMessageRepository $messageRepository,
+        UserRepository $userRepository,
         FoundReportService $foundReportService,
         AuthService $authService,
         KarmaService $karmaService,
@@ -39,6 +42,7 @@ class FoundReportController
         $this->bikeRepository = $bikeRepository;
         $this->foundReportRepository = $foundReportRepository;
         $this->messageRepository = $messageRepository;
+        $this->userRepository = $userRepository;
         $this->foundReportService = $foundReportService;
         $this->authService = $authService;
         $this->karmaService = $karmaService;
@@ -202,15 +206,22 @@ class FoundReportController
         // Load bike info
         $bike = $report->getBikeId() ? $this->bikeRepository->findById($report->getBikeId(), withPhotos: true) : null;
 
+        $currentUser = $this->authService->currentUser();
+        $layout = $currentUser ? 'layouts/app' : 'layouts/public';
+
+        $policeUserIds = $this->getPoliceUserIds($messages);
+
         return view('found/conversation', [
             'title' => 'Konverzace o nálezu – BikeSwap',
             'report' => $report,
             'messages' => $messages,
             'bike' => $bike,
             'viewerType' => 'finder',
+            'policeUserIds' => $policeUserIds,
+            'currentUser' => $currentUser,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
-        ])->withLayout('layouts/public');
+        ])->withLayout($layout);
     }
 
     /**
@@ -280,6 +291,8 @@ class FoundReportController
             $finderLabel = $this->karmaService->getDisplayLabel($report->getReportedBy());
         }
 
+        $policeUserIds = $this->getPoliceUserIds($messages);
+
         return view('found/conversation', [
             'title' => 'Konverzace s nálezcem – BikeSwap',
             'report' => $report,
@@ -287,6 +300,7 @@ class FoundReportController
             'bike' => $bike,
             'viewerType' => 'owner',
             'finderLabel' => $finderLabel,
+            'policeUserIds' => $policeUserIds,
             'currentUser' => $currentUser,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
@@ -401,5 +415,95 @@ class FoundReportController
         $this->session->flash('success', 'Konverzace byla uzavřena.');
 
         return redirect("/found/{$reportId}/conversation");
+    }
+
+    /**
+     * Get IDs of police users who sent messages in this conversation.
+     */
+    private function getPoliceUserIds(array $messages): array
+    {
+        $userIds = [];
+        foreach ($messages as $msg) {
+            $uid = $msg->getSenderUserId();
+            if ($uid !== null) {
+                $userIds[$uid] = true;
+            }
+        }
+
+        $policeIds = [];
+        foreach (array_keys($userIds) as $uid) {
+            $user = $this->userRepository->findById($uid);
+            if ($user !== null && $user->isPolice()) {
+                $policeIds[] = $uid;
+            }
+        }
+
+        return $policeIds;
+    }
+
+    /**
+     * Export conversation as PDF (police/admin only).
+     * GET /found/{reportId}/export-pdf
+     */
+    public function exportPdf(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        if (!$currentUser || !$currentUser->hasRole('police')) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        $reportId = (int) $request->param('reportId');
+        $report = $this->foundReportRepository->findById($reportId);
+
+        if ($report === null) {
+            throw new \RuntimeException('Hlášení nenalezeno.', 404);
+        }
+
+        $messages = $this->messageRepository->findByReportId($reportId);
+        $bike = $report->getBikeId() ? $this->bikeRepository->findById($report->getBikeId()) : null;
+
+        // Build HTML for PDF
+        $html = '<html><head><meta charset="UTF-8"><style>';
+        $html .= 'body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }';
+        $html .= 'h1 { font-size: 18px; } h2 { font-size: 14px; }';
+        $html .= '.msg { margin-bottom: 8px; padding: 6px; border-bottom: 1px solid #eee; }';
+        $html .= '.meta { color: #666; font-size: 10px; }';
+        $html .= '</style></head><body>';
+        $html .= '<h1>BikeSwap — Export konverzace</h1>';
+        $html .= '<p><strong>Nález #' . $reportId . '</strong></p>';
+
+        if ($bike) {
+            $html .= '<p>Kolo: ' . htmlspecialchars($bike->getFullName()) . '</p>';
+        }
+        if ($report->getFoundLocationText()) {
+            $html .= '<p>Místo nálezu: ' . htmlspecialchars($report->getFoundLocationText()) . '</p>';
+        }
+        if ($report->getFoundDate()) {
+            $html .= '<p>Datum nálezu: ' . htmlspecialchars($report->getFormattedFoundDate()) . '</p>';
+        }
+
+        $html .= '<h2>Zprávy</h2>';
+        foreach ($messages as $msg) {
+            $html .= '<div class="msg">';
+            $html .= '<strong>' . htmlspecialchars($msg->getSenderLabel()) . '</strong>';
+            $html .= ' <span class="meta">' . htmlspecialchars($msg->getFormattedTime()) . '</span><br>';
+            $html .= nl2br(htmlspecialchars($msg->getMessage()));
+            $html .= '</div>';
+        }
+
+        $html .= '<p class="meta">Exportováno: ' . date('d.m.Y H:i') . ' uživatelem ' . htmlspecialchars($currentUser->getName()) . '</p>';
+        $html .= '</body></html>';
+
+        $dompdf = new \Dompdf\Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'bikeswap-nalez-' . $reportId . '.pdf';
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        echo $dompdf->output();
+        exit;
     }
 }

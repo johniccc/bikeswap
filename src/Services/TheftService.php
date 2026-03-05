@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Entity\Bike;
 use App\Entity\TheftReport;
 use App\Repository\BikeRepository;
+use App\Repository\FoundReportRepository;
 use App\Repository\TheftReportRepository;
 
 /**
@@ -20,15 +21,18 @@ class TheftService
 {
     private TheftReportRepository $theftReportRepository;
     private BikeRepository $bikeRepository;
+    private FoundReportRepository $foundReportRepository;
     private Database $db;
 
     public function __construct(
         TheftReportRepository $theftReportRepository,
         BikeRepository $bikeRepository,
+        FoundReportRepository $foundReportRepository,
         Database $db
     ) {
         $this->theftReportRepository = $theftReportRepository;
         $this->bikeRepository = $bikeRepository;
+        $this->foundReportRepository = $foundReportRepository;
         $this->db = $db;
     }
 
@@ -109,6 +113,9 @@ class TheftService
 
             $this->theftReportRepository->updateStatus($reportId, 'resolved');
             $this->bikeRepository->updateStatus($bikeId, 'active');
+
+            // Close all open found report conversations for this bike
+            $this->foundReportRepository->closeAllByBikeId($bikeId);
 
             $this->db->commit();
         } catch (\Throwable $e) {

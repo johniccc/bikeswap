@@ -164,12 +164,16 @@ class TheftController
             ], $stolenBikes)]);
         }
 
+        $currentUser = $this->authService->currentUser();
+        $layout = $currentUser ? 'layouts/app' : 'layouts/public';
+
         return view('theft/stolen-list', [
             'title' => 'Odcizená kola – BikeSwap',
             'bikes' => $stolenBikes,
             'filters' => $filters,
+            'currentUser' => $currentUser,
             'session' => $this->session,
-        ])->withLayout('layouts/public');
+        ])->withLayout($layout);
     }
 
     /**

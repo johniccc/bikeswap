@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Request;
 use App\Repository\BikeRepository;
+use App\Repository\DisputePhotoRepository;
 use App\Response\FileResponse;
 use App\Response\Response;
 use App\Services\FileUploadService;
@@ -20,15 +21,18 @@ use App\Services\QRService;
 class FileController
 {
     private BikeRepository $bikeRepository;
+    private DisputePhotoRepository $disputePhotoRepo;
     private FileUploadService $fileUploadService;
     private QRService $qrService;
 
     public function __construct(
         BikeRepository $bikeRepository,
+        DisputePhotoRepository $disputePhotoRepo,
         FileUploadService $fileUploadService,
         QRService $qrService
     ) {
         $this->bikeRepository = $bikeRepository;
+        $this->disputePhotoRepo = $disputePhotoRepo;
         $this->fileUploadService = $fileUploadService;
         $this->qrService = $qrService;
     }
@@ -65,6 +69,22 @@ class FileController
         $imageData = $this->qrService->generateQrImage($hash);
 
         return new FileResponse($imageData, 'image/png', "qr-{$hash}.png");
+    }
+
+    /**
+     * Serve a dispute evidence photo by ID.
+     * GET /file/dispute-photo/{id}
+     */
+    public function disputePhoto(Request $request): Response
+    {
+        $photoId = (int) $request->param('id');
+        $photo = $this->disputePhotoRepo->findById($photoId);
+
+        if ($photo === null) {
+            throw new \RuntimeException('Photo not found', 404);
+        }
+
+        return $this->serveFile($photo['file_path']);
     }
 
     /**

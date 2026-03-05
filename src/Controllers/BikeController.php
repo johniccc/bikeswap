@@ -9,6 +9,7 @@ use App\Core\Session;
 use App\Core\Validator;
 use App\Repository\BikeRepository;
 use App\Repository\FoundReportRepository;
+use App\Repository\ReservationRepository;
 use App\Repository\TheftReportRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
@@ -20,6 +21,7 @@ class BikeController
 {
     private BikeRepository $bikeRepository;
     private FoundReportRepository $foundReportRepository;
+    private ReservationRepository $reservationRepository;
     private TheftReportRepository $theftReportRepository;
     private UserRepository $userRepository;
     private AuthService $authService;
@@ -30,6 +32,7 @@ class BikeController
     public function __construct(
         BikeRepository $bikeRepository,
         FoundReportRepository $foundReportRepository,
+        ReservationRepository $reservationRepository,
         TheftReportRepository $theftReportRepository,
         UserRepository $userRepository,
         AuthService $authService,
@@ -38,6 +41,7 @@ class BikeController
         Session $session
     ) {
         $this->bikeRepository = $bikeRepository;
+        $this->reservationRepository = $reservationRepository;
         $this->foundReportRepository = $foundReportRepository;
         $this->theftReportRepository = $theftReportRepository;
         $this->userRepository = $userRepository;
@@ -45,6 +49,29 @@ class BikeController
         $this->fileUploadService = $fileUploadService;
         $this->qrService = $qrService;
         $this->session = $session;
+    }
+
+    /**
+     * Search for a bike by frame/serial number.
+     * GET /bike/search?frame_number=...
+     */
+    public function searchByFrameNumber(Request $request): Response
+    {
+        $frameNumber = trim($request->query('frame_number', ''));
+
+        if ($frameNumber === '') {
+            $this->session->flash('error', 'Zadejte sériové číslo.');
+            return redirect('/');
+        }
+
+        $bike = $this->bikeRepository->findByFrameNumber($frameNumber);
+
+        if ($bike === null) {
+            $this->session->flash('error', 'Kolo se sériovým číslem „' . $frameNumber . '" nebylo nalezeno.');
+            return redirect('/');
+        }
+
+        return redirect('/bike/' . $bike->getQrHash());
     }
 
     /**
@@ -82,6 +109,8 @@ class BikeController
             $foundReports = $this->foundReportRepository->findActiveByBikeId($bike->getId());
         }
 
+        $layout = $currentUser ? 'layouts/app' : 'layouts/public';
+
         return view('bike/public-detail', [
             'title' => $bike->getFullName() . ' – BikeSwap',
             'bike' => $bike,
@@ -92,7 +121,7 @@ class BikeController
             'qrDataUri' => $this->qrService->generateQrDataUri($hash),
             'session' => $this->session,
             'csrf' => $this->session->csrfToken(),
-        ])->withLayout('layouts/public');
+        ])->withLayout($layout);
     }
 
     /**
@@ -101,6 +130,12 @@ class BikeController
      */
     public function createForm(Request $request): Response
     {
+        $currentUser = $this->authService->currentUser();
+        if ($currentUser && $currentUser->isPolice()) {
+            $this->session->flash('error', 'Policejní účet nemůže registrovat kola.');
+            return redirect('/dashboard');
+        }
+
         return view('bike/create', [
             'title' => 'Registrovat kolo – BikeSwap',
             'currentUser' => $this->authService->currentUser(),
@@ -115,6 +150,12 @@ class BikeController
      */
     public function store(Request $request): Response
     {
+        $currentUser = $this->authService->currentUser();
+        if ($currentUser && $currentUser->isPolice()) {
+            $this->session->flash('error', 'Policejní účet nemůže registrovat kola.');
+            return redirect('/dashboard');
+        }
+
         // CSRF
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
             $this->session->flash('error', 'Neplatný bezpečnostní token.');
@@ -321,13 +362,67 @@ class BikeController
             ], $bikes)]);
         }
 
+        // Load finder's open found reports (reports submitted by this user)
+        $myOpenFinds = $this->foundReportRepository->findOpenByReporter($currentUser->getId());
+
+        // Load bike info for each find report
+        $findBikes = [];
+        foreach ($myOpenFinds as $find) {
+            $findBike = $this->bikeRepository->findById($find->getBikeId());
+            if ($findBike) {
+                $findBikes[$find->getId()] = $findBike;
+            }
+        }
+
+        // Load actionable reservations (pending, approved, active, not_returned, disputed)
+        $actionableReservations = $this->reservationRepository->findActionableByUser(
+            $currentUser->getId(), withRelations: true
+        );
+
         return view('bike/my-bikes', [
             'title' => 'Moje kola – BikeSwap',
             'bikes' => $bikes,
             'foundReportCounts' => $foundReportCounts,
+            'myOpenFinds' => $myOpenFinds,
+            'findBikes' => $findBikes,
+            'actionableReservations' => $actionableReservations,
             'currentUser' => $currentUser,
             'session' => $this->session,
         ])->withLayout('layouts/app');
+    }
+
+    /**
+     * Lightweight poll for dashboard changes.
+     * GET /dashboard/poll
+     * Returns a hash that changes when dashboard-relevant data changes.
+     */
+    public function dashboardPoll(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        $userId = $currentUser->getId();
+
+        $bikes = $this->bikeRepository->findByOwner($userId);
+
+        $stolenCount = 0;
+        $foundCounts = 0;
+        foreach ($bikes as $bike) {
+            if ($bike->isStolen()) $stolenCount++;
+            $foundCounts += $this->foundReportRepository->countActiveByBikeId($bike->getId());
+        }
+
+        $myFinds = $this->foundReportRepository->findOpenByReporter($userId);
+        $findStatuses = array_map(fn($f) => $f->getStatus(), $myFinds);
+
+        $actionable = $this->reservationRepository->findActionableByUser($userId);
+        $resStatuses = array_map(fn($r) => $r->getId() . ':' . $r->getStatus(), $actionable);
+
+        return json([
+            'bike_count'   => count($bikes),
+            'stolen_count' => $stolenCount,
+            'found_counts' => $foundCounts,
+            'find_statuses' => implode(',', $findStatuses),
+            'res_statuses'  => implode(',', $resStatuses),
+        ]);
     }
 
     /**

@@ -6,7 +6,7 @@
     <?php if (!empty($photos)): ?>
       <div class="bike-gallery-grid">
         <?php foreach ($photos as $photo): ?>
-          <div class="bike-gallery-item">
+          <div class="bike-gallery-item" data-lightbox="<?= e($photo->getUrl()) ?>">
             <img src="<?= e($photo->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>">
           </div>
         <?php endforeach; ?>
@@ -100,6 +100,39 @@
         <?php endif; ?>
       </div>
     </div>
+
+    <!-- Reservation CTA for non-owner logged-in users -->
+    <?php if ($currentUser && !$isOwner && !$currentUser->isPolice() && $bike->isShared() && !$bike->isStolen()): ?>
+      <div class="card mt-lg">
+        <div class="card-body flex items-center gap-lg flex-wrap">
+          <div style="flex:1">
+            <h3 style="margin:0 0 0.25rem">
+              <i data-lucide="repeat" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i>
+              Toto kolo je k dispozici k zapůjčení
+            </h3>
+            <p class="text-muted text-sm">Vyberte termín a pošlete žádost o výpůjčku majiteli.</p>
+          </div>
+          <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-primary">
+            <i data-lucide="calendar-plus"></i> Zarezervovat
+          </a>
+        </div>
+      </div>
+    <?php elseif (!$currentUser && $bike->isShared() && !$bike->isStolen()): ?>
+      <div class="card mt-lg">
+        <div class="card-body flex items-center gap-lg flex-wrap">
+          <div style="flex:1">
+            <h3 style="margin:0 0 0.25rem">
+              <i data-lucide="repeat" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i>
+              Toto kolo je k dispozici k zapůjčení
+            </h3>
+            <p class="text-muted text-sm">Pro rezervaci se přihlaste nebo zaregistrujte.</p>
+          </div>
+          <a href="/login" class="btn btn-primary">
+            <i data-lucide="log-in"></i> Přihlásit se
+          </a>
+        </div>
+      </div>
+    <?php endif; ?>
 
     <!-- Owner actions -->
     <?php if ($isOwner): ?>

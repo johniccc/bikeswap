@@ -66,8 +66,21 @@ class BikeRepository
     }
 
     /**
+     * Find a bike by its frame/serial number (exact match).
+     */
+    public function findByFrameNumber(string $frameNumber): ?Bike
+    {
+        $row = $this->db->fetchOne(
+            "SELECT * FROM bikes WHERE frame_number = ?",
+            [$frameNumber]
+        );
+
+        return $row ? Bike::fromRow($row) : null;
+    }
+
+    /**
      * Get all bikes owned by a user.
-     * 
+     *
      * @return Bike[]
      */
     public function findByOwner(int $ownerId, bool $withPhotos = false): array
@@ -214,6 +227,45 @@ class BikeRepository
             "SELECT COUNT(*) FROM bikes WHERE owner_id = ?",
             [$ownerId]
         );
+    }
+
+    /**
+     * Count all bikes, optionally by status.
+     */
+    public function countAll(?string $status = null): int
+    {
+        if ($status !== null) {
+            return (int) $this->db->fetchColumn(
+                "SELECT COUNT(*) FROM bikes WHERE status = ?",
+                [$status]
+            );
+        }
+
+        return (int) $this->db->fetchColumn("SELECT COUNT(*) FROM bikes");
+    }
+
+    /**
+     * Find all bikes, optionally filtered by status, with photos.
+     * @return Bike[]
+     */
+    public function findAll(?string $status = null, bool $withPhotos = false): array
+    {
+        if ($status !== null) {
+            $rows = $this->db->fetchAll(
+                "SELECT * FROM bikes WHERE status = ? ORDER BY created_at DESC",
+                [$status]
+            );
+        } else {
+            $rows = $this->db->fetchAll("SELECT * FROM bikes ORDER BY created_at DESC");
+        }
+
+        $bikes = array_map(fn(array $row) => Bike::fromRow($row), $rows);
+
+        if ($withPhotos) {
+            $this->loadPhotosForBikes($bikes);
+        }
+
+        return $bikes;
     }
 
     // ── Photos ─────────────────────────────────────────────────

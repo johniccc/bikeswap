@@ -20,7 +20,7 @@ $bike = $reservation->getBike();
     <i data-lucide="alert-triangle"></i>
     <div>
       <strong>Kolo mělo být vráceno <?= $reservation->getFormattedDateTo() ?>.</strong>
-      <p class="mt-xs">Potvrďte vrácení, nebo nahlásíte nevrácení?</p>
+      <p class="mt-xs">Potvrďte vrácení, nebo nahlaste nevrácení.</p>
       <div class="flex gap-sm mt-sm">
         <form method="POST" action="/reservation/<?= $reservation->getId() ?>/complete">
           <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
@@ -28,13 +28,9 @@ $bike = $reservation->getBike();
             <i data-lucide="check-circle"></i> Kolo vráceno
           </button>
         </form>
-        <form method="POST" action="/reservation/<?= $reservation->getId() ?>/not-returned"
-              onsubmit="return confirm('Opravdu chcete nahlásit nevrácení kola? Vypůjčitel ztratí 10 karma bodů.')">
-          <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-          <button type="submit" class="btn btn-danger btn-sm">
-            <i data-lucide="x-circle"></i> Kolo nevráceno
-          </button>
-        </form>
+        <a href="/reservation/<?= $reservation->getId() ?>/not-returned" class="btn btn-danger btn-sm">
+          <i data-lucide="x-circle"></i> Nahlásit nevrácení
+        </a>
       </div>
     </div>
   </div>
@@ -141,13 +137,9 @@ $bike = $reservation->getBike();
                 <i data-lucide="check-circle"></i> Kolo vráceno — dokončit
               </button>
             </form>
-            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/not-returned"
-                  onsubmit="return confirm('Opravdu nahlásit nevrácení?')">
-              <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-              <button type="submit" class="btn btn-danger">
-                <i data-lucide="alert-circle"></i> Nahlásit nevrácení
-              </button>
-            </form>
+            <a href="/reservation/<?= $reservation->getId() ?>/not-returned" class="btn btn-danger">
+              <i data-lucide="alert-circle"></i> Nahlásit nevrácení
+            </a>
           <?php endif; ?>
 
           <?php if ($reservation->isApproved()): ?>
@@ -181,50 +173,147 @@ $bike = $reservation->getBike();
   </div>
 <?php endif; ?>
 
-<!-- Borrower dispute (not_returned) -->
-<?php if ($isBorrower && $reservation->getStatus() === 'not_returned'): ?>
+<!-- Not returned banner (for borrower — can dispute) -->
+<?php if ($reservation->isNotReturned() && !$reservation->isAdminResolved()): ?>
   <div class="card mb-lg">
     <div class="card-body">
-      <div class="alert alert-warning">
+      <div class="alert alert-danger">
         <i data-lucide="alert-triangle"></i>
         <div>
-          <strong>Vlastník nahlásil, že kolo nebylo vráceno.</strong>
-          <p class="mt-xs">Pokud kolo skutečně vrátíte, kontaktujte vlastníka. Pokud je situace jinak, můžete podat námitku.</p>
+          <strong>Kolo bylo nahlášeno jako nevrácené.</strong>
+          <p class="mt-xs">Případ čeká na vyřešení správcem.</p>
         </div>
       </div>
-      <form method="POST" action="/reservation/<?= $reservation->getId() ?>/dispute"
-            onsubmit="return confirm('Opravdu chcete podat námitku? Vlastník bude upozorněn.')" class="mt-md">
-        <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-        <button type="submit" class="btn btn-warning">
-          <i data-lucide="flag"></i> Podat námitku
-        </button>
-      </form>
+
+      <?php if ($reservation->getNotReturnedReason()): ?>
+        <div class="mt-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+          <h4 class="mb-xs text-sm text-muted">Popis vlastníka:</h4>
+          <p><?= nl2br(e($reservation->getNotReturnedReason())) ?></p>
+        </div>
+      <?php endif; ?>
+
+      <?php if ($isBorrower && $reservation->canBeDisputed()): ?>
+        <div class="mt-md">
+          <a href="/reservation/<?= $reservation->getId() ?>/dispute" class="btn btn-warning">
+            <i data-lucide="flag"></i> Podat námitku
+          </a>
+        </div>
+      <?php endif; ?>
     </div>
   </div>
 <?php endif; ?>
 
 <!-- Disputed status banner -->
-<?php if ($reservation->getStatus() === 'disputed'): ?>
+<?php if ($reservation->isDisputed() && !$reservation->isAdminResolved()): ?>
   <div class="card mb-lg">
     <div class="card-body">
       <div class="alert alert-warning">
         <i data-lucide="flag"></i>
         <div>
           <strong>Tato rezervace je ve sporu.</strong>
-          <p class="mt-xs">Vypůjčitel podal námitku proti nahlášení nevrácení. Prosím, komunikujte v konverzaci níže a pokuste se situaci vyřešit. V případě potřeby kontaktujte správce.</p>
+          <p class="mt-xs">Vypůjčitel podal námitku. Případ čeká na rozhodnutí správce.</p>
         </div>
       </div>
-      <?php if ($isOwner): ?>
-        <div class="flex gap-sm mt-md">
-          <form method="POST" action="/reservation/<?= $reservation->getId() ?>/complete">
-            <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-            <button type="submit" class="btn btn-primary btn-sm"
-                    onclick="return confirm('Potvrzujete, že kolo bylo vráceno a spor je vyřešen?')">
-              <i data-lucide="check-circle"></i> Kolo bylo vráceno — uzavřít spor
-            </button>
-          </form>
+
+      <?php if ($reservation->getNotReturnedReason()): ?>
+        <div class="mt-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+          <h4 class="mb-xs text-sm text-muted">Tvrzení vlastníka:</h4>
+          <p><?= nl2br(e($reservation->getNotReturnedReason())) ?></p>
         </div>
       <?php endif; ?>
+
+      <?php if ($reservation->getDisputeReason()): ?>
+        <div class="mt-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+          <h4 class="mb-xs text-sm text-muted">Námitka vypůjčitele:</h4>
+          <p><?= nl2br(e($reservation->getDisputeReason())) ?></p>
+        </div>
+      <?php endif; ?>
+
+      <?php if (!empty($disputePhotos)): ?>
+        <div class="mt-md">
+          <h4 class="mb-xs text-sm text-muted">Důkazní fotografie:</h4>
+          <div class="photo-preview-grid">
+            <?php foreach ($disputePhotos as $photo): ?>
+              <img src="/file/dispute-photo/<?= (int) $photo['id'] ?>"
+                   alt="Důkaz" style="width:120px;height:90px;object-fit:cover;border-radius:var(--radius-md);cursor:pointer"
+                   data-lightbox>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+<?php endif; ?>
+
+<!-- Admin resolution panel -->
+<?php if ($currentUser->isAdmin() && $reservation->canBeAdminResolved()): ?>
+  <div class="card mb-lg" style="border:2px solid var(--accent)">
+    <div class="card-header">
+      <h3><i data-lucide="shield" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Rozhodnutí správce</h3>
+    </div>
+    <div class="card-body">
+      <p class="mb-md">Rozhodněte, která strana má pravdu. Toto rozhodnutí je nevratné.</p>
+
+      <?php if ($reservation->getNotReturnedReason()): ?>
+        <div class="mb-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+          <h4 class="mb-xs text-sm text-muted">Tvrzení vlastníka:</h4>
+          <p><?= nl2br(e($reservation->getNotReturnedReason())) ?></p>
+        </div>
+      <?php endif; ?>
+
+      <?php if ($reservation->getDisputeReason()): ?>
+        <div class="mb-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+          <h4 class="mb-xs text-sm text-muted">Námitka vypůjčitele:</h4>
+          <p><?= nl2br(e($reservation->getDisputeReason())) ?></p>
+        </div>
+      <?php endif; ?>
+
+      <?php if (!empty($disputePhotos)): ?>
+        <div class="mb-md">
+          <h4 class="mb-xs text-sm text-muted">Důkazní fotografie:</h4>
+          <div class="photo-preview-grid">
+            <?php foreach ($disputePhotos as $photo): ?>
+              <img src="/file/dispute-photo/<?= (int) $photo['id'] ?>"
+                   alt="Důkaz" style="width:120px;height:90px;object-fit:cover;border-radius:var(--radius-md);cursor:pointer"
+                   data-lightbox>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <div class="flex gap-sm flex-wrap">
+        <form method="POST" action="/reservation/<?= $reservation->getId() ?>/admin-resolve">
+          <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+          <input type="hidden" name="resolution" value="borrower_guilty">
+          <button type="submit" class="btn btn-danger"
+                  onclick="return confirm('Rozhodnout: vypůjčitel nevrátil kolo. Vypůjčitel bude zablokován a ztratí karmu. Pokračovat?')">
+            <i data-lucide="user-x"></i> Vypůjčitel nevrátil kolo
+          </button>
+        </form>
+        <form method="POST" action="/reservation/<?= $reservation->getId() ?>/admin-resolve">
+          <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+          <input type="hidden" name="resolution" value="owner_guilty">
+          <button type="submit" class="btn btn-warning"
+                  onclick="return confirm('Rozhodnout: vlastník podal nepravdivé hlášení. Vlastník ztratí karmu. Pokračovat?')">
+            <i data-lucide="shield-off"></i> Vlastník podal nepravdivé hlášení
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
+
+<!-- Admin resolution result -->
+<?php if ($reservation->isAdminResolved()): ?>
+  <div class="card mb-lg">
+    <div class="card-body">
+      <div class="alert <?= $reservation->getAdminResolution() === 'borrower_guilty' ? 'alert-danger' : 'alert-warning' ?>">
+        <i data-lucide="gavel"></i>
+        <div>
+          <strong>Spor vyřešen správcem</strong>
+          <p class="mt-xs"><?= e($reservation->getAdminResolutionLabel()) ?></p>
+        </div>
+      </div>
     </div>
   </div>
 <?php endif; ?>
@@ -312,7 +401,8 @@ $bike = $reservation->getBike();
   <div class="card-body" style="padding-bottom:0">
     <div class="conversation-messages" id="messages"
          data-poll-url="/reservation/<?= $reservation->getId() ?>/poll"
-         data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>">
+         data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>"
+         data-status="<?= e($reservation->getStatusLabel()) ?>">
       <?php if (empty($messages)): ?>
         <p class="text-muted" style="text-align:center;padding:2rem 0">Zatím žádné zprávy.</p>
       <?php else: ?>

@@ -119,15 +119,7 @@
     window.BikeSwap = window.BikeSwap || {};
     window.BikeSwap.openAuthModal = openAuthModal;
 
-    // ── 4. Auto-dismiss flash messages ──────────────
-    document.querySelectorAll('.alert-success').forEach(function(alert) {
-        setTimeout(function() {
-            alert.style.transition = 'opacity 0.3s, transform 0.3s';
-            alert.style.opacity = '0';
-            alert.style.transform = 'translateY(-8px)';
-            setTimeout(function() { alert.remove(); }, 300);
-        }, 5000);
-    });
+    // ── 4. (Flash messages converted to toasts in section 15) ──
 
     // ── 5. QR Scanner ───────────────────────────────
     (function() {
@@ -273,7 +265,7 @@
         }
     })();
 
-    // ── 6. Chat message polling (3s) ────────────────
+    // ── 6. Chat message polling (3s) + status changes ─
     (function() {
         var container = document.getElementById('messages');
         if (!container) return;
@@ -281,6 +273,10 @@
         var pollUrl = container.getAttribute('data-poll-url');
         var lastId = parseInt(container.getAttribute('data-last-id') || '0', 10);
         if (!pollUrl) return;
+
+        // Track current status and review count to detect changes
+        var currentStatus = container.getAttribute('data-status') || null;
+        var currentReviewCount = -1;
 
         function appendMessage(msg) {
             // Remove "no messages" placeholder
@@ -314,11 +310,38 @@
             fetch(pollUrl + '?after=' + lastId, { credentials: 'same-origin' })
                 .then(function(r) { return r.ok ? r.json() : null; })
                 .then(function(data) {
-                    if (data && data.messages && data.messages.length > 0) {
+                    if (!data) return;
+
+                    if (data.messages && data.messages.length > 0) {
                         data.messages.forEach(function(msg) {
                             appendMessage(msg);
                             if (msg.id > lastId) lastId = msg.id;
                         });
+                    }
+
+                    // Detect status change and reload page for fresh actions
+                    var needsReload = false;
+                    if (data.status_label && currentStatus && data.status_label !== currentStatus) {
+                        if (window.BikeSwap && window.BikeSwap.toast) {
+                            window.BikeSwap.toast('Stav rezervace se změnil: ' + data.status_label, 'info');
+                        }
+                        needsReload = true;
+                    }
+
+                    // Detect new reviews
+                    if (typeof data.review_count === 'number') {
+                        if (currentReviewCount >= 0 && data.review_count !== currentReviewCount) {
+                            if (window.BikeSwap && window.BikeSwap.toast) {
+                                window.BikeSwap.toast('Hodnocení bylo aktualizováno', 'info');
+                            }
+                            needsReload = true;
+                        }
+                        currentReviewCount = data.review_count;
+                    }
+
+                    if (needsReload) {
+                        setTimeout(function() { window.location.reload(); }, 1500);
+                        return;
                     }
                 })
                 .catch(function() {})
@@ -393,8 +416,9 @@
                 if (i !== primaryIdx) {
                     var setPrimary = document.createElement('button');
                     setPrimary.type = 'button';
-                    setPrimary.className = 'btn btn-sm btn-ghost';
-                    setPrimary.textContent = 'Primární';
+                    setPrimary.className = 'photo-action-btn';
+                    setPrimary.title = 'Nastavit jako hlavní';
+                    setPrimary.innerHTML = '<i data-lucide="star"></i>';
                     (function(idx) {
                         setPrimary.addEventListener('click', function() {
                             primaryIdx = idx;
@@ -406,14 +430,15 @@
                 } else {
                     var badge = document.createElement('span');
                     badge.className = 'photo-preview-badge';
-                    badge.textContent = '\u2713 Primární';
+                    badge.innerHTML = '<i data-lucide="star"></i>';
                     actions.appendChild(badge);
                 }
 
                 var remove = document.createElement('button');
                 remove.type = 'button';
-                remove.className = 'btn btn-sm btn-outline-danger';
-                remove.textContent = '\u2715';
+                remove.className = 'photo-action-btn photo-action-danger';
+                remove.title = 'Odebrat';
+                remove.innerHTML = '<i data-lucide="x"></i>';
                 (function(idx) {
                     remove.addEventListener('click', function() {
                         URL.revokeObjectURL(img.src);
@@ -429,6 +454,7 @@
                 card.appendChild(actions);
                 preview.appendChild(card);
             });
+            initIcons();
         }
 
         function syncFileInput() {
@@ -444,7 +470,7 @@
         });
     })();
 
-    // ── 9. Notification polling (30s) ───────────────
+    // ── 9. Notification polling (5s, real-time) ─────
     (function() {
         var desktopBadge = document.getElementById('notif-count-desktop');
         var mobileBadge = document.getElementById('notif-count-mobile');
@@ -486,12 +512,12 @@
                 })
                 .catch(function() {})
                 .finally(function() {
-                    setTimeout(pollNotifications, 30000);
+                    setTimeout(pollNotifications, 5000);
                 });
         }
 
-        // Initial poll after 2s
-        setTimeout(pollNotifications, 2000);
+        // Initial poll after 1s
+        setTimeout(pollNotifications, 1000);
     })();
 
     // ── 10. Scroll animations (IntersectionObserver) ─
@@ -580,7 +606,82 @@
         });
     });
 
-    // ── 13. Escape key to close modals ──────────────
+    // ── 13. Lightbox ──────────────────────────────────
+    (function() {
+        var items = document.querySelectorAll('[data-lightbox]');
+        if (!items.length) return;
+
+        var urls = [];
+        items.forEach(function(el) { urls.push(el.getAttribute('data-lightbox')); });
+        var currentIdx = 0;
+
+        function open(idx) {
+            currentIdx = idx;
+            var overlay = document.createElement('div');
+            overlay.className = 'lightbox-overlay';
+            overlay.id = 'lightbox';
+
+            var img = document.createElement('img');
+            img.src = urls[idx];
+            overlay.appendChild(img);
+
+            if (urls.length > 1) {
+                var prev = document.createElement('button');
+                prev.className = 'lightbox-nav lightbox-prev';
+                prev.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+                prev.addEventListener('click', function(e) { e.stopPropagation(); navigate(-1); });
+                overlay.appendChild(prev);
+
+                var next = document.createElement('button');
+                next.className = 'lightbox-nav lightbox-next';
+                next.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+                next.addEventListener('click', function(e) { e.stopPropagation(); navigate(1); });
+                overlay.appendChild(next);
+
+                var counter = document.createElement('div');
+                counter.className = 'lightbox-counter';
+                counter.textContent = (idx + 1) + ' / ' + urls.length;
+                overlay.appendChild(counter);
+            }
+
+            var closeBtn = document.createElement('button');
+            closeBtn.className = 'lightbox-close';
+            closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+            closeBtn.addEventListener('click', function(e) { e.stopPropagation(); close(); });
+            overlay.appendChild(closeBtn);
+
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+            document.body.appendChild(overlay);
+        }
+
+        function close() {
+            var lb = document.getElementById('lightbox');
+            if (lb) lb.remove();
+        }
+
+        function navigate(dir) {
+            currentIdx = (currentIdx + dir + urls.length) % urls.length;
+            var lb = document.getElementById('lightbox');
+            if (!lb) return;
+            var img = lb.querySelector('img');
+            img.src = urls[currentIdx];
+            var counter = lb.querySelector('.lightbox-counter');
+            if (counter) counter.textContent = (currentIdx + 1) + ' / ' + urls.length;
+        }
+
+        items.forEach(function(el, i) {
+            el.addEventListener('click', function() { open(i); });
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (!document.getElementById('lightbox')) return;
+            if (e.key === 'ArrowLeft') navigate(-1);
+            if (e.key === 'ArrowRight') navigate(1);
+            if (e.key === 'Escape') close();
+        });
+    })();
+
+    // ── 14. Escape key to close modals ──────────────
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             if (authModal && authModal.classList.contains('active')) {
@@ -593,5 +694,61 @@
             }
         }
     });
+
+    // ── 15. Auto-refresh for real-time pages ────────
+    // Any element with data-auto-refresh="url" will be polled.
+    // When the response hash changes, the page reloads.
+    (function() {
+        var el = document.querySelector('[data-auto-refresh]');
+        if (!el) return;
+
+        var url = el.getAttribute('data-auto-refresh');
+        var interval = parseInt(el.getAttribute('data-refresh-interval') || '5000', 10);
+        var lastHash = null;
+
+        function poll() {
+            fetch(url, { credentials: 'same-origin' })
+                .then(function(r) { return r.ok ? r.text() : null; })
+                .then(function(text) {
+                    if (!text) return;
+                    // Simple hash of response to detect changes
+                    var hash = text.length + ':' + text.substring(0, 100);
+                    if (lastHash !== null && hash !== lastHash) {
+                        if (window.BikeSwap && window.BikeSwap.toast) {
+                            window.BikeSwap.toast('Stránka byla aktualizována', 'info');
+                        }
+                        setTimeout(function() { window.location.reload(); }, 1200);
+                        return;
+                    }
+                    lastHash = hash;
+                })
+                .catch(function() {})
+                .finally(function() {
+                    setTimeout(poll, interval);
+                });
+        }
+
+        setTimeout(poll, interval);
+    })();
+
+    // ── 16. Flash messages → toast conversion ────────
+    (function() {
+        var flashContainer = document.querySelector('.flash-container');
+        if (!flashContainer) return;
+        var alerts = flashContainer.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            // Skip registration success (shown inside auth modal)
+            if (alert.id === 'auth-reg-success') return;
+            var text = alert.textContent.trim();
+            var type = 'info';
+            if (alert.classList.contains('alert-success')) type = 'success';
+            else if (alert.classList.contains('alert-error')) type = 'error';
+            else if (alert.classList.contains('alert-warning')) type = 'warning';
+            if (text && window.BikeSwap && window.BikeSwap.toast) {
+                window.BikeSwap.toast(text, type);
+            }
+            alert.remove();
+        });
+    })();
 
 })();

@@ -74,6 +74,10 @@ class AuthService
             return ['success' => false, 'error' => 'Neplatný e-mail nebo heslo.'];
         }
 
+        if ($user->isBanned()) {
+            return ['success' => false, 'error' => 'Váš účet byl zablokován.'];
+        }
+
         // Log in: store user ID in session
         $this->session->login($user->getId());
 

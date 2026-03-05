@@ -8,11 +8,13 @@ use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
 use App\Repository\BikeRepository;
+use App\Repository\DisputePhotoRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\ReservationMessageRepository;
 use App\Repository\ReservationReviewRepository;
 use App\Response\Response;
 use App\Services\AuthService;
+use App\Services\FileUploadService;
 use App\Services\ReservationService;
 
 class ReservationController
@@ -20,8 +22,10 @@ class ReservationController
     private ReservationRepository $reservationRepo;
     private ReservationMessageRepository $messageRepo;
     private ReservationReviewRepository $reviewRepo;
+    private DisputePhotoRepository $disputePhotoRepo;
     private BikeRepository $bikeRepo;
     private ReservationService $reservationService;
+    private FileUploadService $fileUploadService;
     private AuthService $authService;
     private Session $session;
     private array $config;
@@ -30,8 +34,10 @@ class ReservationController
         ReservationRepository $reservationRepo,
         ReservationMessageRepository $messageRepo,
         ReservationReviewRepository $reviewRepo,
+        DisputePhotoRepository $disputePhotoRepo,
         BikeRepository $bikeRepo,
         ReservationService $reservationService,
+        FileUploadService $fileUploadService,
         AuthService $authService,
         Session $session,
         array $config = []
@@ -39,8 +45,10 @@ class ReservationController
         $this->reservationRepo = $reservationRepo;
         $this->messageRepo = $messageRepo;
         $this->reviewRepo = $reviewRepo;
+        $this->disputePhotoRepo = $disputePhotoRepo;
         $this->bikeRepo = $bikeRepo;
         $this->reservationService = $reservationService;
+        $this->fileUploadService = $fileUploadService;
         $this->authService = $authService;
         $this->session = $session;
         $this->config = $config;
@@ -57,6 +65,7 @@ class ReservationController
         $bikes = $this->bikeRepo->findShared(withPhotos: true);
         $currentUser = $this->authService->currentUser();
         $unavailableIds = $this->reservationRepo->findUnavailableBikeIds();
+        $layout = $currentUser ? 'layouts/app' : 'layouts/public';
 
         return view('reservation/shared-bikes', [
             'title' => 'Sdílená kola – BikeSwap',
@@ -64,7 +73,7 @@ class ReservationController
             'currentUser' => $currentUser,
             'unavailableIds' => $unavailableIds,
             'session' => $this->session,
-        ])->withLayout('layouts/public');
+        ])->withLayout($layout);
     }
 
     // ── Create reservation ─────────────────────────────────
@@ -75,6 +84,12 @@ class ReservationController
      */
     public function createForm(Request $request): Response
     {
+        $currentUser = $this->authService->currentUser();
+        if ($currentUser && $currentUser->isPolice()) {
+            $this->session->flash('error', 'Policejní účet nemůže vytvářet rezervace.');
+            return redirect('/shared');
+        }
+
         $bikeId = (int) $request->param('bikeId');
         $bike = $this->bikeRepo->findById($bikeId, withPhotos: true);
 
@@ -113,6 +128,12 @@ class ReservationController
      */
     public function store(Request $request): Response
     {
+        $currentUser = $this->authService->currentUser();
+        if ($currentUser && $currentUser->isPolice()) {
+            $this->session->flash('error', 'Policejní účet nemůže vytvářet rezervace.');
+            return redirect('/shared');
+        }
+
         $bikeId = (int) $request->param('bikeId');
 
         if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
@@ -203,12 +224,16 @@ class ReservationController
         // Check if current user already reviewed
         $hasReviewed = $this->reservationService->hasUserReviewed($id, $currentUser->getId());
 
+        // Load dispute evidence photos
+        $disputePhotos = $this->disputePhotoRepo->findByReservation($id);
+
         return view('reservation/detail', [
             'title' => 'Rezervace #' . $id . ' – BikeSwap',
             'reservation' => $reservation,
             'messages' => $messages,
             'reviews' => $reviews,
             'hasReviewed' => $hasReviewed,
+            'disputePhotos' => $disputePhotos,
             'currentUser' => $currentUser,
             'myRole' => $myRole,
             'csrf' => $this->session->csrfToken(),
@@ -264,19 +289,168 @@ class ReservationController
     }
 
     /**
-     * Owner reports non-return.
+     * Show form for reporting non-return.
+     * GET /reservation/{id}/not-returned
+     */
+    public function notReturnedForm(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $reservation = $this->reservationRepo->findById($id, withRelations: true);
+
+        if ($reservation === null) {
+            throw new \RuntimeException('Rezervace nenalezena.', 404);
+        }
+
+        $currentUser = $this->authService->currentUser();
+
+        if (!$reservation->isOwnedBy($currentUser->getId())) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        if (!$reservation->canReportNotReturned()) {
+            $this->session->flash('error', 'Nelze nahlásit nevrácení.');
+            return redirect("/reservation/{$id}");
+        }
+
+        return view('reservation/not-returned', [
+            'title' => 'Nahlásit nevrácení — BikeSwap',
+            'reservation' => $reservation,
+            'currentUser' => $currentUser,
+            'csrf' => $this->session->csrfToken(),
+            'session' => $this->session,
+        ])->withLayout('layouts/app');
+    }
+
+    /**
+     * Process non-return report.
      * POST /reservation/{id}/not-returned
      */
     public function reportNotReturned(Request $request): Response
     {
-        return $this->handleStatusAction($request, 'reportNotReturned', 'Nevrácení kola bylo nahlášeno.');
+        $id = (int) $request->param('id');
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return redirect("/reservation/{$id}/not-returned");
+        }
+
+        $currentUser = $this->authService->currentUser();
+        $reason = trim($request->input('reason', ''));
+
+        if ($reason === '') {
+            $this->session->flash('error', 'Popis situace je povinný.');
+            return redirect("/reservation/{$id}/not-returned");
+        }
+
+        try {
+            $this->reservationService->reportNotReturned($id, $currentUser->getId(), $reason);
+            $this->session->flash('success', 'Nevrácení kola bylo nahlášeno. Případ bude řešen správcem.');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
+        }
+
+        return redirect("/reservation/{$id}");
     }
 
     /**
-     * Borrower disputes a not-returned report.
+     * Show form for filing a dispute.
+     * GET /reservation/{id}/dispute
+     */
+    public function disputeForm(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $reservation = $this->reservationRepo->findById($id, withRelations: true);
+
+        if ($reservation === null) {
+            throw new \RuntimeException('Rezervace nenalezena.', 404);
+        }
+
+        $currentUser = $this->authService->currentUser();
+
+        if (!$reservation->isBorrowedBy($currentUser->getId())) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        if (!$reservation->canBeDisputed()) {
+            $this->session->flash('error', 'Tuto akci nelze provést.');
+            return redirect("/reservation/{$id}");
+        }
+
+        return view('reservation/dispute', [
+            'title' => 'Podat námitku — BikeSwap',
+            'reservation' => $reservation,
+            'currentUser' => $currentUser,
+            'csrf' => $this->session->csrfToken(),
+            'session' => $this->session,
+        ])->withLayout('layouts/app');
+    }
+
+    /**
+     * Process dispute submission.
      * POST /reservation/{id}/dispute
      */
     public function dispute(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return redirect("/reservation/{$id}/dispute");
+        }
+
+        $currentUser = $this->authService->currentUser();
+        $reason = trim($request->input('reason', ''));
+
+        if ($reason === '') {
+            $this->session->flash('error', 'Vysvětlení je povinné.');
+            return redirect("/reservation/{$id}/dispute");
+        }
+
+        // Handle evidence photo uploads
+        $photoPaths = [];
+        $files = $request->file('photos');
+        if ($files !== null && isset($files['tmp_name'])) {
+            if (is_array($files['tmp_name'])) {
+                $count = count($files['tmp_name']);
+                for ($i = 0; $i < $count; $i++) {
+                    if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                        continue;
+                    }
+                    $singleFile = [
+                        'tmp_name' => $files['tmp_name'][$i],
+                        'name'     => $files['name'][$i],
+                        'size'     => $files['size'][$i],
+                        'type'     => $files['type'][$i],
+                        'error'    => $files['error'][$i],
+                    ];
+                    $result = $this->fileUploadService->uploadReportPhoto($singleFile);
+                    if ($result['success']) {
+                        $photoPaths[] = $result['path'];
+                    }
+                }
+            } elseif ($files['error'] === UPLOAD_ERR_OK) {
+                $result = $this->fileUploadService->uploadReportPhoto($files);
+                if ($result['success']) {
+                    $photoPaths[] = $result['path'];
+                }
+            }
+        }
+
+        try {
+            $this->reservationService->dispute($id, $currentUser->getId(), $reason, $photoPaths);
+            $this->session->flash('success', 'Vaše námitka byla zaznamenána. Případ bude řešen správcem.');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
+        }
+
+        return redirect("/reservation/{$id}");
+    }
+
+    /**
+     * Admin resolves a dispute.
+     * POST /reservation/{id}/admin-resolve
+     */
+    public function adminResolve(Request $request): Response
     {
         $id = (int) $request->param('id');
 
@@ -287,9 +461,15 @@ class ReservationController
 
         $currentUser = $this->authService->currentUser();
 
+        if (!$currentUser->isAdmin()) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        $resolution = $request->input('resolution', '');
+
         try {
-            $this->reservationService->dispute($id, $currentUser->getId());
-            $this->session->flash('success', 'Vaše námitka byla zaznamenána. Vlastník kola byl upozorněn.');
+            $this->reservationService->adminResolve($id, $currentUser->getId(), $resolution);
+            $this->session->flash('success', 'Spor byl vyřešen.');
         } catch (\RuntimeException $e) {
             $this->session->flash('error', $e->getMessage());
         }
@@ -399,6 +579,27 @@ class ReservationController
             'currentUser' => $currentUser,
             'session' => $this->session,
         ])->withLayout('layouts/app');
+    }
+
+    /**
+     * Lightweight poll for reservation list changes.
+     * GET /reservations/poll
+     */
+    public function reservationsPoll(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        $userId = $currentUser->getId();
+
+        $asOwner = $this->reservationRepo->findByOwner($userId);
+        $asBorrower = $this->reservationRepo->findByBorrower($userId);
+
+        $ownerStatuses = array_map(fn($r) => $r->getId() . ':' . $r->getStatus(), $asOwner);
+        $borrowerStatuses = array_map(fn($r) => $r->getId() . ':' . $r->getStatus(), $asBorrower);
+
+        return json([
+            'owner_statuses'    => implode(',', $ownerStatuses),
+            'borrower_statuses' => implode(',', $borrowerStatuses),
+        ]);
     }
 
     // ── JSON endpoint for calendar ─────────────────────────

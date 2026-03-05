@@ -10,7 +10,9 @@ namespace App\Entity;
  * Represents a bike borrowing request with full lifecycle:
  * pending → approved → active → completed → (reviews)
  *    ↓         ↓                    ↓
- * rejected  cancelled          not_returned
+ * rejected  cancelled          not_returned → disputed
+ *                                    ↓            ↓
+ *                              admin resolves (borrower_guilty / owner_guilty) → completed
  */
 class Reservation
 {
@@ -23,6 +25,11 @@ class Reservation
     private string $dateTo;
     private ?string $message;
     private string $status;
+    private ?string $notReturnedReason;
+    private ?string $disputeReason;
+    private ?string $adminResolution;
+    private ?int $adminResolvedBy;
+    private ?string $adminResolvedAt;
     private string $createdAt;
     private string $updatedAt;
 
@@ -49,6 +56,11 @@ class Reservation
         $r->dateTo            = $row['date_to'];
         $r->message           = $row['message'] ?? null;
         $r->status            = $row['status'];
+        $r->notReturnedReason = $row['not_returned_reason'] ?? null;
+        $r->disputeReason     = $row['dispute_reason'] ?? null;
+        $r->adminResolution   = $row['admin_resolution'] ?? null;
+        $r->adminResolvedBy   = isset($row['admin_resolved_by']) ? (int) $row['admin_resolved_by'] : null;
+        $r->adminResolvedAt   = $row['admin_resolved_at'] ?? null;
         $r->createdAt         = $row['created_at'];
         $r->updatedAt         = $row['updated_at'];
 
@@ -66,6 +78,11 @@ class Reservation
     public function getDateTo(): string { return $this->dateTo; }
     public function getMessage(): ?string { return $this->message; }
     public function getStatus(): string { return $this->status; }
+    public function getNotReturnedReason(): ?string { return $this->notReturnedReason; }
+    public function getDisputeReason(): ?string { return $this->disputeReason; }
+    public function getAdminResolution(): ?string { return $this->adminResolution; }
+    public function getAdminResolvedBy(): ?int { return $this->adminResolvedBy; }
+    public function getAdminResolvedAt(): ?string { return $this->adminResolvedAt; }
     public function getCreatedAt(): string { return $this->createdAt; }
     public function getUpdatedAt(): string { return $this->updatedAt; }
 
@@ -146,10 +163,10 @@ class Reservation
         return $this->status === 'approved';
     }
 
-    /** Can the owner mark as completed (bike returned)? */
+    /** Can the owner mark as completed (bike returned)? Only from active — disputed requires admin. */
     public function canBeCompleted(): bool
     {
-        return in_array($this->status, ['active', 'disputed'], true);
+        return $this->status === 'active';
     }
 
     /** Can the owner report non-return? */
@@ -158,10 +175,43 @@ class Reservation
         return $this->status === 'active';
     }
 
-    /** Can this reservation receive reviews? */
+    /** Can this reservation receive reviews? Only after completion. */
     public function canBeReviewed(): bool
     {
-        return in_array($this->status, ['completed', 'not_returned'], true);
+        return $this->status === 'completed';
+    }
+
+    /** Can an admin resolve this dispute? */
+    public function canBeAdminResolved(): bool
+    {
+        return in_array($this->status, ['not_returned', 'disputed'], true)
+            && $this->adminResolution === null;
+    }
+
+    /** Can the borrower file a dispute? */
+    public function canBeDisputed(): bool
+    {
+        return $this->status === 'not_returned';
+    }
+
+    /** Is this reservation resolved by admin? */
+    public function isAdminResolved(): bool
+    {
+        return $this->adminResolution !== null;
+    }
+
+    public function isDisputed(): bool
+    {
+        return $this->status === 'disputed';
+    }
+
+    public function getAdminResolutionLabel(): ?string
+    {
+        return match ($this->adminResolution) {
+            'borrower_guilty' => 'Vypůjčitel nevrátil kolo',
+            'owner_guilty'    => 'Vlastník podal nepravdivé hlášení',
+            default           => null,
+        };
     }
 
     /**
