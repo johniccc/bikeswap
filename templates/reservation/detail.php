@@ -24,7 +24,9 @@ $bike = $reservation->getBike();
       <div class="flex gap-sm mt-sm">
         <form method="POST" action="/reservation/<?= $reservation->getId() ?>/complete">
           <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-          <button type="submit" class="btn btn-primary btn-sm">
+          <button type="submit" class="btn btn-primary btn-sm"
+                  data-confirm="Potvrzujete, že vypůjčitel vrátil kolo?"
+                  data-confirm-ok="Ano, kolo vráceno" data-confirm-class="btn-primary">
             <i data-lucide="check-circle"></i> Kolo vráceno
           </button>
         </form>
@@ -107,14 +109,16 @@ $bike = $reservation->getBike();
           <?php if ($reservation->canBeApproved()): ?>
             <form method="POST" action="/reservation/<?= $reservation->getId() ?>/approve">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn btn-primary"
+                      data-confirm="Opravdu chcete schválit tuto rezervaci?"
+                      data-confirm-ok="Schválit" data-confirm-class="btn-primary">
                 <i data-lucide="check"></i> Schválit
               </button>
             </form>
-            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/reject"
-                  onsubmit="return confirm('Opravdu zamítnout?')">
+            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/reject">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-              <button type="submit" class="btn btn-danger">
+              <button type="submit" class="btn btn-danger"
+                      data-confirm="Opravdu zamítnout tuto rezervaci?">
                 <i data-lucide="x"></i> Zamítnout
               </button>
             </form>
@@ -124,7 +128,9 @@ $bike = $reservation->getBike();
             <form method="POST" action="/reservation/<?= $reservation->getId() ?>/activate">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
               <button type="submit" class="btn btn-primary"
-                      onclick="return confirm('Potvrzujete, že jste předali kolo vypůjčiteli?')">
+                      data-confirm="Potvrzujete, že jste předali kolo vypůjčiteli?"
+                      data-confirm-ok="Ano, předáno"
+                      data-confirm-class="btn-primary">
                 <i data-lucide="bike"></i> Kolo předáno — zahájit výpůjčku
               </button>
             </form>
@@ -133,7 +139,9 @@ $bike = $reservation->getBike();
           <?php if ($reservation->canBeCompleted()): ?>
             <form method="POST" action="/reservation/<?= $reservation->getId() ?>/complete">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn btn-primary"
+                      data-confirm="Potvrzujete, že vypůjčitel vrátil kolo?"
+                      data-confirm-ok="Ano, kolo vráceno" data-confirm-class="btn-primary">
                 <i data-lucide="check-circle"></i> Kolo vráceno — dokončit
               </button>
             </form>
@@ -143,10 +151,10 @@ $bike = $reservation->getBike();
           <?php endif; ?>
 
           <?php if ($reservation->isApproved()): ?>
-            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/cancel"
-                  onsubmit="return confirm('Opravdu zrušit rezervaci?')">
+            <form method="POST" action="/reservation/<?= $reservation->getId() ?>/cancel">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-              <button type="submit" class="btn btn-outline-danger">
+              <button type="submit" class="btn btn-outline-danger"
+                      data-confirm="Opravdu zrušit tuto rezervaci? Tato akce je nevratná.">
                 <i data-lucide="x-circle"></i> Zrušit rezervaci
               </button>
             </form>
@@ -162,10 +170,10 @@ $bike = $reservation->getBike();
 <?php if ($isBorrower && $reservation->canBeCancelled()): ?>
   <div class="card mb-lg">
     <div class="card-body">
-      <form method="POST" action="/reservation/<?= $reservation->getId() ?>/cancel"
-            onsubmit="return confirm('Opravdu zrušit žádost?')">
+      <form method="POST" action="/reservation/<?= $reservation->getId() ?>/cancel">
         <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-        <button type="submit" class="btn btn-danger">
+        <button type="submit" class="btn btn-danger"
+                data-confirm="Opravdu zrušit svou žádost o rezervaci?">
           <i data-lucide="x-circle"></i> Zrušit mou žádost
         </button>
       </form>
@@ -286,7 +294,7 @@ $bike = $reservation->getBike();
           <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
           <input type="hidden" name="resolution" value="borrower_guilty">
           <button type="submit" class="btn btn-danger"
-                  onclick="return confirm('Rozhodnout: vypůjčitel nevrátil kolo. Vypůjčitel bude zablokován a ztratí karmu. Pokračovat?')">
+                  data-confirm="Rozhodnout: vypůjčitel nevrátil kolo. Vypůjčitel bude zablokován a ztratí karmu. Pokračovat?">
             <i data-lucide="user-x"></i> Vypůjčitel nevrátil kolo
           </button>
         </form>
@@ -294,7 +302,9 @@ $bike = $reservation->getBike();
           <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
           <input type="hidden" name="resolution" value="owner_guilty">
           <button type="submit" class="btn btn-warning"
-                  onclick="return confirm('Rozhodnout: vlastník podal nepravdivé hlášení. Vlastník ztratí karmu. Pokračovat?')">
+                  data-confirm="Rozhodnout: vlastník podal nepravdivé hlášení. Vlastník ztratí karmu. Pokračovat?"
+                  data-confirm-class="btn-warning"
+                  data-confirm-ok="Potvrdit rozhodnutí">
             <i data-lucide="shield-off"></i> Vlastník podal nepravdivé hlášení
           </button>
         </form>
