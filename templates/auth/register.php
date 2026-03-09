@@ -1,8 +1,7 @@
-<div class="main-public-padded">
-  <div class="text-center" style="padding:4rem 0">
-    <p class="text-muted">Načítám registraci...</p>
-  </div>
-</div>
+<?php
+// Render the home page content as background, then open the auth modal on top
+include __DIR__ . '/../home/index.php';
+?>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     if (window.BikeSwap && window.BikeSwap.openAuthModal) {

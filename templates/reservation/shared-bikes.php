@@ -15,7 +15,12 @@
   <?php else: ?>
     <div class="bike-grid">
       <?php foreach ($bikes as $bike): ?>
-        <div class="bike-card card-hover">
+        <?php
+          $unavailable = in_array($bike->getId(), $unavailableIds ?? [], true);
+          $isLoggedIn = isset($currentUser) && $currentUser !== null;
+          $isOwner = $isLoggedIn && $bike->isOwnedBy($currentUser->getId());
+        ?>
+        <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
           <div class="bike-card-photo-wrap">
             <?php $photo = $bike->getPrimaryPhoto(); ?>
             <?php if ($photo): ?>
@@ -24,7 +29,6 @@
               <div class="bike-card-photo-placeholder"><i data-lucide="image"></i></div>
             <?php endif; ?>
             <div class="bike-card-badges">
-              <?php $unavailable = in_array($bike->getId(), $unavailableIds ?? [], true); ?>
               <span class="availability-badge <?= $unavailable ? 'availability-unavailable' : 'availability-available' ?>">
                 <?= $unavailable ? 'Nedostupné' : 'Dostupné' ?>
               </span>
@@ -46,26 +50,19 @@
           </div>
 
           <div class="bike-card-footer">
-            <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-sm btn-ghost">
-              <i data-lucide="eye"></i> Detail
-            </a>
-            <?php
-              $isLoggedIn = isset($currentUser) && $currentUser !== null;
-              $isOwner = $isLoggedIn && $bike->isOwnedBy($currentUser->getId());
-            ?>
             <?php if (!$unavailable && $isLoggedIn && !$isOwner): ?>
-              <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-sm btn-primary">
+              <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-sm btn-primary" onclick="event.stopPropagation()">
                 <i data-lucide="calendar-plus"></i> Rezervovat
               </a>
             <?php elseif (!$unavailable && !$isLoggedIn): ?>
-              <a href="/login?redirect=/shared" class="btn btn-sm btn-primary">
+              <a href="/login?redirect=/shared" class="btn btn-sm btn-primary" onclick="event.stopPropagation()">
                 <i data-lucide="log-in"></i> Přihlásit a rezervovat
               </a>
             <?php elseif ($unavailable): ?>
               <span class="btn btn-sm btn-ghost" style="opacity:0.5;pointer-events:none">Nedostupné</span>
             <?php endif; ?>
           </div>
-        </div>
+        </a>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
