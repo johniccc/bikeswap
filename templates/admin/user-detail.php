@@ -86,10 +86,10 @@
               </button>
             </form>
           <?php else: ?>
-            <form method="POST" action="/admin/users/<?= $user->getId() ?>/ban"
-                  onsubmit="return confirm('Opravdu chcete tohoto uživatele zablokovat?')">
+            <form method="POST" action="/admin/users/<?= $user->getId() ?>/ban">
               <input type="hidden" name="_csrf" value="<?= e($csrf ?? $session->csrfToken()) ?>">
-              <button type="submit" class="btn btn-danger btn-sm">
+              <button type="submit" class="btn btn-danger btn-sm"
+                      data-confirm="Opravdu chcete tohoto uživatele zablokovat?">
                 <i data-lucide="shield-off"></i> Zablokovat
               </button>
             </form>

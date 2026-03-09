@@ -151,10 +151,10 @@
               </a>
             <?php else: ?>
               <?php if ($theftReport): ?>
-                <form method="POST" action="/theft/<?= $theftReport->getId() ?>/resolve"
-                      onsubmit="return confirm('Opravdu chcete zrušit hlášení krádeže?')">
+                <form method="POST" action="/theft/<?= $theftReport->getId() ?>/resolve">
                   <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                  <button type="submit" class="btn btn-success">
+                  <button type="submit" class="btn btn-success"
+                          data-confirm="Opravdu chcete zrušit hlášení krádeže?" data-confirm-ok="Ano, zrušit hlášení" data-confirm-class="btn-success">
                     <i data-lucide="check-circle"></i> Kolo jsem získal zpět
                   </button>
                 </form>

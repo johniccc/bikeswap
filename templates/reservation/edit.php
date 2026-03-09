@@ -99,10 +99,10 @@
                             </form>
                         <?php endif; ?>
 
-                        <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete"
-                              onsubmit="return confirm('Opravdu smazat tuto fotku?')">
+                        <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete">
                             <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                            <button type="submit" class="btn btn-small btn-danger">Smazat</button>
+                            <button type="submit" class="btn btn-small btn-danger"
+                                    data-confirm="Opravdu smazat tuto fotku?">Smazat</button>
                         </form>
                     </div>
                 </div>
@@ -114,9 +114,9 @@
 
 <!-- ═══ SMAZAT KOLO ═══ -->
 <section class="danger-zone">
-    <form method="POST" action="/bike/<?= $bike->getId() ?>/delete"
-          onsubmit="return confirm('Opravdu chcete trvale smazat toto kolo? Tuto akci nelze vrátit.')">
+    <form method="POST" action="/bike/<?= $bike->getId() ?>/delete">
         <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-        <button type="submit" class="btn btn-danger">Smazat kolo</button>
+        <button type="submit" class="btn btn-danger"
+                data-confirm="Opravdu chcete trvale smazat toto kolo? Tuto akci nelze vrátit.">Smazat kolo</button>
     </form>
 </section>

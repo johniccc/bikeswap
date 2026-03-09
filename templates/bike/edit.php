@@ -104,10 +104,10 @@
                 </button>
               </form>
             <?php endif; ?>
-            <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete"
-                  onsubmit="return confirm('Opravdu smazat tuto fotku?')" style="margin:0">
+            <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete" style="margin:0">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-              <button type="submit" class="photo-action-btn photo-action-danger" title="Smazat fotku">
+              <button type="submit" class="photo-action-btn photo-action-danger" title="Smazat fotku"
+                      data-confirm="Opravdu smazat tuto fotku?">
                 <i data-lucide="trash-2"></i>
               </button>
             </form>
@@ -123,10 +123,10 @@
 <div class="danger-zone">
   <h3><i data-lucide="alert-triangle" style="width:18px;height:18px;display:inline"></i> Nebezpečná zóna</h3>
   <p>Smazáním kola se trvale odstraní všechny údaje, fotografie, rezervace a hlášení spojené s tímto kolem.</p>
-  <form method="POST" action="/bike/<?= $bike->getId() ?>/delete"
-        onsubmit="return confirm('Opravdu chcete trvale smazat toto kolo? Tuto akci nelze vrátit.')">
+  <form method="POST" action="/bike/<?= $bike->getId() ?>/delete">
     <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-    <button type="submit" class="btn btn-danger">
+    <button type="submit" class="btn btn-danger"
+            data-confirm="Opravdu chcete trvale smazat toto kolo? Tuto akci nelze vrátit.">
       <i data-lucide="trash-2"></i> Smazat kolo
     </button>
   </form>

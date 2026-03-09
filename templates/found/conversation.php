@@ -133,17 +133,18 @@
       <!-- Owner-only: Resolve and Close buttons -->
       <?php if ($viewerType === 'owner'): ?>
         <div class="flex gap-sm mt-md mb-md flex-wrap">
-          <form method="POST" action="/found/<?= $report->getId() ?>/resolve"
-                onsubmit="return confirm('Opravdu jste kolo získali zpět? Tím se uzavře tato konverzace a kolo bude označeno jako aktivní.')">
+          <form method="POST" action="/found/<?= $report->getId() ?>/resolve">
             <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary"
+                    data-confirm="Opravdu jste kolo získali zpět? Tím se uzavře tato konverzace a kolo bude označeno jako aktivní."
+                    data-confirm-ok="Ano, získal jsem kolo zpět" data-confirm-class="btn-primary">
               <i data-lucide="check-circle"></i> Kolo jsem získal zpět
             </button>
           </form>
-          <form method="POST" action="/found/<?= $report->getId() ?>/close"
-                onsubmit="return confirm('Opravdu uzavřít tuto konverzaci?')">
+          <form method="POST" action="/found/<?= $report->getId() ?>/close">
             <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-            <button type="submit" class="btn btn-ghost">
+            <button type="submit" class="btn btn-ghost"
+                    data-confirm="Opravdu uzavřít tuto konverzaci?">
               <i data-lucide="x-circle"></i> Uzavřít konverzaci
             </button>
           </form>
