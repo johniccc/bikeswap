@@ -751,9 +751,69 @@
         });
     })();
 
-    // ── 16. Clickable cards with data-href ─────────────────
+    // ── 16. Confirm modal ──────────────────────────────────
+    (function() {
+        var modal = document.getElementById('confirm-modal');
+        if (!modal) return;
+
+        var title   = document.getElementById('confirm-modal-title');
+        var message = document.getElementById('confirm-modal-message');
+        var btnOk     = document.getElementById('confirm-modal-ok');
+        var btnCancel = document.getElementById('confirm-modal-cancel');
+        var btnClose  = document.getElementById('confirm-modal-close');
+        var _callback = null;
+
+        function open(msg, onConfirm, opts) {
+            opts = opts || {};
+            if (title)   title.textContent   = opts.title   || 'Potvrzení';
+            if (message) message.textContent = msg;
+            if (btnOk)   btnOk.textContent   = opts.okLabel || 'Potvrdit';
+            if (btnOk)   btnOk.className = 'btn ' + (opts.okClass || 'btn-danger');
+            _callback = onConfirm;
+            modal.classList.add('active');
+            document.body.classList.add('modal-blur');
+        }
+
+        function close() {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-blur');
+            _callback = null;
+        }
+
+        if (btnOk)     btnOk.addEventListener('click', function() { var cb = _callback; close(); if (cb) cb(); });
+        if (btnCancel) btnCancel.addEventListener('click', close);
+        if (btnClose)  btnClose.addEventListener('click', close);
+        modal.addEventListener('click', function(e) { if (e.target === modal) close(); });
+
+        // Expose globally
+        window.BikeSwap = window.BikeSwap || {};
+        window.BikeSwap.confirm = open;
+
+        // Handle data-confirm buttons/forms
+        document.addEventListener('click', function(e) {
+            var el = e.target.closest('[data-confirm]');
+            if (!el) return;
+            e.preventDefault();
+            var msg = el.getAttribute('data-confirm');
+            var okLabel = el.getAttribute('data-confirm-ok') || 'Potvrdit';
+            var okClass = el.getAttribute('data-confirm-class') || 'btn-danger';
+            open(msg, function() {
+                if (el.tagName === 'BUTTON' && el.form) {
+                    el.removeAttribute('data-confirm');
+                    el.form.submit();
+                } else if (el.tagName === 'A') {
+                    window.location.href = el.href;
+                } else if (el.tagName === 'FORM') {
+                    el.removeAttribute('data-confirm');
+                    el.submit();
+                }
+            }, { okLabel: okLabel, okClass: okClass });
+        });
+    })();
+
+    // ── 17. Clickable cards with data-href ─────────────────
     // Cards with data-href navigate to that URL on click,
-    // but <a> and <button> inside the card work independently.
+    // but <a>, <button>, and [data-confirm] inside the card work independently.
     document.addEventListener('click', function(e) {
         if (e.target.closest('a, button')) return;
         var card = e.target.closest('[data-href]');
