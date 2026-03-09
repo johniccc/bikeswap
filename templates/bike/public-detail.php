@@ -127,7 +127,7 @@
             </h3>
             <p class="text-muted text-sm">Pro rezervaci se přihlaste nebo zaregistrujte.</p>
           </div>
-          <a href="/login" class="btn btn-primary">
+          <a href="/login?redirect=<?= urlencode('/bike/' . e($bike->getQrHash())) ?>" class="btn btn-primary">
             <i data-lucide="log-in"></i> Přihlásit se
           </a>
         </div>

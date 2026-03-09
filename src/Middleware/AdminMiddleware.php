@@ -27,7 +27,7 @@ class AdminMiddleware
                 return json(['error' => 'Vyžadováno přihlášení.'], 401);
             }
             $this->session->flash('error', 'Pro přístup se musíte přihlásit.');
-            return redirect('/login');
+            return redirect('/login?redirect=' . urlencode($request->getPath()));
         }
 
         $user = $this->authService->currentUser();

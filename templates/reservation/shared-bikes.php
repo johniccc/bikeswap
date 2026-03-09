@@ -20,7 +20,7 @@
           $isLoggedIn = isset($currentUser) && $currentUser !== null;
           $isOwner = $isLoggedIn && $bike->isOwnedBy($currentUser->getId());
         ?>
-        <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
+        <div class="bike-card card-hover" data-href="/bike/<?= e($bike->getQrHash()) ?>" style="cursor:pointer">
           <div class="bike-card-photo-wrap">
             <?php $photo = $bike->getPrimaryPhoto(); ?>
             <?php if ($photo): ?>
@@ -51,18 +51,18 @@
 
           <div class="bike-card-footer">
             <?php if (!$unavailable && $isLoggedIn && !$isOwner): ?>
-              <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-sm btn-primary" onclick="event.stopPropagation()">
+              <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-sm btn-primary">
                 <i data-lucide="calendar-plus"></i> Rezervovat
               </a>
             <?php elseif (!$unavailable && !$isLoggedIn): ?>
-              <a href="/login?redirect=/shared" class="btn btn-sm btn-primary" onclick="event.stopPropagation()">
+              <a href="/login?redirect=<?= urlencode('/bike/' . $bike->getQrHash()) ?>" class="btn btn-sm btn-primary">
                 <i data-lucide="log-in"></i> Přihlásit a rezervovat
               </a>
             <?php elseif ($unavailable): ?>
               <span class="btn btn-sm btn-ghost" style="opacity:0.5;pointer-events:none">Nedostupné</span>
             <?php endif; ?>
           </div>
-        </a>
+        </div>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>

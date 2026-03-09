@@ -38,7 +38,7 @@
       <legend>Vaše kontaktní údaje</legend>
       <p class="text-muted text-sm mb-md">
         Vaše údaje nebudou zobrazeny veřejně. Slouží pouze pro komunikaci s majitelem kola.
-        <a href="/login">Přihlaste se</a> pro jednodušší nahlášení.
+        <a href="/login?redirect=<?= urlencode('/found/report/' . $bike->getQrHash()) ?>">Přihlaste se</a> pro jednodušší nahlášení.
       </p>
 
       <div class="form-group">

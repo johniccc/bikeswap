@@ -751,4 +751,13 @@
         });
     })();
 
+    // ── 16. Clickable cards with data-href ─────────────────
+    // Cards with data-href navigate to that URL on click,
+    // but <a> and <button> inside the card work independently.
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('a, button')) return;
+        var card = e.target.closest('[data-href]');
+        if (card) window.location.href = card.getAttribute('data-href');
+    });
+
 })();

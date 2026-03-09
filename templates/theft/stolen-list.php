@@ -49,7 +49,7 @@
 
     <div class="bike-grid">
       <?php foreach ($bikes as $bike): ?>
-        <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
+        <div class="bike-card card-hover" data-href="/bike/<?= e($bike->getQrHash()) ?>" style="cursor:pointer">
           <div class="bike-card-photo-wrap">
             <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
             <?php if ($primaryPhoto): ?>
@@ -73,10 +73,10 @@
             <?php endif; ?>
           </div>
           <div class="bike-card-footer">
-            <span class="btn btn-sm btn-ghost">Zobrazit detail</span>
-            <span class="btn btn-sm btn-success">Nahlásit nález</span>
+            <a href="/bike/<?= e($bike->getQrHash()) ?>" class="btn btn-sm btn-ghost">Zobrazit detail</a>
+            <a href="/found/report/<?= e($bike->getQrHash()) ?>" class="btn btn-sm btn-success">Nahlásit nález</a>
           </div>
-        </a>
+        </div>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
