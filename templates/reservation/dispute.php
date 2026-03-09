@@ -77,7 +77,9 @@ $owner = $reservation->getOwner();
 
       <div class="flex gap-sm">
         <button type="submit" class="btn btn-warning"
-                onclick="return confirm('Opravdu chcete podat námitku? Případ bude předán správci k rozhodnutí.')">
+                data-confirm="Opravdu chcete podat námitku? Případ bude předán správci k rozhodnutí."
+                data-confirm-class="btn-warning"
+                data-confirm-ok="Podat námitku">
           <i data-lucide="flag"></i> Podat námitku
         </button>
         <a href="/reservation/<?= $reservation->getId() ?>" class="btn btn-ghost">Zrušit</a>

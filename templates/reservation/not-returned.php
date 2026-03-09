@@ -55,7 +55,7 @@ $borrower = $reservation->getBorrower();
 
       <div class="flex gap-sm">
         <button type="submit" class="btn btn-danger"
-                onclick="return confirm('Opravdu chcete nahlásit nevrácení kola? Tento krok nelze vzít zpět.')">
+                data-confirm="Opravdu chcete nahlásit nevrácení kola? Tento krok nelze vzít zpět.">
           <i data-lucide="alert-circle"></i> Nahlásit nevrácení
         </button>
         <a href="/reservation/<?= $reservation->getId() ?>" class="btn btn-ghost">Zrušit</a>

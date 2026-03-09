@@ -172,6 +172,9 @@
 <!-- ── QR Scanner Modal ── -->
 <?php include __DIR__ . '/../partials/qr-modal.php'; ?>
 
+<!-- ── Confirm Modal ── -->
+<?php include __DIR__ . '/../partials/confirm-modal.php'; ?>
+
 <!-- ── Toast Container ── -->
 <div class="toast-container" id="toast-container"></div>
 

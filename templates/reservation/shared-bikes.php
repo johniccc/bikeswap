@@ -16,7 +16,6 @@
     <div class="bike-grid">
       <?php foreach ($bikes as $bike): ?>
         <?php
-          $unavailable = in_array($bike->getId(), $unavailableIds ?? [], true);
           $isLoggedIn = isset($currentUser) && $currentUser !== null;
           $isOwner = $isLoggedIn && $bike->isOwnedBy($currentUser->getId());
         ?>
@@ -28,11 +27,6 @@
             <?php else: ?>
               <div class="bike-card-photo-placeholder"><i data-lucide="image"></i></div>
             <?php endif; ?>
-            <div class="bike-card-badges">
-              <span class="availability-badge <?= $unavailable ? 'availability-unavailable' : 'availability-available' ?>">
-                <?= $unavailable ? 'Nedostupné' : 'Dostupné' ?>
-              </span>
-            </div>
           </div>
 
           <div class="bike-card-body">
@@ -50,16 +44,14 @@
           </div>
 
           <div class="bike-card-footer">
-            <?php if (!$unavailable && $isLoggedIn && !$isOwner): ?>
+            <?php if ($isLoggedIn && !$isOwner): ?>
               <a href="/reservation/new/<?= $bike->getId() ?>" class="btn btn-sm btn-primary">
                 <i data-lucide="calendar-plus"></i> Rezervovat
               </a>
-            <?php elseif (!$unavailable && !$isLoggedIn): ?>
+            <?php elseif (!$isLoggedIn): ?>
               <a href="/login?redirect=<?= urlencode('/bike/' . $bike->getQrHash()) ?>" class="btn btn-sm btn-primary">
                 <i data-lucide="log-in"></i> Přihlásit a rezervovat
               </a>
-            <?php elseif ($unavailable): ?>
-              <span class="btn btn-sm btn-ghost" style="opacity:0.5;pointer-events:none">Nedostupné</span>
             <?php endif; ?>
           </div>
         </div>

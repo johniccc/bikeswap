@@ -19,13 +19,13 @@ docker compose up -d
 - když jsem přesměrován na přihlášení, chci aby mě systém pak vrátil na původní stránku kam jsem chtěl jít
 - chci aby byli kartičky celého kola klikatelné a přesměrovávali na detail, ne jen tlačítko detail. tlačítko rezervovat samozřejmě přesměruje na rezervaci.
 - když jsem na stránce, kde se píše "načítání přihlašování", vždy vyskočí ten popup modal, ale když ho zavřu, chci aby mě to přesměrovalo zpět na homepage, ne jen na prázdnou stránku, kde je jen "načítání přihlášení". nebo nejlépe bys asi udělal, kdyby tento požadavek na přihlášení vyskakoval přes landing page, aby při zavření byla rovnou ta landing page a nemusel jsi přesměrovávat.
-
 - proč je kolo, co je schválené na výpůjčku klasifikováno jako nedostupné v sekci sdílených kol? to nechci
 - Důležité akce (zrušení rezervace apod.) by měl mít potvrzovací modal okna
 
 - Při registraci zvýrazni nějakým způsobem důležitost zadání kontaktu (email, telefon), klidně ty bannery co jsou na přehledu nebo když se zobrazuje že je kolo odcizené přímo na stránce kola.  Zdůrazni že je to pro dobro uživatele a že to umožňuje rychlejší kontakt.
 - Přidej funkci zapomenuté heslo + přidej požadavky pro hesla (při registraci)
 - jakmile je kolo schváleno na výpůjčku, chci aby to u něho bylo vidět (podobně jako u odcizeného) a bude mít i badge na kartě s datem odkdy dokdy.
+
 - sdílená kola půjde taky hledat, filtrovat apod (např. dle barvy)
 - konečně doděláme user profile, uživatel si v sekci svého profilu bude moci měnit své údaje / user preferences co se týče zpráv na mail atd.
 - V admin panelu bych byl rád, kdyby admin mohl též uživatelům měnit údaje, i kolům / mazat je / přidávat je (prostě celý CRUD). měl by také vidět nebo mít možnost vstoupit do konverzací (všech), ostatní ho neuvidí dokud samozřejmě nenapíše (podobný badge jak policie). V admin panelu zatím nefunguje ban uživatele ani změna role (tu bych chtěl udělat stylem dropdownu), ale to oprav s přidáním všech ostatních funkcí co jsem ti napsal 
