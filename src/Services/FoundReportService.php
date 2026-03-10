@@ -298,7 +298,7 @@ class FoundReportService
             }
 
             if (!empty($report->getReporterEmail())) {
-                $this->emailService->sendFoundReportResolved($report->getReporterEmail(), $bikeName);
+                $this->emailService->sendFoundReportResolved($report->getReporterEmail(), $bikeName, $report->getConversationToken());
             }
 
             $this->db->commit();

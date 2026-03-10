@@ -10,10 +10,10 @@ use App\Repository\UserRepository;
 
 /**
  * Email service.
- * 
+ *
  * Sends email notifications using PHP's mail() function.
  * Checks user preferences before sending — respects opt-out settings.
- * 
+ *
  * NOTE: This is a functional stub. On the school server, mail() may need
  * proper SMTP configuration. For development, emails are logged instead of sent.
  */
@@ -23,6 +23,7 @@ class EmailService
     private UserPreferencesRepository $preferencesRepository;
     private string $fromAddress;
     private string $fromName;
+    private string $appUrl;
     private bool $isDebug;
 
     public function __construct(
@@ -34,7 +35,16 @@ class EmailService
         $this->preferencesRepository = $preferencesRepository;
         $this->fromAddress = $config['mail']['from_address'] ?? 'noreply@bikeswap.cz';
         $this->fromName = $config['mail']['from_name'] ?? 'BikeSwap';
+        $this->appUrl = rtrim($config['app']['url'] ?? 'http://localhost', '/');
         $this->isDebug = ($config['app']['debug'] ?? false) === true;
+    }
+
+    /**
+     * Build an absolute URL from a path.
+     */
+    private function url(string $path): string
+    {
+        return $this->appUrl . $path;
     }
 
     /**
@@ -55,10 +65,10 @@ class EmailService
         $subject = 'Někdo nalezl vaše kolo – ' . $bike->getFullName();
         $body = sprintf(
             "Dobrý den,\n\nněkdo nahlásil nález vašeho kola %s.\n\n" .
-            "Přihlaste se do BikeSwap a podívejte se na detail:\n%s\n\n" .
+            "Přejděte na BikeSwap a podívejte se na detail nálezu:\n%s\n\n" .
             "S pozdravem,\nBikeSwap",
             $bike->getFullName(),
-            '/bike/' . $bike->getQrHash()
+            $this->url('/dashboard')
         );
 
         $this->send($user->getEmail(), $subject, $body);
@@ -72,12 +82,11 @@ class EmailService
         $subject = 'Potvrzení nahlášení nálezu – BikeSwap';
         $body = sprintf(
             "Dobrý den,\n\nděkujeme za nahlášení nálezu kola %s.\n\n" .
-            "Majitel kola byl upozorněn. Pro přístup ke konverzaci použijte tento odkaz:\n" .
-            "/found/conversation/%s\n\n" .
+            "Majitel kola byl upozorněn. Pro přístup ke konverzaci použijte tento odkaz:\n%s\n\n" .
             "Tento odkaz si uložte — je to váš jediný přístup ke konverzaci.\n\n" .
             "S pozdravem,\nBikeSwap",
             $bike->getFullName(),
-            $conversationToken
+            $this->url('/found/conversation/' . $conversationToken)
         );
 
         $this->send($finderEmail, $subject, $body);
@@ -101,10 +110,10 @@ class EmailService
         $subject = 'Nová zpráva od nálezce – ' . $bike->getFullName();
         $body = sprintf(
             "Dobrý den,\n\nmáte novou zprávu v konverzaci o kole %s.\n\n" .
-            "Přihlaste se do BikeSwap pro odpověď:\n%s\n\n" .
+            "Přejděte do BikeSwap pro odpověď:\n%s\n\n" .
             "S pozdravem,\nBikeSwap",
             $bike->getFullName(),
-            '/bike/' . $bike->getQrHash()
+            $this->url('/dashboard')
         );
 
         $this->send($user->getEmail(), $subject, $body);
@@ -118,11 +127,10 @@ class EmailService
         $subject = 'Nová zpráva od majitele kola – BikeSwap';
         $body = sprintf(
             "Dobrý den,\n\nmajitel kola %s vám odpověděl.\n\n" .
-            "Pro zobrazení zprávy a odpověď použijte tento odkaz:\n" .
-            "/found/conversation/%s\n\n" .
+            "Pro zobrazení zprávy a odpověď použijte tento odkaz:\n%s\n\n" .
             "S pozdravem,\nBikeSwap",
             $bike->getFullName(),
-            $conversationToken
+            $this->url('/found/conversation/' . $conversationToken)
         );
 
         $this->send($finderEmail, $subject, $body);
@@ -146,10 +154,10 @@ class EmailService
         $subject = 'Nová žádost o výpůjčku – ' . $bike->getFullName();
         $body = sprintf(
             "Dobrý den,\n\nněkdo požádal o výpůjčku vašeho kola %s.\n\n" .
-            "Přihlaste se do BikeSwap pro schválení nebo zamítnutí:\n/reservation/%d\n\n" .
+            "Přejděte do BikeSwap pro schválení nebo zamítnutí:\n%s\n\n" .
             "S pozdravem,\nBikeSwap",
             $bike->getFullName(),
-            $reservationId
+            $this->url('/reservation/' . $reservationId)
         );
 
         $this->send($user->getEmail(), $subject, $body);
@@ -173,10 +181,10 @@ class EmailService
         $subject = $statusMessage . ' – ' . $bike->getFullName();
         $body = sprintf(
             "Dobrý den,\n\n%s\n\n" .
-            "Přihlaste se do BikeSwap pro více informací:\n/reservation/%d\n\n" .
+            "Přejděte do BikeSwap pro více informací:\n%s\n\n" .
             "S pozdravem,\nBikeSwap",
             $statusMessage,
-            $reservationId
+            $this->url('/reservation/' . $reservationId)
         );
 
         $this->send($user->getEmail(), $subject, $body);
@@ -202,14 +210,20 @@ class EmailService
     /**
      * Notify finder that the owner marked the bike as found/recovered.
      */
-    public function sendFoundReportResolved(string $finderEmail, string $bikeName): void
+    public function sendFoundReportResolved(string $finderEmail, string $bikeName, ?string $conversationToken = null): void
     {
         $subject = 'Nález kola vyřešen – BikeSwap';
+
+        $linkLine = $conversationToken
+            ? "\nPro zobrazení konverzace použijte tento odkaz:\n" . $this->url('/found/conversation/' . $conversationToken) . "\n"
+            : '';
+
         $body = sprintf(
             "Dobrý den,\n\nmajitel kola %s označil případ jako vyřešený — kolo bylo nalezeno.\n\n" .
-            "Děkujeme vám za pomoc při jeho nahlášení!\n\n" .
+            "Děkujeme vám za pomoc při jeho nahlášení!%s\n" .
             "S pozdravem,\nBikeSwap",
-            $bikeName
+            $bikeName,
+            $linkLine
         );
 
         $this->send($finderEmail, $subject, $body);
@@ -233,10 +247,10 @@ class EmailService
         $subject = 'Nová zpráva v konverzaci – ' . $bike->getFullName();
         $body = sprintf(
             "Dobrý den,\n\nmáte novou zprávu v konverzaci k rezervaci kola %s.\n\n" .
-            "Přihlaste se do BikeSwap pro odpověď:\n/reservation/%d\n\n" .
+            "Přejděte do BikeSwap pro odpověď:\n%s\n\n" .
             "S pozdravem,\nBikeSwap",
             $bike->getFullName(),
-            $reservationId
+            $this->url('/reservation/' . $reservationId)
         );
 
         $this->send($user->getEmail(), $subject, $body);

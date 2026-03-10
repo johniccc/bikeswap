@@ -18,13 +18,15 @@ class AuthController
     private UserRepository $userRepo;
     private Session $session;
     private EmailService $emailService;
+    private string $appUrl;
 
-    public function __construct(AuthService $authService, UserRepository $userRepo, Session $session, EmailService $emailService)
+    public function __construct(AuthService $authService, UserRepository $userRepo, Session $session, EmailService $emailService, array $config)
     {
         $this->authService  = $authService;
         $this->userRepo     = $userRepo;
         $this->session      = $session;
         $this->emailService = $emailService;
+        $this->appUrl       = rtrim($config['app']['url'] ?? 'http://localhost', '/');
     }
 
     /**
@@ -228,9 +230,7 @@ class AuthController
             $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour
             $this->userRepo->setPasswordResetToken($user->getId(), $token, $expires);
 
-            $resetUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
-                . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
-                . '/reset-password?token=' . $token;
+            $resetUrl = $this->appUrl . '/reset-password?token=' . $token;
 
             $this->emailService->sendPasswordReset($user->getEmail(), $resetUrl);
         }
