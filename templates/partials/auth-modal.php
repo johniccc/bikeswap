@@ -43,6 +43,9 @@
         <div class="auth-switch">
           Nemáte účet? <button type="button" class="auth-switch-btn" data-tab="register">Zaregistrujte se</button>
         </div>
+        <div class="auth-switch" style="margin-top:0.5rem">
+          <a href="/forgot-password" style="font-size:0.85em;color:var(--text-muted)">Zapomněli jste heslo?</a>
+        </div>
       </form>
 
       <!-- Register Form -->
@@ -62,13 +65,25 @@
         </div>
 
         <div class="form-group">
-          <label for="reg-phone">Telefon <span class="text-light">(nepovinné)</span></label>
+          <label for="reg-phone">
+            Telefon
+            <span style="font-size:0.8em;font-weight:600;color:var(--warning)"> doporučeno</span>
+          </label>
           <input type="tel" id="reg-phone" name="phone" autocomplete="tel" placeholder="+420 ...">
+          <p class="form-help text-sm mt-xs">
+            <i data-lucide="info" style="width:13px;height:13px;display:inline;vertical-align:-2px"></i>
+            Umožní rychlejší kontakt při nálezu kola nebo výpůjčce. Vidí ho jen přihlášení uživatelé.
+          </p>
         </div>
 
         <div class="form-group">
           <label for="reg-password">Heslo</label>
-          <input type="password" id="reg-password" name="password" required autocomplete="new-password" placeholder="Min. 8 znaků" minlength="8">
+          <input type="password" id="reg-password" name="password" required autocomplete="new-password" placeholder="Min. 8 znaků">
+          <div class="password-requirements mt-xs" id="pwd-requirements">
+            <div class="pwd-req" id="req-length"><i data-lucide="circle" style="width:12px;height:12px"></i> Min. 8 znaků</div>
+            <div class="pwd-req" id="req-upper"><i data-lucide="circle" style="width:12px;height:12px"></i> Alespoň 1 velké písmeno</div>
+            <div class="pwd-req" id="req-number"><i data-lucide="circle" style="width:12px;height:12px"></i> Alespoň 1 číslo</div>
+          </div>
         </div>
 
         <div class="form-group">

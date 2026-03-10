@@ -18,6 +18,7 @@
         <?php
           $isLoggedIn = isset($currentUser) && $currentUser !== null;
           $isOwner = $isLoggedIn && $bike->isOwnedBy($currentUser->getId());
+          $activeRes = $activeReservations[$bike->getId()] ?? null;
         ?>
         <div class="bike-card card-hover" data-href="/bike/<?= e($bike->getQrHash()) ?>" style="cursor:pointer">
           <div class="bike-card-photo-wrap">
@@ -26,6 +27,14 @@
               <img src="<?= e($photo->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>" class="bike-card-photo">
             <?php else: ?>
               <div class="bike-card-photo-placeholder"><i data-lucide="image"></i></div>
+            <?php endif; ?>
+            <?php if ($activeRes): ?>
+              <div class="bike-card-badges">
+                <span class="status-badge" style="background:var(--warning-light,#fef3c7);color:var(--warning,#d97706);border:1px solid var(--warning,#d97706)">
+                  <i data-lucide="calendar" style="width:11px;height:11px;display:inline;vertical-align:-1px"></i>
+                  <?= e(date('d.m.', strtotime($activeRes['date_from']))) ?> – <?= e(date('d.m.', strtotime($activeRes['date_to']))) ?>
+                </span>
+              </div>
             <?php endif; ?>
           </div>
 

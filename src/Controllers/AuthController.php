@@ -7,17 +7,20 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
+use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
 
 class AuthController
 {
     private AuthService $authService;
+    private UserRepository $userRepo;
     private Session $session;
 
-    public function __construct(AuthService $authService, Session $session)
+    public function __construct(AuthService $authService, UserRepository $userRepo, Session $session)
     {
         $this->authService = $authService;
+        $this->userRepo    = $userRepo;
         $this->session = $session;
     }
 
@@ -58,6 +61,8 @@ class AuthController
             ->email('email')
             ->required('password', 'Heslo je povinné.')
             ->minLength('password', 8, 'Heslo musí mít alespoň 8 znaků.')
+            ->regex('password', '/[A-Z]/', 'Heslo musí obsahovat alespoň jedno velké písmeno.')
+            ->regex('password', '/[0-9]/', 'Heslo musí obsahovat alespoň jedno číslo.')
             ->matches('password', 'password_confirmation', 'Hesla se neshodují.');
 
         if ($validator->fails()) {
@@ -187,5 +192,113 @@ class AuthController
         }
 
         return redirect('/');
+    }
+
+    /**
+     * Show forgot password form.
+     */
+    public function forgotPasswordForm(Request $request): Response
+    {
+        return view('auth/forgot-password', [
+            'title' => 'Zapomenuté heslo – BikeSwap',
+            'csrf'  => $this->session->csrfToken(),
+            'session' => $this->session,
+        ])->withLayout('layouts/public');
+    }
+
+    /**
+     * Process forgot password request.
+     */
+    public function forgotPassword(Request $request): Response
+    {
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return redirect('/forgot-password');
+        }
+
+        $email = trim($request->input('email', ''));
+        $user  = $this->userRepo->findByEmail($email);
+
+        // Always show success to prevent user enumeration
+        if ($user !== null) {
+            $token   = bin2hex(random_bytes(32));
+            $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour
+            $this->userRepo->setPasswordResetToken($user->getId(), $token, $expires);
+
+            $resetUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
+                . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
+                . '/reset-password?token=' . $token;
+
+            $subject = 'Obnovení hesla – BikeSwap';
+            $body    = "Dobrý den,\n\nObdrželi jsme žádost o obnovení hesla pro váš účet.\n\n"
+                     . "Pro nastavení nového hesla klikněte na odkaz níže:\n{$resetUrl}\n\n"
+                     . "Odkaz je platný 1 hodinu. Pokud jste o obnovení nepožádali, ignorujte tento e-mail.\n\n"
+                     . "BikeSwap";
+
+            @mail($user->getEmail(), $subject, $body, "From: noreply@bikeswap.cz\r\nContent-Type: text/plain; charset=UTF-8");
+        }
+
+        $this->session->flash('success', 'Pokud účet s tímto e-mailem existuje, obdržíte instrukce pro obnovení hesla.');
+        return redirect('/forgot-password');
+    }
+
+    /**
+     * Show reset password form.
+     */
+    public function resetPasswordForm(Request $request): Response
+    {
+        $token = $request->query('token', '');
+        $user  = $token ? $this->userRepo->findByPasswordResetToken($token) : null;
+
+        if ($user === null) {
+            $this->session->flash('error', 'Odkaz pro obnovení hesla je neplatný nebo vypršel.');
+            return redirect('/forgot-password');
+        }
+
+        return view('auth/reset-password', [
+            'title' => 'Nové heslo – BikeSwap',
+            'csrf'  => $this->session->csrfToken(),
+            'token' => $token,
+            'session' => $this->session,
+        ])->withLayout('layouts/public');
+    }
+
+    /**
+     * Process reset password form.
+     */
+    public function resetPassword(Request $request): Response
+    {
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return redirect('/forgot-password');
+        }
+
+        $token = $request->input('token', '');
+        $user  = $token ? $this->userRepo->findByPasswordResetToken($token) : null;
+
+        if ($user === null) {
+            $this->session->flash('error', 'Odkaz pro obnovení hesla je neplatný nebo vypršel.');
+            return redirect('/forgot-password');
+        }
+
+        $validator = new Validator($request->all());
+        $validator
+            ->required('password', 'Heslo je povinné.')
+            ->minLength('password', 8, 'Heslo musí mít alespoň 8 znaků.')
+            ->regex('password', '/[A-Z]/', 'Heslo musí obsahovat alespoň jedno velké písmeno.')
+            ->regex('password', '/[0-9]/', 'Heslo musí obsahovat alespoň jedno číslo.')
+            ->matches('password', 'password_confirmation', 'Hesla se neshodují.');
+
+        if ($validator->fails()) {
+            $this->session->flash('error', $validator->allErrors()[0]);
+            return redirect('/reset-password?token=' . urlencode($token));
+        }
+
+        $hash = password_hash($request->input('password'), PASSWORD_BCRYPT, ['cost' => 12]);
+        $this->userRepo->updatePassword($user->getId(), $hash);
+        $this->userRepo->clearPasswordResetToken($user->getId());
+
+        $this->session->flash('success', 'Heslo bylo úspěšně změněno. Nyní se můžete přihlásit.');
+        return redirect('/login');
     }
 }

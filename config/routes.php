@@ -44,6 +44,10 @@ $router->post('/register', [AuthController::class, 'register']);
 $router->get('/login', [AuthController::class, 'loginForm']);
 $router->post('/login', [AuthController::class, 'login']);
 $router->post('/logout', [AuthController::class, 'logout']);
+$router->get('/forgot-password', [AuthController::class, 'forgotPasswordForm']);
+$router->post('/forgot-password', [AuthController::class, 'forgotPassword']);
+$router->get('/reset-password', [AuthController::class, 'resetPasswordForm']);
+$router->post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // ── Found reports (public — no auth required) ──────────────────
 
@@ -63,6 +67,7 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     // Profile
     $router->get('/profile', [ProfileController::class, 'index']);
     $router->get('/profile/settings', [ProfileController::class, 'settings']);
+    $router->post('/profile/settings', [ProfileController::class, 'updateSettings']);
 
     // Bike CRUD (BEFORE the public /bike/{hash} route!)
     $router->get('/bike/new', [BikeController::class, 'createForm']);

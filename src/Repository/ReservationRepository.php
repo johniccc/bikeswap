@@ -241,6 +241,46 @@ class ReservationRepository
     }
 
     /**
+     * Find the nearest current/upcoming approved or active reservation for each bike.
+     * Returns a map of [bikeId => ['date_from' => ..., 'date_to' => ..., 'status' => ...]].
+     *
+     * @param int[] $bikeIds
+     * @return array<int, array{date_from: string, date_to: string, status: string}>
+     */
+    public function findCurrentByBikeIds(array $bikeIds): array
+    {
+        if (empty($bikeIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($bikeIds), '?'));
+        $rows = $this->db->fetchAll(
+            "SELECT bike_id, date_from, date_to, status
+             FROM reservations
+             WHERE bike_id IN ({$placeholders})
+               AND status IN ('approved', 'active')
+               AND date_to >= CURDATE()
+             ORDER BY date_from ASC",
+            $bikeIds
+        );
+
+        $map = [];
+        foreach ($rows as $row) {
+            $id = (int) $row['bike_id'];
+            // Keep only the earliest reservation per bike
+            if (!isset($map[$id])) {
+                $map[$id] = [
+                    'date_from' => $row['date_from'],
+                    'date_to'   => $row['date_to'],
+                    'status'    => $row['status'],
+                ];
+            }
+        }
+
+        return $map;
+    }
+
+    /**
      * Count reservations by status for a bike.
      */
     public function countByBikeAndStatus(int $bikeId, string $status): int

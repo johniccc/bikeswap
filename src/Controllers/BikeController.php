@@ -111,6 +111,8 @@ class BikeController
 
         $layout = $currentUser ? 'layouts/app' : 'layouts/public';
 
+        $activeReservations = $this->reservationRepository->findCurrentByBikeIds([$bike->getId()]);
+
         return view('bike/public-detail', [
             'title' => $bike->getFullName() . ' – BikeSwap',
             'bike' => $bike,
@@ -118,6 +120,7 @@ class BikeController
             'isOwner' => $isOwner,
             'theftReport' => $bike->isStolen() ? $this->theftReportRepository->findActiveByBikeId($bike->getId()) : null,
             'foundReports' => $foundReports,
+            'activeReservation' => $activeReservations[$bike->getId()] ?? null,
             'qrDataUri' => $this->qrService->generateQrDataUri($hash),
             'session' => $this->session,
             'csrf' => $this->session->csrfToken(),

@@ -207,6 +207,45 @@ class UserRepository
     }
 
     /**
+     * Find a user by password reset token (only if not expired).
+     */
+    public function findByPasswordResetToken(string $token): ?User
+    {
+        $row = $this->db->fetchOne(
+            "SELECT * FROM users WHERE password_reset_token = ? AND password_reset_expires > NOW()",
+            [$token]
+        );
+
+        return $row ? User::fromRow($row) : null;
+    }
+
+    /**
+     * Set a password reset token and expiry for a user.
+     */
+    public function setPasswordResetToken(int $userId, string $token, string $expires): void
+    {
+        $this->db->update(
+            'users',
+            ['password_reset_token' => $token, 'password_reset_expires' => $expires],
+            'id = ?',
+            [$userId]
+        );
+    }
+
+    /**
+     * Clear the password reset token after use.
+     */
+    public function clearPasswordResetToken(int $userId): void
+    {
+        $this->db->update(
+            'users',
+            ['password_reset_token' => null, 'password_reset_expires' => null],
+            'id = ?',
+            [$userId]
+        );
+    }
+
+    /**
      * Delete a user by ID.
      */
     public function delete(int $userId): void

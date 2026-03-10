@@ -811,7 +811,37 @@
         });
     })();
 
-    // ── 17. Clickable cards with data-href ─────────────────
+    // ── 17. Password requirements indicator ────────────────
+    (function() {
+        var pwdInput = document.getElementById('reg-password');
+        if (!pwdInput) return;
+
+        var reqs = {
+            'req-length': function(v) { return v.length >= 8; },
+            'req-upper':  function(v) { return /[A-Z]/.test(v); },
+            'req-number': function(v) { return /[0-9]/.test(v); }
+        };
+
+        function updateReq(id, met) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var icon = el.querySelector('i[data-lucide]');
+            if (icon) {
+                icon.setAttribute('data-lucide', met ? 'check-circle' : 'circle');
+                initIcons();
+            }
+            el.style.color = met ? 'var(--success)' : 'var(--text-muted)';
+        }
+
+        pwdInput.addEventListener('input', function() {
+            var val = pwdInput.value;
+            for (var id in reqs) {
+                updateReq(id, reqs[id](val));
+            }
+        });
+    })();
+
+    // ── 18. Clickable cards with data-href ─────────────────
     // Cards with data-href navigate to that URL on click,
     // but <a>, <button>, and [data-confirm] inside the card work independently.
     document.addEventListener('click', function(e) {

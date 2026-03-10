@@ -164,6 +164,20 @@ class Validator
         return $flat;
     }
 
+    /**
+     * Field value must match a regex pattern.
+     */
+    public function regex(string $field, string $pattern, string $message = ''): self
+    {
+        $value = $this->data[$field] ?? '';
+
+        if ($value !== '' && !preg_match($pattern, $value)) {
+            $this->addError($field, $message ?: "Pole '{$field}' má neplatný formát.");
+        }
+
+        return $this;
+    }
+
     private function addError(string $field, string $message): void
     {
         $this->errors[$field][] = $message;

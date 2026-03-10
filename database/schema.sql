@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS `users` (
     `address`            VARCHAR(255)    NULL DEFAULT NULL,
     `is_verified`        TINYINT(1)      NOT NULL DEFAULT 0,
     `verification_token` VARCHAR(64)     NULL DEFAULT NULL,
+    `password_reset_token`   VARCHAR(64) NULL DEFAULT NULL,
+    `password_reset_expires` DATETIME    NULL DEFAULT NULL,
     `karma_score`        INT             NOT NULL DEFAULT 0,
     `is_banned`          TINYINT(1)      NOT NULL DEFAULT 0,
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,

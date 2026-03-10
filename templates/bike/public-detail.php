@@ -101,6 +101,20 @@
       </div>
     </div>
 
+    <!-- Active reservation info banner -->
+    <?php if (isset($activeReservation) && $activeReservation && $bike->isShared() && !$bike->isStolen()): ?>
+      <div class="alert" style="background:var(--warning-light,#fef3c7);border:1px solid var(--warning,#d97706);color:var(--warning-dark,#92400e);margin-top:1rem;border-radius:var(--radius-md)">
+        <i data-lucide="calendar"></i>
+        <div>
+          <strong>Kolo je momentálně rezervováno</strong>
+          <p class="mt-xs text-sm">
+            Termín: <?= e(date('d.m.Y', strtotime($activeReservation['date_from']))) ?> – <?= e(date('d.m.Y', strtotime($activeReservation['date_to']))) ?>
+            — Můžete rezervovat na jiný termín.
+          </p>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <!-- Reservation CTA for non-owner logged-in users -->
     <?php if ($currentUser && !$isOwner && !$currentUser->isPolice() && $bike->isShared() && !$bike->isStolen()): ?>
       <div class="card mt-lg">

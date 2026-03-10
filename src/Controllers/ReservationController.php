@@ -66,11 +66,15 @@ class ReservationController
         $currentUser = $this->authService->currentUser();
         $layout = $currentUser ? 'layouts/app' : 'layouts/public';
 
+        $bikeIds = array_map(fn($b) => $b->getId(), $bikes);
+        $activeReservations = $this->reservationRepo->findCurrentByBikeIds($bikeIds);
+
         return view('reservation/shared-bikes', [
-            'title' => 'Sdílená kola – BikeSwap',
-            'bikes' => $bikes,
-            'currentUser' => $currentUser,
-            'session' => $this->session,
+            'title'              => 'Sdílená kola – BikeSwap',
+            'bikes'              => $bikes,
+            'activeReservations' => $activeReservations,
+            'currentUser'        => $currentUser,
+            'session'            => $this->session,
         ])->withLayout($layout);
     }
 

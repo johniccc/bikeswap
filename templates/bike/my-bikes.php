@@ -1,5 +1,16 @@
 <div data-auto-refresh="/dashboard/poll" data-refresh-interval="8000"></div>
 
+<?php if (isset($currentUser) && !$currentUser->getPhone()): ?>
+  <div class="alert alert-warning mb-lg" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+    <i data-lucide="phone-missed" style="flex-shrink:0"></i>
+    <div style="flex:1">
+      <strong>Nemáte vyplněné telefonní číslo.</strong>
+      <p class="mt-xs text-sm">Telefon usnadní kontakt při nálezu kola nebo výpůjčce — ostatní uživatelé vás mohou rychleji zastihnout.</p>
+    </div>
+    <a href="/profile/settings" class="btn btn-sm btn-warning" style="flex-shrink:0">Doplnit kontakt</a>
+  </div>
+<?php endif; ?>
+
 <div class="page-header">
   <h1>Moje kola</h1>
   <div class="page-header-actions">

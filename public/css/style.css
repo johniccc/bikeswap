@@ -1706,6 +1706,21 @@ body.modal-blur > *:not(.modal-overlay):not(.toast-container) {
   cursor: pointer;
 }
 
+/* Password requirements */
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.pwd-req {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 150ms;
+}
+
 
 /* ──────────────────────────────────────────────────────────────────
    17. BIKE GRID & CARDS
