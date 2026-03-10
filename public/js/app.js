@@ -825,15 +825,7 @@
         function updateReq(id, met) {
             var el = document.getElementById(id);
             if (!el) return;
-            // Remove existing svg/i and replace with fresh i element so initIcons works
-            var existing = el.querySelector('i[data-lucide], svg');
-            if (existing) existing.remove();
-            var newIcon = document.createElement('i');
-            newIcon.setAttribute('data-lucide', met ? 'disc' : 'circle');
-            newIcon.style.cssText = 'width:12px;height:12px';
-            el.prepend(newIcon);
-            initIcons();
-            el.style.color = met ? 'var(--success)' : 'var(--text-muted)';
+            el.classList.toggle('met', met);
         }
 
         pwdInput.addEventListener('input', function() {

@@ -14,9 +14,9 @@
             <label for="rp-password">Nové heslo</label>
             <input type="password" id="rp-password" name="password" required autocomplete="new-password" placeholder="Min. 8 znaků">
             <div class="password-requirements mt-xs" id="pwd-requirements">
-              <div class="pwd-req" id="req-length"><i data-lucide="circle" style="width:12px;height:12px"></i> Min. 8 znaků</div>
-              <div class="pwd-req" id="req-upper"><i data-lucide="circle" style="width:12px;height:12px"></i> Alespoň 1 velké písmeno</div>
-              <div class="pwd-req" id="req-number"><i data-lucide="circle" style="width:12px;height:12px"></i> Alespoň 1 číslo</div>
+              <div class="pwd-req" id="req-length"> Min. 8 znaků</div>
+              <div class="pwd-req" id="req-upper"> Alespoň 1 velké písmeno</div>
+              <div class="pwd-req" id="req-number"> Alespoň 1 číslo</div>
             </div>
           </div>
 
@@ -44,21 +44,12 @@
     'req-upper':  function(v) { return /[A-Z]/.test(v); },
     'req-number': function(v) { return /[0-9]/.test(v); }
   };
-  function updateReq(id, met) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    var existing = el.querySelector('i[data-lucide], svg');
-    if (existing) existing.remove();
-    var newIcon = document.createElement('i');
-    newIcon.setAttribute('data-lucide', met ? 'disc' : 'circle');
-    newIcon.style.cssText = 'width:12px;height:12px';
-    el.prepend(newIcon);
-    if (window.lucide) window.lucide.createIcons();
-    el.style.color = met ? 'var(--success)' : 'var(--text-muted)';
-  }
   pwdInput.addEventListener('input', function() {
     var val = pwdInput.value;
-    for (var id in reqs) { updateReq(id, reqs[id](val)); }
+    for (var id in reqs) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('met', reqs[id](val));
+    }
   });
 })();
 </script>

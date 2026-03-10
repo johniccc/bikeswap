@@ -80,9 +80,9 @@
           <label for="reg-password">Heslo</label>
           <input type="password" id="reg-password" name="password" required autocomplete="new-password" placeholder="Min. 8 znaků">
           <div class="password-requirements mt-xs" id="pwd-requirements">
-            <div class="pwd-req" id="req-length"><i data-lucide="circle" style="width:12px;height:12px"></i> Min. 8 znaků</div>
-            <div class="pwd-req" id="req-upper"><i data-lucide="circle" style="width:12px;height:12px"></i> Alespoň 1 velké písmeno</div>
-            <div class="pwd-req" id="req-number"><i data-lucide="circle" style="width:12px;height:12px"></i> Alespoň 1 číslo</div>
+            <div class="pwd-req" id="req-length"> Min. 8 znaků</div>
+            <div class="pwd-req" id="req-upper"> Alespoň 1 velké písmeno</div>
+            <div class="pwd-req" id="req-number"> Alespoň 1 číslo</div>
           </div>
         </div>
 

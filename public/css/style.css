@@ -1712,6 +1712,20 @@ body.modal-blur > *:not(.modal-overlay):not(.toast-container) {
   flex-direction: column;
   gap: 0.2rem;
 }
+.pwd-req::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  flex-shrink: 0;
+  transition: background 150ms, border-color 150ms;
+}
+.pwd-req.met::before {
+  background: var(--success);
+  border-color: var(--success);
+}
 .pwd-req {
   font-size: 0.8rem;
   color: var(--text-muted);
