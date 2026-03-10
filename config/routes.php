@@ -68,6 +68,7 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->get('/profile', [ProfileController::class, 'index']);
     $router->get('/profile/settings', [ProfileController::class, 'settings']);
     $router->post('/profile/settings', [ProfileController::class, 'updateSettings']);
+    $router->post('/profile/settings/preferences', [ProfileController::class, 'updatePreferences']);
 
     // Bike CRUD (BEFORE the public /bike/{hash} route!)
     $router->get('/bike/new', [BikeController::class, 'createForm']);

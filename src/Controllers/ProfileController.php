@@ -10,6 +10,7 @@ use App\Core\Validator;
 use App\Repository\BikeRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\FoundReportRepository;
+use App\Repository\UserPreferencesRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
@@ -22,6 +23,7 @@ class ProfileController
         private ReservationRepository $reservationRepo,
         private FoundReportRepository $foundReportRepo,
         private UserRepository $userRepo,
+        private UserPreferencesRepository $preferencesRepo,
         private Session $session,
     ) {}
 
@@ -54,9 +56,12 @@ class ProfileController
             return redirect('/login?redirect=/profile/settings');
         }
 
+        $preferences = $this->preferencesRepo->findByUserId($user->getId());
+
         return view('profile/settings', [
             'title'       => 'Nastavení profilu – BikeSwap',
             'user'        => $user,
+            'preferences' => $preferences,
             'csrf'        => $this->session->csrfToken(),
             'session'     => $this->session,
             'currentUser' => $user,
@@ -90,6 +95,29 @@ class ProfileController
         ]);
 
         $this->session->flash('success', 'Profil byl úspěšně aktualizován.');
+        return redirect('/profile/settings');
+    }
+
+    public function updatePreferences(Request $request): Response
+    {
+        $user = $this->authService->currentUser();
+        if ($user === null) {
+            return redirect('/login?redirect=/profile/settings');
+        }
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný bezpečnostní token.');
+            return redirect('/profile/settings');
+        }
+
+        $this->preferencesRepo->save($user->getId(), [
+            'email_on_found_report'  => $request->input('email_on_found_report') !== null,
+            'email_on_reservation'   => $request->input('email_on_reservation') !== null,
+            'email_on_message'       => $request->input('email_on_message') !== null,
+            'email_on_status_change' => $request->input('email_on_status_change') !== null,
+        ]);
+
+        $this->session->flash('success', 'E-mailové předvolby byly uloženy.');
         return redirect('/profile/settings');
     }
 }

@@ -56,6 +56,62 @@
   </div>
 </div>
 
+<div class="card max-w-lg mb-lg">
+  <div class="card-header">
+    <h3>E-mailová upozornění</h3>
+  </div>
+  <div class="card-body">
+    <p class="text-muted text-sm mb-md">Vyberte, o jakých událostech chcete být informováni e-mailem.</p>
+    <form method="POST" action="/profile/settings/preferences">
+      <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+
+      <div class="pref-list">
+        <label class="pref-row">
+          <div class="pref-info">
+            <span class="pref-title">Nález kola</span>
+            <span class="pref-desc text-muted text-sm">Někdo nahlásí nález vašeho kola</span>
+          </div>
+          <input type="checkbox" name="email_on_found_report" class="pref-toggle"
+                 <?= $preferences->isEmailOnFoundReport() ? 'checked' : '' ?>>
+        </label>
+
+        <label class="pref-row">
+          <div class="pref-info">
+            <span class="pref-title">Nová rezervace</span>
+            <span class="pref-desc text-muted text-sm">Někdo požádá o výpůjčku vašeho kola</span>
+          </div>
+          <input type="checkbox" name="email_on_reservation" class="pref-toggle"
+                 <?= $preferences->isEmailOnReservation() ? 'checked' : '' ?>>
+        </label>
+
+        <label class="pref-row">
+          <div class="pref-info">
+            <span class="pref-title">Nová zpráva</span>
+            <span class="pref-desc text-muted text-sm">Nová zpráva v konverzaci (rezervace nebo nález)</span>
+          </div>
+          <input type="checkbox" name="email_on_message" class="pref-toggle"
+                 <?= $preferences->isEmailOnMessage() ? 'checked' : '' ?>>
+        </label>
+
+        <label class="pref-row">
+          <div class="pref-info">
+            <span class="pref-title">Změna stavu výpůjčky</span>
+            <span class="pref-desc text-muted text-sm">Schválení, zamítnutí, dokončení a další změny stavu</span>
+          </div>
+          <input type="checkbox" name="email_on_status_change" class="pref-toggle"
+                 <?= $preferences->isEmailOnStatusChange() ? 'checked' : '' ?>>
+        </label>
+      </div>
+
+      <div class="form-actions mt-md">
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="save"></i> Uložit předvolby
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="card max-w-lg">
   <div class="card-body">
     <div class="info-row">

@@ -10,18 +10,21 @@ use App\Core\Validator;
 use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
+use App\Services\EmailService;
 
 class AuthController
 {
     private AuthService $authService;
     private UserRepository $userRepo;
     private Session $session;
+    private EmailService $emailService;
 
-    public function __construct(AuthService $authService, UserRepository $userRepo, Session $session)
+    public function __construct(AuthService $authService, UserRepository $userRepo, Session $session, EmailService $emailService)
     {
-        $this->authService = $authService;
-        $this->userRepo    = $userRepo;
-        $this->session = $session;
+        $this->authService  = $authService;
+        $this->userRepo     = $userRepo;
+        $this->session      = $session;
+        $this->emailService = $emailService;
     }
 
     /**
@@ -229,13 +232,7 @@ class AuthController
                 . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
                 . '/reset-password?token=' . $token;
 
-            $subject = 'Obnovení hesla – BikeSwap';
-            $body    = "Dobrý den,\n\nObdrželi jsme žádost o obnovení hesla pro váš účet.\n\n"
-                     . "Pro nastavení nového hesla klikněte na odkaz níže:\n{$resetUrl}\n\n"
-                     . "Odkaz je platný 1 hodinu. Pokud jste o obnovení nepožádali, ignorujte tento e-mail.\n\n"
-                     . "BikeSwap";
-
-            @mail($user->getEmail(), $subject, $body, "From: noreply@bikeswap.cz\r\nContent-Type: text/plain; charset=UTF-8");
+            $this->emailService->sendPasswordReset($user->getEmail(), $resetUrl);
         }
 
         $this->session->flash('success', 'Pokud účet s tímto e-mailem existuje, obdržíte instrukce pro obnovení hesla.');

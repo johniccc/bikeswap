@@ -284,6 +284,23 @@ class FoundReportService
                 $this->karmaService->recalculate($report->getReportedBy());
             }
 
+            // 6. Notify finder that the bike was found
+            $bike = $this->bikeRepository->findById($bikeId);
+            $bikeName = $bike !== null ? $bike->getFullName() : 'vaše kolo';
+
+            if ($report->getReportedBy() !== null) {
+                $this->notificationService->notify(
+                    $report->getReportedBy(),
+                    'found_report',
+                    'Majitel označil kolo jako nalezené – děkujeme za pomoc!',
+                    '/found/conversation/' . $report->getConversationToken()
+                );
+            }
+
+            if (!empty($report->getReporterEmail())) {
+                $this->emailService->sendFoundReportResolved($report->getReporterEmail(), $bikeName);
+            }
+
             $this->db->commit();
         } catch (\Throwable $e) {
             $this->db->rollBack();

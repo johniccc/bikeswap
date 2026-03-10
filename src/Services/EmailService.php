@@ -183,6 +183,39 @@ class EmailService
     }
 
     /**
+     * Send password reset email. Always sent — no preference check (security email).
+     */
+    public function sendPasswordReset(string $email, string $resetUrl): void
+    {
+        $subject = 'Obnovení hesla – BikeSwap';
+        $body = sprintf(
+            "Dobrý den,\n\npožádali jste o obnovení hesla k vašemu účtu na BikeSwap.\n\n" .
+            "Pro nastavení nového hesla klikněte na tento odkaz (platný 1 hodinu):\n%s\n\n" .
+            "Pokud jste o obnovení hesla nežádali, tento e-mail ignorujte.\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $resetUrl
+        );
+
+        $this->send($email, $subject, $body);
+    }
+
+    /**
+     * Notify finder that the owner marked the bike as found/recovered.
+     */
+    public function sendFoundReportResolved(string $finderEmail, string $bikeName): void
+    {
+        $subject = 'Nález kola vyřešen – BikeSwap';
+        $body = sprintf(
+            "Dobrý den,\n\nmajitel kola %s označil případ jako vyřešený — kolo bylo nalezeno.\n\n" .
+            "Děkujeme vám za pomoc při jeho nahlášení!\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $bikeName
+        );
+
+        $this->send($finderEmail, $subject, $body);
+    }
+
+    /**
      * Notify user about a new message in reservation conversation.
      */
     public function sendReservationMessage(int $recipientId, Bike $bike, int $reservationId): void

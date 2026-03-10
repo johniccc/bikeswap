@@ -1706,6 +1706,54 @@ body.modal-blur > *:not(.modal-overlay):not(.toast-container) {
   cursor: pointer;
 }
 
+/* Email preference rows */
+.pref-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.pref-row:last-child { border-bottom: none; }
+.pref-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.pref-title { font-weight: 500; }
+.pref-toggle {
+  appearance: none;
+  width: 40px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 200ms;
+}
+.pref-toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 200ms;
+}
+.pref-toggle:checked { background: var(--primary); }
+.pref-toggle:checked::after { transform: translateX(18px); }
+
+
 /* Password requirements */
 .password-requirements {
   display: flex;

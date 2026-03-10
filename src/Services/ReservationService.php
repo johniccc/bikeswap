@@ -538,6 +538,17 @@ class ReservationService
                 "/reservation/{$reservationId}"
             );
 
+            $bike = $this->bikeRepo->findById($reservation->getBikeId());
+            if ($bike !== null) {
+                $this->emailService->sendReservationStatusChange(
+                    $reservation->getOwnerId(),
+                    $bike,
+                    $reservationId,
+                    'disputed',
+                    'Vypůjčitel podal námitku proti nahlášení nevrácení. Případ řeší správce.'
+                );
+            }
+
             $this->db->commit();
         } catch (\Throwable $e) {
             $this->db->rollBack();
@@ -769,6 +780,18 @@ class ReservationService
                     "/reservation/{$reservationId}"
                 );
 
+                $bike = $this->bikeRepo->findById($reservation->getBikeId());
+                if ($bike !== null) {
+                    $this->emailService->sendReservationStatusChange(
+                        $reservation->getBorrowerId(), $bike, $reservationId,
+                        'review', 'Obě hodnocení jsou nyní viditelná!'
+                    );
+                    $this->emailService->sendReservationStatusChange(
+                        $reservation->getOwnerId(), $bike, $reservationId,
+                        'review', 'Obě hodnocení jsou nyní viditelná!'
+                    );
+                }
+
                 // System message
                 $this->messageRepo->create(
                     $reservationId, 'system', null,
@@ -786,6 +809,14 @@ class ReservationService
                     'Druhá strana vás ohodnotila. Ohodnoťte ji také, aby se recenze zobrazily.',
                     "/reservation/{$reservationId}"
                 );
+
+                $bike = $this->bikeRepo->findById($reservation->getBikeId());
+                if ($bike !== null) {
+                    $this->emailService->sendReservationStatusChange(
+                        $otherUserId, $bike, $reservationId,
+                        'review', 'Druhá strana vás ohodnotila. Ohodnoťte ji také, aby se recenze zobrazily.'
+                    );
+                }
             }
 
             $this->db->commit();
