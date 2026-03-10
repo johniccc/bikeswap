@@ -26,6 +26,15 @@ docker compose up -d
 - Přidej funkci zapomenuté heslo + přidej požadavky pro hesla (při registraci)
 - jakmile je kolo schváleno na výpůjčku, chci aby to u něho bylo vidět (podobně jako u odcizeného) a bude mít i badge na kartě s datem odkdy dokdy.
 
+
+u telefonu teď ale zmizela kolonka nepovinné.
+
+u hesla chci aby se při splnění podmínky vyplnilo celé kolečko, nejen kružnice
+
+kolonka zapomněli jste heslo chci pod samotné input pole heslo
+
+- když jsem přihlášený a kouknu do sdílených kol a vidím tam to své, chci aby u něho na kartičce i v detailu bylo přesměrování ke všem rezervacím které jsou k tomuto danému kolu
+
 - sdílená kola půjde taky hledat, filtrovat apod (např. dle barvy)
 - konečně doděláme user profile, uživatel si v sekci svého profilu bude moci měnit své údaje / user preferences co se týče zpráv na mail atd.
 - V admin panelu bych byl rád, kdyby admin mohl též uživatelům měnit údaje, i kolům / mazat je / přidávat je (prostě celý CRUD). měl by také vidět nebo mít možnost vstoupit do konverzací (všech), ostatní ho neuvidí dokud samozřejmě nenapíše (podobný badge jak policie). V admin panelu zatím nefunguje ban uživatele ani změna role (tu bych chtěl udělat stylem dropdownu), ale to oprav s přidáním všech ostatních funkcí co jsem ti napsal 

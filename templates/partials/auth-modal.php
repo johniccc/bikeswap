@@ -34,6 +34,9 @@
         <div class="form-group">
           <label for="login-password">Heslo</label>
           <input type="password" id="login-password" name="password" required autocomplete="current-password" placeholder="Vaše heslo">
+          <div style="text-align:right;margin-top:0.35rem">
+            <a href="/forgot-password" style="font-size:0.8em;color:var(--text-muted)">Zapomněli jste heslo?</a>
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-full btn-lg">
@@ -42,9 +45,6 @@
 
         <div class="auth-switch">
           Nemáte účet? <button type="button" class="auth-switch-btn" data-tab="register">Zaregistrujte se</button>
-        </div>
-        <div class="auth-switch" style="margin-top:0.5rem">
-          <a href="/forgot-password" style="font-size:0.85em;color:var(--text-muted)">Zapomněli jste heslo?</a>
         </div>
       </form>
 
@@ -67,7 +67,7 @@
         <div class="form-group">
           <label for="reg-phone">
             Telefon
-            <span style="font-size:0.8em;font-weight:600;color:var(--warning)"> doporučeno</span>
+            <span class="text-muted" style="font-weight:400"> (nepovinné, </span><span style="font-size:0.85em;font-weight:600;color:var(--warning)">doporučeno</span><span class="text-muted" style="font-weight:400">)</span>
           </label>
           <input type="tel" id="reg-phone" name="phone" autocomplete="tel" placeholder="+420 ...">
           <p class="form-help text-sm mt-xs">

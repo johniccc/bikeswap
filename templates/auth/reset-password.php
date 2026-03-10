@@ -47,11 +47,13 @@
   function updateReq(id, met) {
     var el = document.getElementById(id);
     if (!el) return;
-    var icon = el.querySelector('i[data-lucide]');
-    if (icon) {
-      icon.setAttribute('data-lucide', met ? 'check-circle' : 'circle');
-      if (window.lucide) window.lucide.createIcons();
-    }
+    var existing = el.querySelector('i[data-lucide], svg');
+    if (existing) existing.remove();
+    var newIcon = document.createElement('i');
+    newIcon.setAttribute('data-lucide', met ? 'check-circle' : 'circle');
+    newIcon.style.cssText = 'width:12px;height:12px';
+    el.prepend(newIcon);
+    if (window.lucide) window.lucide.createIcons();
     el.style.color = met ? 'var(--success)' : 'var(--text-muted)';
   }
   pwdInput.addEventListener('input', function() {
