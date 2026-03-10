@@ -3,6 +3,7 @@
 
 # Configuration with credentials
 .env
+.env.production
 
 # User uploads
 /storage/uploads/*
