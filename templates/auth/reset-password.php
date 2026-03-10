@@ -50,7 +50,7 @@
     var existing = el.querySelector('i[data-lucide], svg');
     if (existing) existing.remove();
     var newIcon = document.createElement('i');
-    newIcon.setAttribute('data-lucide', met ? 'check-circle' : 'circle');
+    newIcon.setAttribute('data-lucide', met ? 'disc' : 'circle');
     newIcon.style.cssText = 'width:12px;height:12px';
     el.prepend(newIcon);
     if (window.lucide) window.lucide.createIcons();
