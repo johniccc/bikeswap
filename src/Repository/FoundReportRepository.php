@@ -171,6 +171,25 @@ class FoundReportRepository
     }
 
     /**
+     * Get all found reports (for admin panel).
+     *
+     * @return FoundReport[]
+     */
+    public function findAll(?string $status = null): array
+    {
+        if ($status !== null) {
+            $rows = $this->db->fetchAll(
+                "SELECT * FROM found_reports WHERE status = ? ORDER BY created_at DESC",
+                [$status]
+            );
+        } else {
+            $rows = $this->db->fetchAll("SELECT * FROM found_reports ORDER BY created_at DESC");
+        }
+
+        return array_map(fn(array $row) => FoundReport::fromRow($row), $rows);
+    }
+
+    /**
      * Close all active (non-resolved, non-closed) found reports for a bike.
      * Used when the owner marks the bike as found/recovered.
      */

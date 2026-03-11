@@ -68,6 +68,7 @@ class FoundReportMessage
             'system' => 'BikeSwap',
             'owner'  => 'Vlastník',
             'finder' => 'Nálezce',
+            'admin'  => 'Administrátor',
             default  => 'Neznámý',
         };
     }
@@ -81,6 +82,7 @@ class FoundReportMessage
             'owner'  => 'message-owner',
             'finder' => 'message-finder',
             'system' => 'message-system',
+            'admin'  => 'message-admin',
             default  => 'message-unknown',
         };
     }

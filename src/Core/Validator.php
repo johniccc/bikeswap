@@ -165,6 +165,23 @@ class Validator
     }
 
     /**
+     * Field must be a valid Czech phone number (+420 / 00420 + 9 digits).
+     * Only validates when the field is non-empty (phone is optional).
+     */
+    public function phone(string $field, string $message = ''): self
+    {
+        $raw = $this->data[$field] ?? '';
+        // Strip spaces before validating so both "+420 123 456 789" and "+420123456789" are accepted
+        $value = preg_replace('/\s+/', '', $raw);
+
+        if ($value !== '' && !preg_match('/^(\+420|00420)\d{9}$/', $value)) {
+            $this->addError($field, $message ?: 'Neplatný formát telefonu. Použijte formát +420 123 456 789.');
+        }
+
+        return $this;
+    }
+
+    /**
      * Field value must match a regex pattern.
      */
     public function regex(string $field, string $pattern, string $message = ''): self

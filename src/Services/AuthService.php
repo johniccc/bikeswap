@@ -30,7 +30,7 @@ class AuthService
      * 
      * @return array{success: bool, user_id?: int, error?: string}
      */
-    public function register(string $email, string $password, string $name, ?string $phone = null): array
+    public function register(string $email, string $password, string $firstName, string $surname, ?string $phone = null): array
     {
         // Check for duplicate email
         if ($this->userRepository->emailExists($email)) {
@@ -47,7 +47,8 @@ class AuthService
         $userId = $this->userRepository->create([
             'email'              => $email,
             'password_hash'      => $hash,
-            'name'               => $name,
+            'first_name'         => $firstName,
+            'surname'            => $surname,
             'phone'              => $phone,
             'verification_token' => $verificationToken,
         ]);

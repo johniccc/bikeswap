@@ -1,5 +1,10 @@
 <div class="page-header">
   <h1>Kola</h1>
+  <div class="page-header-actions">
+    <a href="/admin/bikes/new" class="btn btn-primary btn-sm">
+      <i data-lucide="plus"></i> Přidat kolo
+    </a>
+  </div>
 </div>
 
 <!-- Status filter -->
@@ -19,7 +24,7 @@
 <?php else: ?>
   <div class="bike-grid">
     <?php foreach ($bikes as $bike): ?>
-      <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
+      <a href="/admin/bikes/<?= $bike->getId() ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
         <div class="bike-card-photo-wrap">
           <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
           <?php if ($primaryPhoto): ?>

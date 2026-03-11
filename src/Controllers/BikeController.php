@@ -181,6 +181,7 @@ class BikeController
         }
 
         if ($validator->fails()) {
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', $validator->allErrors()[0]);
 
             return redirect('/bike/new');
@@ -278,6 +279,7 @@ class BikeController
             ->required('color', 'Barva je povinná.');
 
         if ($validator->fails()) {
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', $validator->allErrors()[0]);
 
             return redirect("/bike/{$bikeId}/edit");

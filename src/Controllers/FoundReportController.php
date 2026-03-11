@@ -135,6 +135,7 @@ class FoundReportController
                 curl_close($ch);
                 $data = json_decode($result ?: '', true) ?? [];
                 if (!($data['success'] ?? false)) {
+                    $this->session->setOldInput($request->all());
                     $this->session->flash('error', 'Ověření CAPTCHA selhalo. Zkuste to znovu.');
 
                     return redirect("/found/report/{$qrHash}");
@@ -145,6 +146,7 @@ class FoundReportController
         $validator->required('found_location_text', 'Místo nálezu je povinné.');
 
         if ($validator->fails()) {
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', $validator->allErrors()[0]);
 
             return redirect("/found/report/{$qrHash}");

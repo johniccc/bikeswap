@@ -60,6 +60,7 @@ class ReservationMessage
             'system'   => 'BikeSwap',
             'owner'    => 'Vlastník',
             'borrower' => 'Výpůjčník',
+            'admin'    => 'Administrátor',
             default    => 'Neznámý',
         };
     }
@@ -70,6 +71,7 @@ class ReservationMessage
             'owner'    => 'message-owner',
             'borrower' => 'message-finder',  // reuse existing CSS class
             'system'   => 'message-system',
+            'admin'    => 'message-admin',
             default    => '',
         };
     }

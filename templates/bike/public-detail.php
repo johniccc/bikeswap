@@ -159,6 +159,11 @@
             <a href="/bike/<?= $bike->getId() ?>/edit" class="btn btn-secondary">
               <i data-lucide="pencil"></i> Upravit
             </a>
+            <?php if ($bike->isShared()): ?>
+              <a href="/reservations?bike=<?= $bike->getId() ?>" class="btn btn-secondary">
+                <i data-lucide="list"></i> Moje rezervace
+              </a>
+            <?php endif; ?>
             <?php if (!$bike->isStolen()): ?>
               <a href="/theft/report/<?= $bike->getId() ?>" class="btn btn-danger">
                 <i data-lucide="shield-alert"></i> Nahlásit krádež

@@ -68,7 +68,9 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->get('/profile', [ProfileController::class, 'index']);
     $router->get('/profile/settings', [ProfileController::class, 'settings']);
     $router->post('/profile/settings', [ProfileController::class, 'updateSettings']);
+    $router->post('/profile/settings/email', [ProfileController::class, 'changeEmail']);
     $router->post('/profile/settings/preferences', [ProfileController::class, 'updatePreferences']);
+    $router->post('/profile/settings/password', [ProfileController::class, 'changePassword']);
 
     // Bike CRUD (BEFORE the public /bike/{hash} route!)
     $router->get('/bike/new', [BikeController::class, 'createForm']);
@@ -134,10 +136,22 @@ $router->group('/admin', [AdminMiddleware::class], function ($router) {
     $router->get('', [AdminController::class, 'dashboard']);
     $router->get('/users', [AdminController::class, 'users']);
     $router->get('/users/{id}', [AdminController::class, 'userDetail']);
+    $router->post('/users/{id}/edit', [AdminController::class, 'updateUser']);
+    $router->post('/users/{id}/delete', [AdminController::class, 'deleteUser']);
     $router->post('/users/{id}/ban', [AdminController::class, 'banUser']);
     $router->post('/users/{id}/unban', [AdminController::class, 'unbanUser']);
     $router->post('/users/{id}/role', [AdminController::class, 'changeRole']);
     $router->get('/bikes', [AdminController::class, 'bikes']);
+    $router->get('/bikes/new', [AdminController::class, 'createBikeForm']);
+    $router->post('/bikes/new', [AdminController::class, 'createBike']);
+    $router->get('/bikes/{id}', [AdminController::class, 'bikeDetail']);
+    $router->post('/bikes/{id}/edit', [AdminController::class, 'updateBike']);
+    $router->post('/bikes/{id}/delete', [AdminController::class, 'deleteBike']);
     $router->get('/reservations', [AdminController::class, 'reservations']);
     $router->get('/thefts', [AdminController::class, 'thefts']);
+    $router->get('/conversations', [AdminController::class, 'conversations']);
+    $router->get('/conversation/reservation/{id}', [AdminController::class, 'reservationConversation']);
+    $router->post('/conversation/reservation/{id}/message', [AdminController::class, 'sendReservationMessage']);
+    $router->get('/conversation/found/{id}', [AdminController::class, 'foundConversation']);
+    $router->post('/conversation/found/{id}/message', [AdminController::class, 'sendFoundMessage']);
 });

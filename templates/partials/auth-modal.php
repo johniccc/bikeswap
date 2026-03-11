@@ -55,13 +55,18 @@
         <?php endif; ?>
 
         <div class="form-group">
-          <label for="reg-name">Jméno a příjmení</label>
-          <input type="text" id="reg-name" name="name" required autocomplete="name" placeholder="Jan Novák">
+          <label for="reg-first-name">Jméno</label>
+          <input type="text" id="reg-first-name" name="first_name" required autocomplete="given-name" placeholder="Jan" value="<?= e(old('first_name')) ?>">
+        </div>
+
+        <div class="form-group">
+          <label for="reg-surname">Příjmení</label>
+          <input type="text" id="reg-surname" name="surname" required autocomplete="family-name" placeholder="Novák" value="<?= e(old('surname')) ?>">
         </div>
 
         <div class="form-group">
           <label for="reg-email">E-mail</label>
-          <input type="email" id="reg-email" name="email" required autocomplete="email" placeholder="vas@email.cz">
+          <input type="email" id="reg-email" name="email" required autocomplete="email" placeholder="vas@email.cz" value="<?= e(old('email')) ?>">
         </div>
 
         <div class="form-group">
@@ -69,7 +74,8 @@
             Telefon
             <span class="text-muted" style="font-weight:400"> (nepovinné, </span><span style="font-size:0.85em;font-weight:600;color:var(--warning)">doporučeno</span><span class="text-muted" style="font-weight:400">)</span>
           </label>
-          <input type="tel" id="reg-phone" name="phone" autocomplete="tel" placeholder="+420 ...">
+          <input type="tel" id="reg-phone" name="phone" autocomplete="tel" placeholder="+420 123 456 789"
+                 pattern="(\+420|00420)\s?\d{3}\s?\d{3}\s?\d{3}" inputmode="tel" value="<?= e(old('phone')) ?>">
           <p class="form-help text-sm mt-xs">
             <i data-lucide="info" style="width:13px;height:13px;display:inline;vertical-align:-2px"></i>
             Umožní rychlejší kontakt při nálezu kola nebo výpůjčce. Vidí ho jen přihlášení uživatelé.
@@ -102,3 +108,45 @@
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+  function formatCzechPhone(input) {
+    var raw = input.value.replace(/[^\d+]/g, '');
+    var prefix = '', digits = '';
+
+    if (raw.startsWith('+420')) {
+      prefix = '+420'; digits = raw.slice(4);
+    } else if (raw.startsWith('00420')) {
+      prefix = '00420'; digits = raw.slice(5);
+    } else {
+      // User is still typing the prefix — don't reformat yet
+      return;
+    }
+
+    digits = digits.slice(0, 9);
+    var formatted = prefix;
+    if (digits.length > 0) formatted += ' ' + digits.slice(0, 3);
+    if (digits.length > 3) formatted += ' ' + digits.slice(3, 6);
+    if (digits.length > 6) formatted += ' ' + digits.slice(6, 9);
+    input.value = formatted;
+  }
+
+  function stripSpacesBeforeSubmit(form) {
+    var phone = form.querySelector('input[name="phone"]');
+    if (phone) phone.value = phone.value.replace(/\s+/g, '');
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var regPhone = document.getElementById('reg-phone');
+    var regForm  = document.getElementById('auth-form-register');
+
+    if (regPhone) {
+      regPhone.addEventListener('input', function () { formatCzechPhone(regPhone); });
+    }
+    if (regForm) {
+      regForm.addEventListener('submit', function () { stripSpacesBeforeSubmit(regForm); });
+    }
+  });
+}());
+</script>

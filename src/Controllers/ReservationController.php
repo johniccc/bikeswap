@@ -62,17 +62,54 @@ class ReservationController
      */
     public function sharedBikes(Request $request): Response
     {
-        $bikes = $this->bikeRepo->findShared(withPhotos: true);
         $currentUser = $this->authService->currentUser();
         $layout = $currentUser ? 'layouts/app' : 'layouts/public';
 
-        $bikeIds = array_map(fn($b) => $b->getId(), $bikes);
+        $search   = trim($request->query('search', '')) ?: null;
+        $color    = trim($request->query('color', '')) ?: null;
+        $yearFrom = ($y = (int) $request->query('year_from', 0)) > 0 ? $y : null;
+        $yearTo   = ($y = (int) $request->query('year_to', 0)) > 0 ? $y : null;
+        $dateFrom = trim($request->query('date_from', '')) ?: null;
+        $dateTo   = trim($request->query('date_to', '')) ?: null;
+
+        $excludeIds = [];
+        if ($dateFrom !== null && $dateTo !== null && $dateFrom <= $dateTo) {
+            $excludeIds = $this->reservationRepo->findBikeIdsWithConflict($dateFrom, $dateTo);
+        }
+
+        $bikes     = $this->bikeRepo->findShared(
+            withPhotos: true,
+            search: $search,
+            color: $color,
+            yearFrom: $yearFrom,
+            yearTo: $yearTo,
+            excludeIds: $excludeIds
+        );
+        $colors    = $this->bikeRepo->getSharedBikeColors();
+        $yearRange = $this->bikeRepo->getSharedBikeYearRange();
+
+        $bikeIds            = array_map(fn($b) => $b->getId(), $bikes);
         $activeReservations = $this->reservationRepo->findCurrentByBikeIds($bikeIds);
+
+        $filters = [
+            'search'    => $search ?? '',
+            'color'     => $color ?? '',
+            'year_from' => $yearFrom ?? '',
+            'year_to'   => $yearTo ?? '',
+            'date_from' => $dateFrom ?? '',
+            'date_to'   => $dateTo ?? '',
+        ];
+        $hasFilters = !empty(array_filter($filters, fn($v) => $v !== ''));
 
         return view('reservation/shared-bikes', [
             'title'              => 'Sdílená kola – BikeSwap',
             'bikes'              => $bikes,
             'activeReservations' => $activeReservations,
+            'colors'             => $colors,
+            'yearMin'            => $yearRange['min'],
+            'yearMax'            => $yearRange['max'],
+            'filters'            => $filters,
+            'hasFilters'         => $hasFilters,
             'currentUser'        => $currentUser,
             'session'            => $this->session,
         ])->withLayout($layout);
@@ -158,6 +195,7 @@ class ReservationController
             curl_close($ch);
 
             if (empty($result['success'])) {
+                $this->session->setOldInput($request->all());
                 $this->session->flash('error', 'Ověření proti botům selhalo. Zkuste to prosím znovu.');
                 return redirect("/reservation/new/{$bikeId}");
             }
@@ -169,6 +207,7 @@ class ReservationController
             ->required('date_to', 'Datum konce je povinné.');
 
         if ($validator->fails()) {
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', $validator->allErrors()[0]);
             return redirect("/reservation/new/{$bikeId}");
         }
@@ -563,8 +602,28 @@ class ReservationController
     {
         $currentUser = $this->authService->currentUser();
 
-        $asOwner = $this->reservationRepo->findByOwner($currentUser->getId(), withRelations: true);
+        $filterBikeId = (int) $request->query('bike', 0) ?: null;
+        $filterBike   = null;
+
+        if ($filterBikeId !== null) {
+            $filterBike = $this->bikeRepo->findById($filterBikeId);
+            // Only allow filtering by own bikes
+            if ($filterBike === null || !$filterBike->isOwnedBy($currentUser->getId())) {
+                $filterBikeId = null;
+                $filterBike   = null;
+            }
+        }
+
+        if ($filterBikeId !== null) {
+            $asOwner = $this->reservationRepo->findByOwnerAndBike($currentUser->getId(), $filterBikeId, withRelations: true);
+        } else {
+            $asOwner = $this->reservationRepo->findByOwner($currentUser->getId(), withRelations: true);
+        }
+
         $asBorrower = $this->reservationRepo->findByBorrower($currentUser->getId(), withRelations: true);
+
+        // Load all owner's bikes for the filter dropdown
+        $ownerBikes = $this->bikeRepo->findByOwner($currentUser->getId());
 
         // Find overdue reservations for reminder banner
         $overdue = $this->reservationRepo->findOverdueByOwner($currentUser->getId(), withRelations: true);
@@ -573,13 +632,15 @@ class ReservationController
         $reviewedIds = $this->reviewRepo->getReviewedReservationIds($currentUser->getId());
 
         return view('reservation/my-reservations', [
-            'title' => 'Moje rezervace – BikeSwap',
-            'asOwner' => $asOwner,
-            'asBorrower' => $asBorrower,
-            'overdue' => $overdue,
+            'title'       => 'Moje rezervace – BikeSwap',
+            'asOwner'     => $asOwner,
+            'asBorrower'  => $asBorrower,
+            'overdue'     => $overdue,
             'reviewedIds' => $reviewedIds,
+            'filterBike'  => $filterBike,
+            'ownerBikes'  => $ownerBikes,
             'currentUser' => $currentUser,
-            'session' => $this->session,
+            'session'     => $this->session,
         ])->withLayout('layouts/app');
     }
 

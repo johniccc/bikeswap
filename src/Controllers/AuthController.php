@@ -61,9 +61,11 @@ class AuthController
         // Validate input
         $validator = new Validator($request->all());
         $validator
-            ->required('name', 'Jméno je povinné.')
+            ->required('first_name', 'Jméno je povinné.')
+            ->required('surname', 'Příjmení je povinné.')
             ->required('email', 'E-mail je povinný.')
             ->email('email')
+            ->phone('phone', 'Neplatný formát telefonu. Použijte formát +420 123 456 789.')
             ->required('password', 'Heslo je povinné.')
             ->minLength('password', 8, 'Heslo musí mít alespoň 8 znaků.')
             ->regex('password', '/[A-Z]/', 'Heslo musí obsahovat alespoň jedno velké písmeno.')
@@ -75,6 +77,7 @@ class AuthController
                 return json(['errors' => $validator->errors()], 422);
             }
 
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', $validator->allErrors()[0]);
 
             return redirect('/register');
@@ -84,8 +87,9 @@ class AuthController
         $result = $this->authService->register(
             $request->input('email'),
             $request->input('password'),
-            $request->input('name'),
-            $request->input('phone')
+            trim($request->input('first_name', '')),
+            trim($request->input('surname', '')),
+            preg_replace('/\s+/', '', trim($request->input('phone', ''))) ?: null
         );
 
         if (!$result['success']) {
@@ -93,6 +97,7 @@ class AuthController
                 return json(['error' => $result['error']], 409);
             }
 
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', $result['error']);
 
             return redirect('/register');

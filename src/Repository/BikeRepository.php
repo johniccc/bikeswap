@@ -104,28 +104,46 @@ class BikeRepository
      * 
      * @return Bike[]
      */
-    public function findStolen(array $filters = [], bool $withPhotos = false): array
-    {
-        $sql = "SELECT * FROM bikes WHERE status = 'stolen'";
+    public function findStolen(
+        bool $withPhotos = false,
+        ?string $search = null,
+        ?string $color = null,
+        ?int $yearFrom = null,
+        ?int $yearTo = null,
+        ?string $frameNumber = null
+    ): array {
+        $where  = ["status = 'stolen'"];
         $params = [];
 
-        if (!empty($filters['brand'])) {
-            $sql .= " AND brand LIKE ?";
-            $params[] = '%' . $filters['brand'] . '%';
+        if ($search !== null && $search !== '') {
+            $where[]  = "(brand LIKE ? OR model LIKE ? OR description LIKE ?)";
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
         }
 
-        if (!empty($filters['color'])) {
-            $sql .= " AND color LIKE ?";
-            $params[] = '%' . $filters['color'] . '%';
+        if ($color !== null && $color !== '') {
+            $where[]  = "color LIKE ?";
+            $params[] = '%' . $color . '%';
         }
 
-        if (!empty($filters['frame_number'])) {
-            $sql .= " AND frame_number LIKE ?";
-            $params[] = '%' . $filters['frame_number'] . '%';
+        if ($yearFrom !== null) {
+            $where[]  = "year_of_manufacture >= ?";
+            $params[] = $yearFrom;
         }
 
-        $sql .= " ORDER BY updated_at DESC";
+        if ($yearTo !== null) {
+            $where[]  = "year_of_manufacture <= ?";
+            $params[] = $yearTo;
+        }
 
+        if ($frameNumber !== null && $frameNumber !== '') {
+            $where[]  = "frame_number LIKE ?";
+            $params[] = '%' . $frameNumber . '%';
+        }
+
+        $sql  = "SELECT * FROM bikes WHERE " . implode(' AND ', $where) . " ORDER BY updated_at DESC";
         $rows = $this->db->fetchAll($sql, $params);
         $bikes = array_map(fn(array $row) => Bike::fromRow($row), $rows);
 
@@ -137,15 +155,74 @@ class BikeRepository
     }
 
     /**
+     * Get min/max year of manufacture from stolen bikes (for year slider range).
+     * Returns ['min' => int, 'max' => int].
+     */
+    public function getStolenBikeYearRange(): array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT MIN(year_of_manufacture) AS min_year, MAX(year_of_manufacture) AS max_year
+             FROM bikes WHERE status = 'stolen' AND year_of_manufacture IS NOT NULL"
+        );
+        $currentYear = (int) date('Y');
+        $min = $row && $row['min_year'] ? (int) $row['min_year'] : 1990;
+        $max = $row && $row['max_year'] ? (int) $row['max_year'] : $currentYear;
+
+        if ($max - $min < 4) {
+            $min = $min - 2;
+            $max = max($max + 2, $currentYear);
+        }
+
+        return ['min' => $min, 'max' => $max];
+    }
+
+    /**
      * Get all bikes marked as shared (available for borrowing).
      * 
      * @return Bike[]
      */
-    public function findShared(bool $withPhotos = false): array
-    {
-        $rows = $this->db->fetchAll(
-            "SELECT * FROM bikes WHERE is_shared = 1 AND status = 'active' ORDER BY created_at DESC"
-        );
+    public function findShared(
+        bool $withPhotos = false,
+        ?string $search = null,
+        ?string $color = null,
+        ?int $yearFrom = null,
+        ?int $yearTo = null,
+        array $excludeIds = []
+    ): array {
+        $where  = ["is_shared = 1", "status = 'active'"];
+        $params = [];
+
+        if ($search !== null && $search !== '') {
+            $where[]  = "(brand LIKE ? OR model LIKE ? OR description LIKE ?)";
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        if ($color !== null && $color !== '') {
+            $where[]  = "color LIKE ?";
+            $params[] = '%' . $color . '%';
+        }
+
+        if ($yearFrom !== null) {
+            $where[]  = "year_of_manufacture >= ?";
+            $params[] = $yearFrom;
+        }
+
+        if ($yearTo !== null) {
+            $where[]  = "year_of_manufacture <= ?";
+            $params[] = $yearTo;
+        }
+
+        if (!empty($excludeIds)) {
+            $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+            $where[]      = "id NOT IN ({$placeholders})";
+            $params       = array_merge($params, $excludeIds);
+        }
+
+        $sql  = "SELECT * FROM bikes WHERE " . implode(' AND ', $where) . " ORDER BY created_at DESC";
+        $rows = $this->db->fetchAll($sql, $params);
 
         $bikes = array_map(fn(array $row) => Bike::fromRow($row), $rows);
 
@@ -154,6 +231,51 @@ class BikeRepository
         }
 
         return $bikes;
+    }
+
+    /**
+     * Get min/max year of manufacture from shared active bikes (for year slider range).
+     * Returns ['min' => int, 'max' => int].
+     */
+    public function getSharedBikeYearRange(): array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT MIN(year_of_manufacture) AS min_year, MAX(year_of_manufacture) AS max_year
+             FROM bikes WHERE is_shared = 1 AND status = 'active' AND year_of_manufacture IS NOT NULL"
+        );
+        $currentYear = (int) date('Y');
+        $min = $row && $row['min_year'] ? (int) $row['min_year'] : 1990;
+        $max = $row && $row['max_year'] ? (int) $row['max_year'] : $currentYear;
+
+        // Ensure at least a 4-year range so the slider is always usable
+        if ($max - $min < 4) {
+            $min = $min - 2;
+            $max = max($max + 2, $currentYear);
+        }
+
+        return ['min' => $min, 'max' => $max];
+    }
+
+    /**
+     * Get distinct colors from all shared active bikes (for filter dropdown).
+     */
+    public function getSharedBikeColors(): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT color FROM bikes WHERE is_shared = 1 AND status = 'active' ORDER BY color ASC"
+        );
+        return array_column($rows, 'color');
+    }
+
+    /**
+     * Get distinct colors from all stolen bikes (for filter dropdown).
+     */
+    public function getStolenBikeColors(): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT color FROM bikes WHERE status = 'stolen' ORDER BY color ASC"
+        );
+        return array_column($rows, 'color');
     }
 
     /**

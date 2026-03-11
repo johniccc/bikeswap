@@ -176,6 +176,59 @@ class Session
         return hash_equals($this->csrfToken(), $token);
     }
 
+    // ── Old Input (form re-population) ─────────────────────────
+
+    /** Fields that must never be stored as old input (security). */
+    private const OLD_INPUT_BLACKLIST = [
+        'password', 'current_password', 'new_password', 'new_password_confirmation',
+        '_csrf', 'cf-turnstile-response',
+    ];
+
+    /**
+     * Store submitted form data for re-populating fields on the next request.
+     * Sensitive fields (passwords, CSRF tokens) are automatically excluded.
+     */
+    public function setOldInput(array $data): void
+    {
+        $this->ensureStarted();
+
+        $filtered = array_diff_key($data, array_flip(self::OLD_INPUT_BLACKLIST));
+        $_SESSION['_old_input'] = $filtered;
+    }
+
+    /**
+     * Retrieve and clear all old input (flash behavior).
+     */
+    public function getOldInput(string $key, mixed $default = null): mixed
+    {
+        $this->ensureStarted();
+
+        $value = $_SESSION['_old_input'][$key] ?? $default;
+        unset($_SESSION['_old_input'][$key]);
+
+        return $value;
+    }
+
+    /**
+     * Peek at old input without consuming it.
+     */
+    public function peekOldInput(string $key, mixed $default = null): mixed
+    {
+        $this->ensureStarted();
+
+        return $_SESSION['_old_input'][$key] ?? $default;
+    }
+
+    /**
+     * Clear all stored old input.
+     */
+    public function clearOldInput(): void
+    {
+        $this->ensureStarted();
+
+        unset($_SESSION['_old_input']);
+    }
+
     // ── Auth helpers ───────────────────────────────────────────
 
     /**

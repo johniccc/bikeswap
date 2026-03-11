@@ -7,29 +7,174 @@
   </div>
 
   <!-- Search filters -->
-  <form method="GET" action="/stolen">
-    <div class="search-bar">
-      <input type="text" name="brand"
-             value="<?= e($filters['brand'] ?? '') ?>"
-             placeholder="Značka (např. Trek, Giant)">
-      <input type="text" name="color"
-             value="<?= e($filters['color'] ?? '') ?>"
-             placeholder="Barva (např. černá)">
-      <?php if ($session->isLoggedIn()): ?>
-        <input type="text" name="frame_number"
-               value="<?= e($filters['frame_number'] ?? '') ?>"
-               placeholder="Sériové číslo">
-      <?php endif; ?>
-      <button type="submit" class="btn btn-primary">
-        <i data-lucide="search"></i> Hledat
-      </button>
-      <?php if (!empty($filters)): ?>
-        <a href="/stolen" class="btn btn-ghost">
-          <i data-lucide="x"></i> Zrušit filtr
-        </a>
-      <?php endif; ?>
+  <?php
+    $advancedFilters = array_filter([
+      $filters['color'],
+      $filters['year_from'],
+      $filters['year_to'],
+      $filters['frame_number'],
+    ], fn($v) => $v !== '');
+    $advancedCount = count($advancedFilters);
+  ?>
+  <form method="GET" action="/stolen" class="filter-bar mb-lg<?= $advancedCount > 0 ? ' filters-open' : '' ?>" id="stolen-filter-form">
+    <div class="filter-bar-row">
+      <div class="filter-group filter-group-search">
+        <input type="text" name="search" placeholder="Hledat podle značky, modelu, popisu..." value="<?= e($filters['search']) ?>">
+      </div>
+
+      <div class="filter-bar-actions">
+        <button type="button" class="btn btn-secondary btn-sm filter-toggle-btn" id="stolen-filter-toggle" aria-expanded="<?= $advancedCount > 0 ? 'true' : 'false' ?>">
+          <i data-lucide="sliders-horizontal"></i>
+          Filtry<?php if ($advancedCount > 0): ?> <span class="filter-badge"><?= $advancedCount ?></span><?php endif; ?>
+        </button>
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i data-lucide="search"></i> Hledat
+        </button>
+        <?php if ($hasFilters): ?>
+          <a href="/stolen" class="btn btn-ghost btn-sm">
+            <i data-lucide="x"></i> Zrušit
+          </a>
+        <?php endif; ?>
+      </div>
+    </div>
+
+    <div class="filter-dropdown">
+      <div class="filter-dropdown-inner">
+        <div class="filter-group">
+          <label for="stolen-filter-color">Barva</label>
+          <select id="stolen-filter-color" name="color">
+            <option value="">Všechny barvy</option>
+            <?php foreach ($colors as $c): ?>
+              <option value="<?= e($c) ?>" <?= $filters['color'] === $c ? 'selected' : '' ?>><?= e($c) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Rok výroby</label>
+          <div class="year-slider-wrap">
+            <div class="year-slider-track-wrap">
+              <input type="range" id="stolen-year-from-range" min="<?= $yearMin ?>" max="<?= $yearMax ?>"
+                     value="<?= $filters['year_from'] ?: $yearMin ?>" class="year-range-input">
+              <input type="range" id="stolen-year-to-range" min="<?= $yearMin ?>" max="<?= $yearMax ?>"
+                     value="<?= $filters['year_to'] ?: $yearMax ?>" class="year-range-input">
+              <div class="year-slider-track"></div>
+              <div class="year-slider-fill" id="stolen-year-slider-fill"></div>
+            </div>
+            <div class="year-slider-labels">
+              <input type="number" name="year_from" id="stolen-year-from-num" class="year-num-input"
+                     min="<?= $yearMin ?>" max="<?= $yearMax ?>"
+                     value="<?= e($filters['year_from']) ?>" placeholder="<?= $yearMin ?>">
+              <span class="year-slider-sep">–</span>
+              <input type="number" name="year_to" id="stolen-year-to-num" class="year-num-input"
+                     min="<?= $yearMin ?>" max="<?= $yearMax ?>"
+                     value="<?= e($filters['year_to']) ?>" placeholder="<?= $yearMax ?>">
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group filter-group-search">
+          <label for="stolen-frame-number">Sériové číslo</label>
+          <input type="text" id="stolen-frame-number" name="frame_number"
+                 value="<?= e($filters['frame_number']) ?>" placeholder="Sériové číslo">
+        </div>
+      </div>
     </div>
   </form>
+
+  <script>
+  (function () {
+    var form      = document.getElementById('stolen-filter-form');
+    var toggleBtn = document.getElementById('stolen-filter-toggle');
+    var fromRange = document.getElementById('stolen-year-from-range');
+    var toRange   = document.getElementById('stolen-year-to-range');
+    var fromNum   = document.getElementById('stolen-year-from-num');
+    var toNum     = document.getElementById('stolen-year-to-num');
+    var fill      = document.getElementById('stolen-year-slider-fill');
+
+    if (!form || !toggleBtn) return;
+
+    toggleBtn.addEventListener('click', function () {
+      form.classList.toggle('filters-open');
+      toggleBtn.setAttribute('aria-expanded', form.classList.contains('filters-open') ? 'true' : 'false');
+    });
+
+    if (!fromRange || !toRange) return;
+
+    var sliderMin = parseInt(fromRange.min, 10);
+    var sliderMax = parseInt(fromRange.max, 10);
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(v, hi)); }
+
+    function updateFill() {
+      if (!fill) return;
+      var lo  = parseInt(fromRange.value, 10);
+      var hi  = parseInt(toRange.value, 10);
+      var rng = sliderMax - sliderMin;
+      var pLo = rng > 0 ? ((lo - sliderMin) / rng) * 100 : 0;
+      var pHi = rng > 0 ? ((hi - sliderMin) / rng) * 100 : 100;
+      fill.style.left  = pLo + '%';
+      fill.style.width = Math.max(0, pHi - pLo) + '%';
+    }
+
+    function raiseThumb(active, other) {
+      active.classList.add('thumb-top');
+      other.classList.remove('thumb-top');
+    }
+
+    fromRange.classList.add('thumb-top');
+
+    fromRange.addEventListener('mousedown',  function () { raiseThumb(fromRange, toRange); });
+    fromRange.addEventListener('touchstart', function () { raiseThumb(fromRange, toRange); }, { passive: true });
+    toRange.addEventListener('mousedown',    function () { raiseThumb(toRange, fromRange); });
+    toRange.addEventListener('touchstart',   function () { raiseThumb(toRange, fromRange); }, { passive: true });
+
+    fromRange.addEventListener('input', function () {
+      var lo = parseInt(fromRange.value, 10);
+      var hi = parseInt(toRange.value, 10);
+      if (lo > hi) { lo = hi; fromRange.value = lo; }
+      fromNum.value = lo;
+      updateFill();
+    });
+
+    toRange.addEventListener('input', function () {
+      var lo = parseInt(fromRange.value, 10);
+      var hi = parseInt(toRange.value, 10);
+      if (hi < lo) { hi = lo; toRange.value = hi; }
+      toNum.value = hi;
+      updateFill();
+    });
+
+    fromNum.addEventListener('input', function () {
+      var lo = parseInt(fromNum.value, 10);
+      if (!isNaN(lo)) {
+        lo = clamp(lo, sliderMin, sliderMax);
+        if (lo > parseInt(toRange.value, 10)) { toRange.value = lo; toNum.value = lo; }
+        fromRange.value = lo;
+        updateFill();
+      }
+    });
+
+    toNum.addEventListener('input', function () {
+      var hi = parseInt(toNum.value, 10);
+      if (!isNaN(hi)) {
+        hi = clamp(hi, sliderMin, sliderMax);
+        if (hi < parseInt(fromRange.value, 10)) { fromRange.value = hi; fromNum.value = hi; }
+        toRange.value = hi;
+        updateFill();
+      }
+    });
+
+    form.addEventListener('submit', function () {
+      var lo = parseInt(fromNum.value, 10);
+      var hi = parseInt(toNum.value, 10);
+      if (isNaN(lo) || lo <= sliderMin) fromNum.value = '';
+      if (isNaN(hi) || hi >= sliderMax) toNum.value = '';
+    });
+
+    updateFill();
+  }());
+  </script>
 
   <!-- Results -->
   <?php if (empty($bikes)): ?>

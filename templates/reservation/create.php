@@ -54,7 +54,7 @@
       <div class="form-group mt-lg">
         <label for="message">Zpráva pro majitele (volitelné)</label>
         <textarea id="message" name="message" rows="3"
-                  placeholder="Představte se, sdělte účel výpůjčky..."></textarea>
+                  placeholder="Představte se, sdělte účel výpůjčky..."><?= e(old('message')) ?></textarea>
       </div>
     </div>
   </div>

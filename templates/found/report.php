@@ -44,13 +44,13 @@
       <div class="form-group">
         <label for="reporter_email">E-mail *</label>
         <input type="email" id="reporter_email" name="reporter_email" required
-               placeholder="Na tento e-mail vám přijde odkaz ke konverzaci">
+               placeholder="Na tento e-mail vám přijde odkaz ke konverzaci" value="<?= e(old('reporter_email')) ?>">
       </div>
 
       <div class="form-group">
         <label for="reporter_phone">Telefon (nepovinné)</label>
         <input type="tel" id="reporter_phone" name="reporter_phone"
-               placeholder="Pro rychlejší kontakt">
+               placeholder="Pro rychlejší kontakt" value="<?= e(old('reporter_phone')) ?>">
       </div>
 
       <?php if (!empty($turnstileSiteKey)): ?>
@@ -70,13 +70,13 @@
     <div class="form-group">
       <label for="found_date">Datum nálezu</label>
       <input type="date" id="found_date" name="found_date"
-             value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>">
+             value="<?= e(old('found_date', date('Y-m-d'))) ?>" max="<?= date('Y-m-d') ?>">
     </div>
 
     <div class="form-group">
       <label for="found_location_text">Místo nálezu *</label>
       <input type="text" id="found_location_text" name="found_location_text" required
-             placeholder="např. Pardubice, park u Labe, u lavičky">
+             placeholder="např. Pardubice, park u Labe, u lavičky" value="<?= e(old('found_location_text')) ?>">
     </div>
 
     <!-- Hidden GPS fields -->
@@ -94,7 +94,7 @@
     <div class="form-group">
       <label for="description">Popis situace</label>
       <textarea id="description" name="description" rows="4"
-                placeholder="Popište okolnosti nálezu - kde přesně kolo stojí/leželo, v jakém je stavu, jestli je zamčené..."></textarea>
+                placeholder="Popište okolnosti nálezu - kde přesně kolo stojí/leželo, v jakém je stavu, jestli je zamčené..."><?= e(old('description')) ?></textarea>
     </div>
   </fieldset>
 

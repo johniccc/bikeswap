@@ -17,6 +17,7 @@
   </div>
 <?php endif; ?>
 
+<!-- Kontaktní údaje -->
 <div class="card max-w-lg mb-lg">
   <div class="card-header">
     <h3>Kontaktní údaje</h3>
@@ -26,9 +27,15 @@
       <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
 
       <div class="form-group">
-        <label for="settings-name">Jméno a příjmení</label>
-        <input type="text" id="settings-name" name="name" required maxlength="100"
-               value="<?= e($user->getName()) ?>">
+        <label for="settings-first-name">Jméno</label>
+        <input type="text" id="settings-first-name" name="first_name" required maxlength="50"
+               value="<?= e(old('first_name', $user->getFirstName())) ?>" autocomplete="given-name">
+      </div>
+
+      <div class="form-group">
+        <label for="settings-surname">Příjmení</label>
+        <input type="text" id="settings-surname" name="surname" required maxlength="50"
+               value="<?= e(old('surname', $user->getSurname())) ?>" autocomplete="family-name">
       </div>
 
       <div class="form-group">
@@ -37,14 +44,15 @@
           <span style="font-size:0.8em;font-weight:600;color:var(--warning)"> doporučeno</span>
         </label>
         <input type="tel" id="settings-phone" name="phone" maxlength="20"
-               value="<?= e($user->getPhone() ?? '') ?>" placeholder="+420 ...">
+               value="<?= e(preg_replace('/^(\+420|00420)(\d{3})(\d{3})(\d{3})$/', '$1 $2 $3 $4', old('phone', $user->getPhone() ?? ''))) ?>"
+               placeholder="+420 123 456 789" pattern="(\+420|00420)\s?\d{3}\s?\d{3}\s?\d{3}" inputmode="tel">
         <p class="form-help text-sm mt-xs">Vidí ho jen přihlášení uživatelé. Usnadní kontakt při nálezu kola nebo výpůjčce.</p>
       </div>
 
       <div class="form-group">
         <label for="settings-address">Adresa <span class="text-muted" style="font-weight:400">(nepovinné)</span></label>
         <input type="text" id="settings-address" name="address" maxlength="255"
-               value="<?= e($user->getAddress() ?? '') ?>" placeholder="Ulice, město">
+               value="<?= e(old('address', $user->getAddress() ?? '')) ?>" placeholder="Ulice, město">
       </div>
 
       <div class="form-actions">
@@ -56,6 +64,78 @@
   </div>
 </div>
 
+<!-- Změna e-mailu -->
+<div class="card max-w-lg mb-lg" id="email">
+  <div class="card-header">
+    <h3>Změna e-mailu</h3>
+  </div>
+  <div class="card-body">
+    <div class="info-row mb-md">
+      <span class="info-label">Aktuální e-mail</span>
+      <span class="info-value"><?= e($user->getEmail()) ?></span>
+    </div>
+    <form method="POST" action="/profile/settings/email">
+      <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+
+      <div class="form-group">
+        <label for="settings-new-email">Nový e-mail</label>
+        <input type="email" id="settings-new-email" name="new_email" required maxlength="255"
+               value="<?= e(old('new_email', '')) ?>" autocomplete="email" placeholder="novy@email.cz">
+      </div>
+
+      <div class="form-group">
+        <label for="settings-email-password">Potvrďte heslem</label>
+        <input type="password" id="settings-email-password" name="email_current_password" required autocomplete="current-password">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="mail"></i> Změnit e-mail
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Změna hesla -->
+<div class="card max-w-lg mb-lg">
+  <div class="card-header">
+    <h3>Změna hesla</h3>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="/profile/settings/password">
+      <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+
+      <div class="form-group">
+        <label for="settings-current-password">Aktuální heslo</label>
+        <input type="password" id="settings-current-password" name="current_password" required autocomplete="current-password">
+      </div>
+
+      <div class="form-group">
+        <label for="settings-new-password">Nové heslo</label>
+        <input type="password" id="settings-new-password" name="new_password" required autocomplete="new-password" placeholder="Min. 8 znaků">
+        <div class="password-requirements mt-xs" id="pwd-requirements-settings">
+          <div class="pwd-req" id="settings-req-length"> Min. 8 znaků</div>
+          <div class="pwd-req" id="settings-req-upper"> Alespoň 1 velké písmeno</div>
+          <div class="pwd-req" id="settings-req-number"> Alespoň 1 číslo</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="settings-new-password-confirm">Nové heslo znovu</label>
+        <input type="password" id="settings-new-password-confirm" name="new_password_confirmation" required autocomplete="new-password">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="lock"></i> Změnit heslo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- E-mailová upozornění -->
 <div class="card max-w-lg mb-lg">
   <div class="card-header">
     <h3>E-mailová upozornění</h3>
@@ -112,15 +192,53 @@
   </div>
 </div>
 
-<div class="card max-w-lg">
-  <div class="card-body">
-    <div class="info-row">
-      <span class="info-label">E-mail</span>
-      <span class="info-value"><?= e($user->getEmail()) ?></span>
-    </div>
-    <p class="text-muted text-sm mt-sm">
-      <i data-lucide="info" style="width:13px;height:13px;display:inline;vertical-align:-2px"></i>
-      Změna e-mailu a hesla není momentálně dostupná přes web. Kontaktujte správce.
-    </p>
-  </div>
-</div>
+<script>
+(function () {
+  // Password requirements indicator
+  var pwd = document.getElementById('settings-new-password');
+  if (pwd) {
+    var reqLength = document.getElementById('settings-req-length');
+    var reqUpper  = document.getElementById('settings-req-upper');
+    var reqNumber = document.getElementById('settings-req-number');
+    pwd.addEventListener('input', function () {
+      var v = pwd.value;
+      reqLength.classList.toggle('met', v.length >= 8);
+      reqUpper.classList.toggle('met', /[A-Z]/.test(v));
+      reqNumber.classList.toggle('met', /[0-9]/.test(v));
+    });
+  }
+
+  // Phone auto-format: +420 XXX XXX XXX
+  function formatCzechPhone(input) {
+    var raw = input.value.replace(/[^\d+]/g, '');
+    var prefix = '', digits = '';
+
+    if (raw.startsWith('+420')) {
+      prefix = '+420'; digits = raw.slice(4);
+    } else if (raw.startsWith('00420')) {
+      prefix = '00420'; digits = raw.slice(5);
+    } else {
+      return;
+    }
+
+    digits = digits.slice(0, 9);
+    var formatted = prefix;
+    if (digits.length > 0) formatted += ' ' + digits.slice(0, 3);
+    if (digits.length > 3) formatted += ' ' + digits.slice(3, 6);
+    if (digits.length > 6) formatted += ' ' + digits.slice(6, 9);
+    input.value = formatted;
+  }
+
+  var phoneInput = document.getElementById('settings-phone');
+  var settingsForm = phoneInput ? phoneInput.closest('form') : null;
+
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function () { formatCzechPhone(phoneInput); });
+  }
+  if (settingsForm) {
+    settingsForm.addEventListener('submit', function () {
+      phoneInput.value = phoneInput.value.replace(/\s+/g, '');
+    });
+  }
+}());
+</script>

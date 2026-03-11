@@ -82,7 +82,8 @@ class UserRepository
         return $this->db->insert('users', [
             'email'              => $data['email'],
             'password_hash'      => $data['password_hash'],
-            'name'               => $data['name'],
+            'first_name'         => $data['first_name'],
+            'surname'            => $data['surname'] ?? '',
             'phone'              => $data['phone'] ?? null,
             'address'            => $data['address'] ?? null,
             'role'               => $data['role'] ?? 'user',
@@ -125,7 +126,7 @@ class UserRepository
      */
     public function updateProfile(int $userId, array $data): void
     {
-        $allowed = ['name', 'phone', 'address'];
+        $allowed = ['first_name', 'surname', 'phone', 'address'];
         $filtered = array_intersect_key($data, array_flip($allowed));
 
         if (empty($filtered)) {
@@ -133,6 +134,14 @@ class UserRepository
         }
 
         $this->db->update('users', $filtered, 'id = ?', [$userId]);
+    }
+
+    /**
+     * Update a user's email address.
+     */
+    public function updateEmail(int $userId, string $email): void
+    {
+        $this->db->update('users', ['email' => $email], 'id = ?', [$userId]);
     }
 
     /**
@@ -146,6 +155,21 @@ class UserRepository
             'id = ?',
             [$userId]
         );
+    }
+
+    /**
+     * Admin-only: update user profile including email.
+     */
+    public function adminUpdateUser(int $userId, array $data): void
+    {
+        $allowed = ['first_name', 'surname', 'email', 'phone', 'address'];
+        $filtered = array_intersect_key($data, array_flip($allowed));
+
+        if (empty($filtered)) {
+            return;
+        }
+
+        $this->db->update('users', $filtered, 'id = ?', [$userId]);
     }
 
     /**

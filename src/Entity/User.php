@@ -18,7 +18,8 @@ class User
     private string $email;
     private string $passwordHash;
     private string $role;
-    private string $name;
+    private string $firstName;
+    private string $surname;
     private ?string $phone;
     private ?string $address;
     private bool $isVerified;
@@ -42,7 +43,8 @@ class User
         $user->email             = $row['email'];
         $user->passwordHash      = $row['password_hash'];
         $user->role              = $row['role'];
-        $user->name              = $row['name'];
+        $user->firstName         = $row['first_name'];
+        $user->surname           = $row['surname'] ?? '';
         $user->phone             = $row['phone'] ?? null;
         $user->address           = $row['address'] ?? null;
         $user->isVerified        = (bool) ($row['is_verified'] ?? false);
@@ -78,9 +80,25 @@ class User
         return $this->role;
     }
 
+    public function getFirstName(): string
+    {
+        return $this->firstName;
+    }
+
+    public function getSurname(): string
+    {
+        return $this->surname;
+    }
+
+    public function getFullName(): string
+    {
+        return trim($this->firstName . ' ' . $this->surname);
+    }
+
+    /** @deprecated Use getFullName() — kept for backwards compatibility with templates */
     public function getName(): string
     {
-        return $this->name;
+        return $this->getFullName();
     }
 
     public function getPhone(): ?string

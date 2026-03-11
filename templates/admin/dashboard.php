@@ -66,6 +66,16 @@
         <a href="/admin/reservations?status=pending" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="admin-stat">
+          <i data-lucide="message-square" style="width:28px;height:28px;color:var(--primary)"></i>
+          <span class="admin-stat-label">Konverzace</span>
+        </div>
+        <a href="/admin/conversations" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+      </div>
+    </div>
   <?php endif; ?>
 </div>
 

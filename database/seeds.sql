@@ -7,20 +7,20 @@ SET NAMES utf8mb4;
 -- ── USERS ────────────────────────────────────────────────────────
 
 -- 1) Vlastnik (owner) - owns bikes, manages reservations
-INSERT INTO `users` (`email`, `password_hash`, `role`, `name`, `phone`, `is_verified`, `karma_score`) VALUES
-('vlastnik@vlastnik.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'user', 'Vlastník Demo', '+420 111 111 111', 1, 15);
+INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `is_verified`, `karma_score`) VALUES
+('vlastnik@vlastnik.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'user', 'Vlastník', 'Demo', '+420111111111', 1, 15);
 
 -- 2) Vypujcitel (borrower/finder) - borrows bikes, reports found bikes
-INSERT INTO `users` (`email`, `password_hash`, `role`, `name`, `phone`, `is_verified`, `karma_score`) VALUES
-('vypujcitel@vypujcitel.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'user', 'Vypůjčitel Demo', '+420 222 222 222', 1, 5);
+INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `is_verified`, `karma_score`) VALUES
+('vypujcitel@vypujcitel.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'user', 'Vypůjčitel', 'Demo', '+420222222222', 1, 5);
 
 -- 3) Policie (police) - police role, can view admin panel + found report conversations
-INSERT INTO `users` (`email`, `password_hash`, `role`, `name`, `is_verified`) VALUES
-('policie@policie.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'police', 'Policie ČR', 1);
+INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `is_verified`) VALUES
+('policie@policie.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'police', 'Policie', 'ČR', 1);
 
 -- 4) Admin - full admin access
-INSERT INTO `users` (`email`, `password_hash`, `role`, `name`, `is_verified`) VALUES
-('admin@admin.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'admin', 'Administrátor', 1);
+INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `is_verified`) VALUES
+('admin@admin.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'admin', 'Administrátor', '', 1);
 
 -- ── BIKES (owned by vlastnik, id=1) ─────────────────────────────
 

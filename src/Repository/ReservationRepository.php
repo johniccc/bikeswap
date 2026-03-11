@@ -95,6 +95,21 @@ class ReservationRepository
     }
 
     /**
+     * Get all reservations for a specific bike owned by the given user.
+     *
+     * @return Reservation[]
+     */
+    public function findByOwnerAndBike(int $ownerId, int $bikeId, bool $withRelations = false): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT * FROM reservations WHERE owner_id = ? AND bike_id = ? ORDER BY created_at DESC",
+            [$ownerId, $bikeId]
+        );
+
+        return $this->hydrateList($rows, $withRelations);
+    }
+
+    /**
      * Get pending reservations for a specific bike (owner view).
      *
      * @return Reservation[]
@@ -227,6 +242,21 @@ class ReservationRepository
             [$borrowerId, $bikeId, $dateTo, $dateFrom]
         );
         return $row !== null && $row !== false;
+    }
+
+    /**
+     * Find bike IDs that have an approved/active reservation overlapping with the given date range.
+     * Used to exclude unavailable bikes from the shared bikes filter.
+     */
+    public function findBikeIdsWithConflict(string $dateFrom, string $dateTo): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT bike_id FROM reservations
+             WHERE status IN ('approved', 'active')
+               AND date_from <= ? AND date_to >= ?",
+            [$dateTo, $dateFrom]
+        );
+        return array_map('intval', array_column($rows, 'bike_id'));
     }
 
     /**

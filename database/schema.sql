@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS `users` (
     `email`              VARCHAR(255)    NOT NULL,
     `password_hash`      VARCHAR(255)    NOT NULL,
     `role`               ENUM('user', 'police', 'admin') NOT NULL DEFAULT 'user',
-    `name`               VARCHAR(100)    NOT NULL,
+    `first_name`         VARCHAR(50)     NOT NULL,
+    `surname`            VARCHAR(50)     NOT NULL DEFAULT '',
     `phone`              VARCHAR(20)     NULL DEFAULT NULL,
     `address`            VARCHAR(255)    NULL DEFAULT NULL,
     `is_verified`        TINYINT(1)      NOT NULL DEFAULT 0,
@@ -151,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `found_report_photos` (
 CREATE TABLE IF NOT EXISTS `found_report_messages` (
     `id`               INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     `found_report_id`  INT UNSIGNED    NOT NULL,
-    `sender_type`      ENUM('owner','finder','system') NOT NULL,
+    `sender_type`      ENUM('owner','finder','system','admin') NOT NULL,
     `sender_user_id`   INT UNSIGNED    NULL DEFAULT NULL,
     `message`          TEXT            NOT NULL,
     `is_read`          TINYINT(1)      NOT NULL DEFAULT 0,
@@ -250,7 +251,7 @@ CREATE TABLE IF NOT EXISTS `dispute_photos` (
 CREATE TABLE IF NOT EXISTS `reservation_messages` (
     `id`               INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     `reservation_id`   INT UNSIGNED    NOT NULL,
-    `sender_type`      ENUM('owner','borrower','system') NOT NULL,
+    `sender_type`      ENUM('owner','borrower','system','admin') NOT NULL,
     `sender_user_id`   INT UNSIGNED    NULL DEFAULT NULL,
     `message`          TEXT            NOT NULL,
     `is_read`          TINYINT(1)      NOT NULL DEFAULT 0,

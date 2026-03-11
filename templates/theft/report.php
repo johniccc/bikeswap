@@ -42,7 +42,7 @@
     <div class="form-group">
       <label for="theft_date">Datum krádeže</label>
       <input type="date" id="theft_date" name="theft_date"
-             value="<?= date('Y-m-d') ?>"
+             value="<?= e(old('theft_date', date('Y-m-d'))) ?>"
              <?php if ($bike->getYearOfManufacture()): ?>min="<?= e($bike->getYearOfManufacture()) ?>-01-01"<?php endif; ?>
              max="<?= date('Y-m-d') ?>">
     </div>
@@ -50,7 +50,7 @@
     <div class="form-group">
       <label for="theft_location_text">Místo krádeže *</label>
       <input type="text" id="theft_location_text" name="theft_location_text" required
-             placeholder="např. Pardubice, ul. Karla IV., u nádraží">
+             placeholder="např. Pardubice, ul. Karla IV., u nádraží" value="<?= e(old('theft_location_text')) ?>">
     </div>
 
     <!-- Hidden GPS fields -->
@@ -68,13 +68,13 @@
     <div class="form-group">
       <label for="description">Popis okolností</label>
       <textarea id="description" name="description" rows="4"
-                placeholder="Popište okolnosti krádeže - kde bylo kolo zamčené, jakým zámkem, kdy jste si krádeže všimli..."></textarea>
+                placeholder="Popište okolnosti krádeže - kde bylo kolo zamčené, jakým zámkem, kdy jste si krádeže všimli..."><?= e(old('description')) ?></textarea>
     </div>
 
     <div class="form-group">
       <label for="police_case_number">Číslo případu u policie</label>
       <input type="text" id="police_case_number" name="police_case_number"
-             placeholder="Pokud jste krádež nahlásili na policii">
+             placeholder="Pokud jste krádež nahlásili na policii" value="<?= e(old('police_case_number')) ?>">
     </div>
   </fieldset>
 

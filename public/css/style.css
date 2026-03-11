@@ -2223,6 +2223,25 @@ body.modal-blur > *:not(.modal-overlay):not(.toast-container) {
   border-radius: var(--radius-full);
 }
 
+.message-admin .message-bubble {
+  background: #7c3aed;
+  color: #fff;
+  border-radius: var(--radius-md) var(--radius-md) 0 var(--radius-md);
+}
+.message-admin .message-meta { color: #7c3aed; font-size: 0.72rem; }
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+}
+
 .conversation-compose {
   display: flex;
   gap: 0.5rem;
@@ -3231,5 +3250,306 @@ td .btn { white-space: nowrap; }
   }
   .admin-card-list {
     display: block;
+  }
+}
+
+/* ── Filter bar (shared bikes) ─────────────────────────────── */
+
+.filter-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+}
+
+.filter-bar-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.filter-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.filter-group-search {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.filter-group-search input {
+  width: 100%;
+}
+
+.filter-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Toggle button with badge */
+.filter-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  position: relative;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 1.1em;
+  height: 1.1em;
+  padding: 0 0.25em;
+  line-height: 1;
+}
+
+/* Dropdown panel */
+.filter-dropdown {
+  display: none;
+  overflow: hidden;
+}
+
+.filter-bar.filters-open .filter-dropdown {
+  display: block;
+}
+
+.filter-dropdown-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  padding-top: 0.875rem;
+  margin-top: 0.875rem;
+  border-top: 1px solid var(--border);
+}
+
+.input-range {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.input-range span {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.input-range input[type="number"],
+.input-range input[type="date"] {
+  min-width: 0;
+}
+
+/* ── Year dual-range slider ───────────────────────────────── */
+
+.year-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.year-slider-track-wrap {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.year-slider-track,
+.year-slider-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.year-slider-track {
+  background: var(--border);
+  width: 100%;
+}
+
+.year-slider-fill {
+  background: var(--primary);
+}
+
+/* Both range inputs overlap at full size; pointer-events on the
+   input itself are off, only the thumb is interactive */
+.year-range-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+  outline: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+}
+
+.year-range-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  background: transparent;
+  height: 100%;
+}
+
+.year-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  cursor: grab;
+  pointer-events: all;
+}
+
+.year-range-input:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.year-range-input::-moz-range-track {
+  background: transparent;
+  border: none;
+  height: 100%;
+}
+
+.year-range-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  cursor: grab;
+  pointer-events: all;
+}
+
+.year-range-input:active::-moz-range-thumb {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+/* JS toggles .thumb-top on the last-touched input to raise it above the other */
+.year-range-input.thumb-top {
+  z-index: 3;
+}
+
+.year-slider-labels {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.year-num-input {
+  width: 72px;
+  text-align: center;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+.year-slider-sep {
+  color: var(--text-muted);
+}
+
+/* ── Reservation filter dropdown (my-reservations) ─────────── */
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.section-title-row .section-title {
+  margin-bottom: 0;
+}
+
+.bike-filter-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bike-filter-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+
+.bike-filter-select {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.bike-filter-select:hover {
+  border-color: var(--primary);
+}
+
+.bike-filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.bike-filter-select.bike-filter-active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--bg-card));
+  color: var(--primary);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .filter-bar-row {
+    flex-wrap: wrap;
+  }
+  .filter-dropdown-inner {
+    flex-direction: column;
+  }
+  .year-slider-wrap {
+    min-width: 0;
+    width: 100%;
+  }
+  .section-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }

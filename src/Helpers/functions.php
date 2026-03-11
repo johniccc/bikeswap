@@ -83,6 +83,25 @@ if (!function_exists('formatDateTime')) {
     }
 }
 
+if (!function_exists('old')) {
+    /**
+     * Retrieve old (previously submitted) form input.
+     * Used in templates to re-populate fields after a failed form submission.
+     * Sensitive fields (passwords, CSRF) are never stored.
+     */
+    function old(string $key, mixed $default = ''): mixed
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return $default;
+        }
+
+        $value = $_SESSION['_old_input'][$key] ?? $default;
+        unset($_SESSION['_old_input'][$key]);
+
+        return $value;
+    }
+}
+
 if (!function_exists('isActiveRoute')) {
     /**
      * Return 'active' if the given path matches the current request URI.

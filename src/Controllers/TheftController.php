@@ -97,6 +97,7 @@ class TheftController
         $validator->required('theft_location_text', 'Místo krádeže je povinné.');
 
         if ($validator->fails()) {
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', $validator->allErrors()[0]);
 
             return redirect("/theft/report/{$bikeId}");
@@ -106,6 +107,7 @@ class TheftController
         $bikeYear  = $bike->getYearOfManufacture();
         $theftDate = $request->input('theft_date', '');
         if ($bikeYear && $theftDate && (int) date('Y', strtotime($theftDate)) < $bikeYear) {
+            $this->session->setOldInput($request->all());
             $this->session->flash('error', "Datum krádeže nemůže být před rokem výroby kola ({$bikeYear}).");
 
             return redirect("/theft/report/{$bikeId}");
@@ -143,16 +145,22 @@ class TheftController
      */
     public function publicList(Request $request): Response
     {
-        $filters = [
-            'brand' => $request->query('brand'),
-            'color' => $request->query('color'),
-            'frame_number' => $request->query('frame_number'),
-        ];
+        $search      = trim($request->query('search', '')) ?: null;
+        $color       = trim($request->query('color', '')) ?: null;
+        $yearFrom    = ($y = (int) $request->query('year_from', 0)) > 0 ? $y : null;
+        $yearTo      = ($y = (int) $request->query('year_to', 0)) > 0 ? $y : null;
+        $frameNumber = trim($request->query('frame_number', '')) ?: null;
 
-        // Remove empty filters
-        $filters = array_filter($filters, fn($v) => $v !== null && $v !== '');
-
-        $stolenBikes = $this->bikeRepository->findStolen($filters, withPhotos: true);
+        $stolenBikes = $this->bikeRepository->findStolen(
+            withPhotos: true,
+            search: $search,
+            color: $color,
+            yearFrom: $yearFrom,
+            yearTo: $yearTo,
+            frameNumber: $frameNumber
+        );
+        $colors    = $this->bikeRepository->getStolenBikeColors();
+        $yearRange = $this->bikeRepository->getStolenBikeYearRange();
 
         if ($request->wantsJson()) {
             return json(['bikes' => array_map(fn($b) => [
@@ -164,15 +172,28 @@ class TheftController
             ], $stolenBikes)]);
         }
 
+        $filters = [
+            'search'       => $search ?? '',
+            'color'        => $color ?? '',
+            'year_from'    => $yearFrom ?? '',
+            'year_to'      => $yearTo ?? '',
+            'frame_number' => $frameNumber ?? '',
+        ];
+        $hasFilters = !empty(array_filter($filters, fn($v) => $v !== ''));
+
         $currentUser = $this->authService->currentUser();
         $layout = $currentUser ? 'layouts/app' : 'layouts/public';
 
         return view('theft/stolen-list', [
-            'title' => 'Odcizená kola – BikeSwap',
-            'bikes' => $stolenBikes,
-            'filters' => $filters,
+            'title'       => 'Odcizená kola – BikeSwap',
+            'bikes'       => $stolenBikes,
+            'filters'     => $filters,
+            'hasFilters'  => $hasFilters,
+            'colors'      => $colors,
+            'yearMin'     => $yearRange['min'],
+            'yearMax'     => $yearRange['max'],
             'currentUser' => $currentUser,
-            'session' => $this->session,
+            'session'     => $this->session,
         ])->withLayout($layout);
     }
 

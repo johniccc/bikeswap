@@ -30,6 +30,22 @@
 <!-- As owner -->
 <section class="mb-xl">
   <h2 class="section-title">Jako majitel <span class="text-muted text-sm" style="font-weight:400">(žádosti o moje kola)</span></h2>
+  <?php if (!empty($ownerBikes)): ?>
+    <form method="GET" action="/reservations" class="bike-filter-form mb-md">
+      <label for="bike-filter-select" class="bike-filter-label">
+        <i data-lucide="filter" style="width:12px;height:12px;display:inline;vertical-align:-1px"></i>
+        Filtrovat dle kola
+      </label>
+      <select name="bike" id="bike-filter-select" class="bike-filter-select<?= $filterBike ? ' bike-filter-active' : '' ?>" onchange="this.form.submit()">
+        <option value="">Všechna kola</option>
+        <?php foreach ($ownerBikes as $b): ?>
+          <option value="<?= $b->getId() ?>" <?= ($filterBike && $filterBike->getId() === $b->getId()) ? 'selected' : '' ?>>
+            <?= e($b->getFullName()) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </form>
+  <?php endif; ?>
 
   <?php if (empty($asOwner)): ?>
     <div class="empty-state">
