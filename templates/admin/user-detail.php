@@ -114,16 +114,19 @@
     <div class="card-header">
       <h3>Akce</h3>
     </div>
-    <div class="card-body">
-      <div class="flex gap-sm flex-wrap" style="align-items:flex-end">
+    <div class="card-body" style="display:flex;flex-direction:column;gap:1.25rem">
 
-        <!-- Ban / Unban -->
-        <?php if (!$user->isAdmin()): ?>
+      <!-- Ban / Unban -->
+      <?php if (!$user->isAdmin()): ?>
+        <div>
+          <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.5rem">
+            Stav účtu
+          </p>
           <?php if ($user->isBanned()): ?>
             <form method="POST" action="/admin/users/<?= $user->getId() ?>/unban">
               <input type="hidden" name="_csrf" value="<?= e($csrf ?? $session->csrfToken()) ?>">
               <button type="submit" class="btn btn-success btn-sm">
-                <i data-lucide="shield-check"></i> Odblokovat
+                <i data-lucide="shield-check"></i> Odblokovat uživatele
               </button>
             </form>
           <?php else: ?>
@@ -131,27 +134,40 @@
               <input type="hidden" name="_csrf" value="<?= e($csrf ?? $session->csrfToken()) ?>">
               <button type="submit" class="btn btn-danger btn-sm"
                       data-confirm="Opravdu chcete tohoto uživatele zablokovat?">
-                <i data-lucide="shield-off"></i> Zablokovat
+                <i data-lucide="shield-off"></i> Zablokovat uživatele
               </button>
             </form>
           <?php endif; ?>
-        <?php endif; ?>
+        </div>
+      <?php endif; ?>
 
-        <!-- Role change -->
-        <form method="POST" action="/admin/users/<?= $user->getId() ?>/role" class="flex gap-sm" style="align-items:flex-end">
+      <!-- Role change -->
+      <div>
+        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.5rem">
+          Role
+        </p>
+        <form method="POST" action="/admin/users/<?= $user->getId() ?>/role">
           <input type="hidden" name="_csrf" value="<?= e($csrf ?? $session->csrfToken()) ?>">
-          <select name="role" class="form-control" style="width:auto">
-            <option value="user" <?= $user->getRole() === 'user' ? 'selected' : '' ?>>Uživatel</option>
-            <option value="police" <?= $user->getRole() === 'police' ? 'selected' : '' ?>>Policie</option>
-            <option value="admin" <?= $user->getRole() === 'admin' ? 'selected' : '' ?>>Admin</option>
-          </select>
-          <button type="submit" class="btn btn-secondary btn-sm">
-            <i data-lucide="refresh-cw"></i> Změnit roli
-          </button>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+            <select name="role" class="form-control" style="width:auto">
+              <option value="user" <?= $user->getRole() === 'user' ? 'selected' : '' ?>>Uživatel</option>
+              <option value="police" <?= $user->getRole() === 'police' ? 'selected' : '' ?>>Policie</option>
+              <option value="admin" <?= $user->getRole() === 'admin' ? 'selected' : '' ?>>Admin</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i data-lucide="save"></i> Uložit roli
+            </button>
+          </div>
         </form>
+      </div>
 
-        <!-- Delete user -->
-        <?php if (!$user->isAdmin()): ?>
+      <!-- Danger zone -->
+      <?php if (!$user->isAdmin()): ?>
+        <hr style="border:none;border-top:1px solid var(--border);margin:0">
+        <div>
+          <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--danger);margin-bottom:0.5rem">
+            Nebezpečná zóna
+          </p>
           <form method="POST" action="/admin/users/<?= $user->getId() ?>/delete">
             <input type="hidden" name="_csrf" value="<?= e($csrf ?? $session->csrfToken()) ?>">
             <button type="submit" class="btn btn-danger btn-sm"
@@ -159,21 +175,23 @@
               <i data-lucide="trash-2"></i> Smazat uživatele
             </button>
           </form>
-        <?php endif; ?>
+        </div>
+      <?php endif; ?>
 
-      </div>
     </div>
   </div>
 <?php endif; ?>
 
 <!-- User's bikes -->
-<h2 class="section-title">
-  Kola uživatele
-  <span class="badge-count"><?= count($bikes) ?></span>
+<div class="section-title-row">
+  <h2 class="section-title">
+    Kola uživatele
+    <span class="badge-count"><?= count($bikes) ?></span>
+  </h2>
   <a href="/admin/bikes/new?owner=<?= $user->getId() ?>" class="btn btn-primary btn-sm" style="margin-left:auto">
     <i data-lucide="plus"></i> Přidat kolo
   </a>
-</h2>
+</div>
 
 <?php if (empty($bikes)): ?>
   <div class="card">

@@ -62,7 +62,7 @@
     <span class="admin-badge"><i data-lucide="shield" style="width:11px;height:11px"></i> Administrátor</span>
   </div>
 
-  <div class="conversation-thread" id="conversation-thread">
+  <div class="conversation-messages" id="conversation-thread">
     <?php if (empty($messages)): ?>
       <div class="conversation-empty text-muted text-center" style="padding:2rem">
         <i data-lucide="message-square" style="width:32px;height:32px;margin-bottom:0.5rem"></i>
@@ -99,3 +99,10 @@
     </form>
   </div>
 </div>
+
+<script>
+(function () {
+  var t = document.getElementById('conversation-thread');
+  if (t) t.scrollTop = t.scrollHeight;
+}());
+</script>

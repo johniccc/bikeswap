@@ -16,8 +16,9 @@
   </div>
 <?php else: ?>
   <div class="card mb-xl">
-    <div class="card-body" style="padding:0">
-      <table class="table">
+    <!-- Desktop table -->
+    <div class="table-responsive">
+      <table class="admin-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -48,6 +49,29 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Mobile card list -->
+    <div class="admin-card-list">
+      <?php foreach ($reservations as $res): ?>
+        <a href="/admin/conversation/reservation/<?= $res->getId() ?>" class="admin-card-item">
+          <div class="admin-card-item-header">
+            <span class="admin-card-item-title">
+              <?= $res->getBike() ? e($res->getBike()->getFullName()) : 'Rezervace #' . $res->getId() ?>
+            </span>
+            <span class="status-badge status-<?= e($res->getStatus()) ?>"><?= e($res->getStatusLabel()) ?></span>
+          </div>
+          <div class="admin-card-item-meta">
+            <?php if ($res->getOwner()): ?>
+              <span>Vlastník: <?= e($res->getOwner()->getName()) ?></span>
+            <?php endif; ?>
+            <?php if ($res->getBorrower()): ?>
+              <span>Výpůjčník: <?= e($res->getBorrower()->getName()) ?></span>
+            <?php endif; ?>
+            <span><?= date('d.m.Y', strtotime($res->getCreatedAt())) ?></span>
+          </div>
+        </a>
+      <?php endforeach; ?>
+    </div>
   </div>
 <?php endif; ?>
 
@@ -65,8 +89,9 @@
   </div>
 <?php else: ?>
   <div class="card">
-    <div class="card-body" style="padding:0">
-      <table class="table">
+    <!-- Desktop table -->
+    <div class="table-responsive">
+      <table class="admin-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -94,6 +119,24 @@
           <?php endforeach; ?>
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile card list -->
+    <div class="admin-card-list">
+      <?php foreach ($foundReports as $report): ?>
+        <a href="/admin/conversation/found/<?= $report->getId() ?>" class="admin-card-item">
+          <div class="admin-card-item-header">
+            <span class="admin-card-item-title">Nález #<?= $report->getId() ?></span>
+            <span class="status-badge <?= e($report->getStatusClass()) ?>"><?= e($report->getStatusLabel()) ?></span>
+          </div>
+          <div class="admin-card-item-meta">
+            <?php if ($report->getFoundLocationText()): ?>
+              <span><?= e(mb_substr($report->getFoundLocationText(), 0, 50)) ?></span>
+            <?php endif; ?>
+            <span><?= date('d.m.Y', strtotime($report->getCreatedAt())) ?></span>
+          </div>
+        </a>
+      <?php endforeach; ?>
     </div>
   </div>
 <?php endif; ?>
