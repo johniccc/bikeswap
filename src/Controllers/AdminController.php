@@ -652,7 +652,7 @@ class AdminController
     public function reservationConversation(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->isAdmin()) {
+        if (!$currentUser->hasRole('police')) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
@@ -690,7 +690,7 @@ class AdminController
     public function sendReservationMessage(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->isAdmin()) {
+        if (!$currentUser->hasRole('police')) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
@@ -724,7 +724,7 @@ class AdminController
     public function foundConversation(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->isAdmin()) {
+        if (!$currentUser->hasRole('police')) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
@@ -738,12 +738,18 @@ class AdminController
         $messages = $this->foundReportMessageRepository->findByReportId($reportId);
         $bike = $report->getBikeId() ? $this->bikeRepository->findById($report->getBikeId(), withPhotos: true) : null;
 
+        $owner = null;
+        if ($bike !== null) {
+            $owner = $this->userRepository->findById($bike->getOwnerId());
+        }
+
         return view('admin/conversation-found', [
             'title' => 'Konverzace nálezu #' . $reportId . ' — Admin',
             'currentUser' => $currentUser,
             'report' => $report,
             'messages' => $messages,
             'bike' => $bike,
+            'owner' => $owner,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
         ])->withLayout('layouts/app');
@@ -756,7 +762,7 @@ class AdminController
     public function sendFoundMessage(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->isAdmin()) {
+        if (!$currentUser->hasRole('police')) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
