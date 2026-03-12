@@ -995,9 +995,10 @@ textarea {
 }
 
 select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-color: var(--surface) !important;
   padding-right: 2.5rem;
 }
 
@@ -2433,6 +2434,31 @@ body.modal-blur > *:not(.modal-overlay):not(.toast-container) {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+}
+
+.notifications-section + .notifications-section {
+  margin-top: 2rem;
+}
+
+.notifications-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.notification-item.notification-action {
+  border-left: 3px solid var(--danger);
+}
+
+.notification-item.notification-action .notification-icon i {
+  color: var(--danger);
+}
+
+.notification-item.notification-action.notification-unread {
+  background: var(--danger-bg);
 }
 
 

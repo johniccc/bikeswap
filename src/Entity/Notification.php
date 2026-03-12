@@ -96,10 +96,22 @@ class Notification
     }
 
     /**
+     * Whether this notification requires user action (shown in "Akce" section).
+     */
+    public function isAction(): bool
+    {
+        return in_array($this->type, ['warning', 'bike_warning'], true);
+    }
+
+    /**
      * CSS class for the notification icon based on type.
      */
     public function getIconClass(): string
     {
+        if ($this->isAction()) {
+            return 'icon-action';
+        }
+
         return match ($this->type) {
             'found_report'   => 'icon-found',
             'message'        => 'icon-message',

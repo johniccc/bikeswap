@@ -53,9 +53,14 @@ class NotificationController
             ]);
         }
 
+        $actions = array_values(array_filter($notifications, fn($n) => $n->isAction()));
+        $messages = array_values(array_filter($notifications, fn($n) => !$n->isAction()));
+
         return view('notifications/index', [
             'title' => 'Oznámení – BikeSwap',
             'notifications' => $notifications,
+            'actions' => $actions,
+            'messages' => $messages,
             'currentUser' => $currentUser,
             'session' => $this->session,
         ])->withLayout('layouts/app');
