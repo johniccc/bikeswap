@@ -13,9 +13,11 @@ use App\Repository\FoundReportMessageRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\ReservationMessageRepository;
 use App\Repository\TheftReportRepository;
+use App\Repository\BikeWarningRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
+use App\Services\BikeWarningService;
 use App\Services\FileUploadService;
 use App\Services\QRService;
 
@@ -31,6 +33,8 @@ class AdminController
     private AuthService $authService;
     private FileUploadService $fileUploadService;
     private QRService $qrService;
+    private BikeWarningRepository $bikeWarningRepository;
+    private BikeWarningService $bikeWarningService;
     private Session $session;
 
     public function __construct(
@@ -44,6 +48,8 @@ class AdminController
         AuthService $authService,
         FileUploadService $fileUploadService,
         QRService $qrService,
+        BikeWarningRepository $bikeWarningRepository,
+        BikeWarningService $bikeWarningService,
         Session $session
     ) {
         $this->userRepository = $userRepository;
@@ -56,6 +62,8 @@ class AdminController
         $this->authService = $authService;
         $this->fileUploadService = $fileUploadService;
         $this->qrService = $qrService;
+        $this->bikeWarningRepository = $bikeWarningRepository;
+        $this->bikeWarningService = $bikeWarningService;
         $this->session = $session;
     }
 
@@ -73,6 +81,7 @@ class AdminController
             'bikes' => $this->bikeRepository->countAll(),
             'bikes_stolen' => $this->bikeRepository->countAll('stolen'),
             'thefts_open' => $this->theftReportRepository->countOpen(),
+            'warnings_active' => $this->bikeWarningRepository->countByStatus('active'),
         ];
 
         if ($isAdmin) {
@@ -787,6 +796,149 @@ class AdminController
         $this->foundReportMessageRepository->create($reportId, 'admin', $currentUser->getId(), $message);
 
         return redirect("/admin/conversation/found/{$reportId}");
+    }
+
+    // ── Bike Warnings ────────────────────────────────────────────
+
+    /**
+     * Bike warnings list.
+     * GET /admin/warnings
+     */
+    public function bikeWarnings(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        if (!$currentUser->hasRole('police')) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        $statusFilter = $request->query('status');
+        $warnings = $this->bikeWarningRepository->findAll($statusFilter);
+
+        $bikesMap = [];
+        $creatorsMap = [];
+        $ownersMap = [];
+        foreach ($warnings as $w) {
+            if (!isset($bikesMap[$w->getBikeId()])) {
+                $bikesMap[$w->getBikeId()] = $this->bikeRepository->findById($w->getBikeId());
+            }
+            if (!isset($creatorsMap[$w->getCreatedBy()])) {
+                $creatorsMap[$w->getCreatedBy()] = $this->userRepository->findById($w->getCreatedBy());
+            }
+            $bike = $bikesMap[$w->getBikeId()] ?? null;
+            if ($bike && !isset($ownersMap[$bike->getOwnerId()])) {
+                $ownersMap[$bike->getOwnerId()] = $this->userRepository->findById($bike->getOwnerId());
+            }
+        }
+
+        $counts = [
+            'all' => $this->bikeWarningRepository->countByStatus(),
+            'active' => $this->bikeWarningRepository->countByStatus('active'),
+            'resolved' => $this->bikeWarningRepository->countByStatus('resolved'),
+            'expired' => $this->bikeWarningRepository->countByStatus('expired'),
+        ];
+
+        return view('admin/bike-warnings', [
+            'title' => 'Upozornění na kola — Admin',
+            'currentUser' => $currentUser,
+            'warnings' => $warnings,
+            'bikesMap' => $bikesMap,
+            'creatorsMap' => $creatorsMap,
+            'ownersMap' => $ownersMap,
+            'counts' => $counts,
+            'statusFilter' => $statusFilter,
+            'session' => $this->session,
+        ])->withLayout('layouts/app');
+    }
+
+    /**
+     * Create bike warning form.
+     * GET /admin/warnings/new
+     */
+    public function createBikeWarningForm(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        if (!$currentUser->hasRole('police')) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        $bikeId = $request->query('bike_id');
+        $bike = $bikeId ? $this->bikeRepository->findById((int) $bikeId) : null;
+
+        return view('admin/bike-warning-create', [
+            'title' => 'Nové upozornění — Admin',
+            'currentUser' => $currentUser,
+            'bike' => $bike,
+            'bikeId' => $bikeId,
+            'session' => $this->session,
+        ])->withLayout('layouts/app');
+    }
+
+    /**
+     * Store a new bike warning.
+     * POST /admin/warnings/new
+     */
+    public function storeBikeWarning(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        if (!$currentUser->hasRole('police')) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný CSRF token.');
+            return redirect('/admin/warnings/new');
+        }
+
+        $bikeId = (int) $request->input('bike_id', '0');
+        $reason = trim($request->input('reason', ''));
+        $deadline = $request->input('deadline', '');
+        $location = trim($request->input('location', '')) ?: null;
+
+        if ($bikeId <= 0 || $reason === '' || $deadline === '') {
+            $this->session->flash('error', 'Vyplňte všechna povinná pole.');
+            $this->session->setOldInput($_POST);
+            return redirect('/admin/warnings/new?bike_id=' . $bikeId);
+        }
+
+        try {
+            $this->bikeWarningService->createWarning(
+                $bikeId,
+                $currentUser->getId(),
+                $reason,
+                $deadline,
+                $location
+            );
+            $this->session->flash('success', 'Upozornění bylo vytvořeno a vlastník byl informován.');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
+            $this->session->setOldInput($_POST);
+            return redirect('/admin/warnings/new?bike_id=' . $bikeId);
+        }
+
+        return redirect('/admin/warnings');
+    }
+
+    /**
+     * Resolve a bike warning.
+     * POST /admin/warnings/{id}/resolve
+     */
+    public function resolveBikeWarning(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        if (!$currentUser->hasRole('police')) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
+
+        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
+            $this->session->flash('error', 'Neplatný CSRF token.');
+            return redirect('/admin/warnings');
+        }
+
+        $warningId = (int) $request->param('id');
+        $this->bikeWarningService->resolveWarning($warningId);
+        $this->session->flash('success', 'Upozornění bylo vyřešeno.');
+
+        return redirect('/admin/warnings');
     }
 
     /**

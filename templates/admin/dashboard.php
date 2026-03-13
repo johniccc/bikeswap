@@ -46,6 +46,16 @@
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-body">
+      <div class="admin-stat">
+        <span class="admin-stat-value"><?= $stats['warnings_active'] ?? 0 ?></span>
+        <span class="admin-stat-label">Aktivních upozornění</span>
+      </div>
+      <a href="/admin/warnings?status=active" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+    </div>
+  </div>
+
   <?php if (!empty($isAdmin)): ?>
     <div class="card">
       <div class="card-body">

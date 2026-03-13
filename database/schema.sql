@@ -323,4 +323,24 @@ CREATE TABLE IF NOT EXISTS `rate_limits` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
 
+-- ── BIKE WARNINGS ─────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `bike_warnings` (
+    `id`                   INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `bike_id`              INT UNSIGNED    NOT NULL,
+    `created_by`           INT UNSIGNED    NOT NULL,
+    `reason`               TEXT            NOT NULL,
+    `deadline`             DATE            NOT NULL,
+    `location_description` VARCHAR(255)    NOT NULL DEFAULT 'Pardubice hlavní nádraží',
+    `status`               ENUM('active','resolved','expired') NOT NULL DEFAULT 'active',
+    `created_at`           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_bw_bike` (`bike_id`),
+    KEY `idx_bw_status` (`status`),
+    CONSTRAINT `fk_bw_bike` FOREIGN KEY (`bike_id`) REFERENCES `bikes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_bw_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
 SET FOREIGN_KEY_CHECKS = 1;

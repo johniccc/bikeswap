@@ -141,6 +141,10 @@ $router->group('/admin', [AdminMiddleware::class], function ($router) {
     $router->post('/users/{id}/ban', [AdminController::class, 'banUser']);
     $router->post('/users/{id}/unban', [AdminController::class, 'unbanUser']);
     $router->post('/users/{id}/role', [AdminController::class, 'changeRole']);
+    $router->get('/warnings', [AdminController::class, 'bikeWarnings']);
+    $router->get('/warnings/new', [AdminController::class, 'createBikeWarningForm']);
+    $router->post('/warnings/new', [AdminController::class, 'storeBikeWarning']);
+    $router->post('/warnings/{id}/resolve', [AdminController::class, 'resolveBikeWarning']);
     $router->get('/bikes', [AdminController::class, 'bikes']);
     $router->get('/bikes/new', [AdminController::class, 'createBikeForm']);
     $router->post('/bikes/new', [AdminController::class, 'createBike']);

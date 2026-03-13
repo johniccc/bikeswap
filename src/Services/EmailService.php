@@ -257,6 +257,33 @@ class EmailService
     }
 
     /**
+     * Notify owner about a bike warning (long-standing bike).
+     */
+    public function sendBikeWarningNotification(int $ownerId, string $bikeName, string $deadline, string $location): void
+    {
+        if (!$this->preferencesRepository->isEnabled($ownerId, 'email_on_status_change')) {
+            return;
+        }
+
+        $user = $this->userRepository->findById($ownerId);
+        if ($user === null) {
+            return;
+        }
+
+        $subject = 'Upozornění na vaše kolo – ' . $bikeName;
+        $body = sprintf(
+            "Dobrý den,\n\nvaše kolo %s bylo nalezeno na místě: %s.\n\n" .
+            "Prosíme, vyzvedněte si ho do %s, jinak bude předáno k dalšímu řízení.\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $bikeName,
+            $location,
+            date('d.m.Y', strtotime($deadline))
+        );
+
+        $this->send($user->getEmail(), $subject, $body);
+    }
+
+    /**
      * Send an email (or log it in debug mode).
      */
     private function send(string $to, string $subject, string $body): void
