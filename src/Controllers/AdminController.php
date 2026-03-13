@@ -84,13 +84,14 @@ class AdminController
             'warnings_active' => $this->bikeWarningRepository->countByStatus('active'),
         ];
 
+        $stats['reservations'] = $this->reservationRepository->countAll();
+        $stats['reservations_pending'] = $this->reservationRepository->countAll('pending');
+
         if ($isAdmin) {
             $stats['users'] = $this->userRepository->countAll();
-            $stats['reservations'] = $this->reservationRepository->countAll();
-            $stats['reservations_pending'] = $this->reservationRepository->countAll('pending');
         }
 
-        $disputes = $isAdmin ? $this->reservationRepository->findDisputed(withRelations: true) : [];
+        $disputes = $this->reservationRepository->findDisputed(withRelations: true);
 
         return view('admin/dashboard', [
             'title' => 'Administrace',
@@ -373,9 +374,6 @@ class AdminController
     public function reservations(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->isAdmin()) {
-            throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
 
         $statusFilter = $request->query('status');
 
@@ -424,9 +422,6 @@ class AdminController
     public function bikeDetail(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->isAdmin()) {
-            throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
 
         $bikeId = (int) $request->param('id');
         $bike = $this->bikeRepository->findById($bikeId, withPhotos: true);
@@ -638,9 +633,6 @@ class AdminController
     public function conversations(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->isAdmin()) {
-            throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
 
         $reservations = $this->reservationRepository->findAll(null, withRelations: true);
         $foundReports = $this->foundReportRepository->findAll();
