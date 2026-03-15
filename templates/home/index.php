@@ -21,6 +21,10 @@
         <button type="button" class="btn btn-secondary btn-lg open-auth-modal" data-tab="login">
           <i data-lucide="log-in"></i> Přihlásit se
         </button>
+      <?php elseif (isset($currentUser) && $currentUser->hasRole('police')): ?>
+        <a href="/admin" class="btn btn-primary btn-lg">
+          <i data-lucide="shield"></i> Administrace
+        </a>
       <?php else: ?>
         <a href="/dashboard" class="btn btn-primary btn-lg">
           <i data-lucide="layout-dashboard"></i> Moje kola
@@ -117,6 +121,10 @@
     <button type="button" class="btn btn-primary btn-lg open-auth-modal" data-tab="register">
       <i data-lucide="arrow-right"></i> Zaregistrovat se zdarma
     </button>
+  <?php elseif (isset($currentUser) && $currentUser->hasRole('police')): ?>
+    <a href="/admin" class="btn btn-primary btn-lg">
+      <i data-lucide="shield"></i> Přejít do administrace
+    </a>
   <?php else: ?>
     <a href="/dashboard" class="btn btn-primary btn-lg">
       <i data-lucide="layout-dashboard"></i> Přejít do dashboardu

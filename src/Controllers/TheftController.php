@@ -159,7 +159,6 @@ class TheftController
             yearTo: $yearTo,
             frameNumber: $frameNumber
         );
-        $colors    = $this->bikeRepository->getStolenBikeColors();
         $yearRange = $this->bikeRepository->getStolenBikeYearRange();
 
         if ($request->wantsJson()) {
@@ -189,7 +188,6 @@ class TheftController
             'bikes'       => $stolenBikes,
             'filters'     => $filters,
             'hasFilters'  => $hasFilters,
-            'colors'      => $colors,
             'yearMin'     => $yearRange['min'],
             'yearMax'     => $yearRange['max'],
             'currentUser' => $currentUser,

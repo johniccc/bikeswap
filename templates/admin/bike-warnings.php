@@ -1,6 +1,6 @@
 <div class="page-header">
-  <div class="flex justify-between align-center flex-wrap gap-sm">
-    <h1>Upozornění na kola</h1>
+  <h1>Upozornění na kola</h1>
+  <div class="page-header-actions">
     <a href="/admin/warnings/new" class="btn btn-primary">
       <i data-lucide="plus"></i> Nové upozornění
     </a>

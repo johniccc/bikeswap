@@ -1,10 +1,12 @@
 <div class="page-header">
   <h1>Kola</h1>
+  <?php if ($currentUser->isAdmin()): ?>
   <div class="page-header-actions">
     <a href="/admin/bikes/new" class="btn btn-primary btn-sm">
       <i data-lucide="plus"></i> Přidat kolo
     </a>
   </div>
+  <?php endif; ?>
 </div>
 
 <!-- Status filter -->
@@ -24,28 +26,35 @@
 <?php else: ?>
   <div class="bike-grid">
     <?php foreach ($bikes as $bike): ?>
-      <a href="/admin/bikes/<?= $bike->getId() ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
-        <div class="bike-card-photo-wrap">
-          <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
-          <?php if ($primaryPhoto): ?>
-            <img src="<?= e($primaryPhoto->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>" class="bike-card-photo">
-          <?php else: ?>
-            <div class="bike-card-photo-placeholder"><i data-lucide="image"></i></div>
-          <?php endif; ?>
-          <div class="bike-card-badges">
-            <?php
-              $statusLabels = ['active' => 'Aktivní', 'stolen' => 'Odcizené', 'shared' => 'Sdílené', 'inactive' => 'Neaktivní'];
-            ?>
-            <span class="status-badge status-<?= e($bike->getStatus()) ?>">
-              <?= e($statusLabels[$bike->getStatus()] ?? $bike->getStatus()) ?>
-            </span>
+      <div class="bike-card card-hover" style="position:relative">
+        <a href="/admin/bikes/<?= $bike->getId() ?>" style="text-decoration:none;color:inherit">
+          <div class="bike-card-photo-wrap">
+            <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
+            <?php if ($primaryPhoto): ?>
+              <img src="<?= e($primaryPhoto->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>" class="bike-card-photo">
+            <?php else: ?>
+              <div class="bike-card-photo-placeholder"><i data-lucide="image"></i></div>
+            <?php endif; ?>
+            <div class="bike-card-badges">
+              <?php
+                $statusLabels = ['active' => 'Aktivní', 'stolen' => 'Odcizené', 'shared' => 'Sdílené', 'inactive' => 'Neaktivní'];
+              ?>
+              <span class="status-badge status-<?= e($bike->getStatus()) ?>">
+                <?= e($statusLabels[$bike->getStatus()] ?? $bike->getStatus()) ?>
+              </span>
+            </div>
           </div>
-        </div>
-        <div class="bike-card-body">
-          <div class="bike-card-name"><?= e($bike->getFullName()) ?></div>
-          <div class="bike-card-meta"><i data-lucide="palette"></i> <?= e($bike->getColor()) ?></div>
-        </div>
-      </a>
+          <div class="bike-card-body">
+            <div class="bike-card-name"><?= e($bike->getFullName()) ?></div>
+            <div class="bike-card-meta"><i data-lucide="palette"></i> <?= e($bike->getColor()) ?></div>
+          </div>
+        </a>
+        <?php if ($currentUser->hasRole('police')): ?>
+          <a href="/admin/warnings/new?bike_id=<?= $bike->getId() ?>" class="btn btn-warning btn-sm" style="position:absolute;top:0.5rem;right:0.5rem;z-index:2" title="Přidat upozornění">
+            <i data-lucide="alert-triangle"></i>
+          </a>
+        <?php endif; ?>
+      </div>
     <?php endforeach; ?>
   </div>
 <?php endif; ?>

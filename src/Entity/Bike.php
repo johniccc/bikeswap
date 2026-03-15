@@ -23,6 +23,8 @@ class Bike
     private ?string $description;
     private string $status;
     private bool $isShared;
+    private bool $autoAccept;
+    private ?string $availabilityDays;
     private string $createdAt;
     private string $updatedAt;
 
@@ -52,6 +54,8 @@ class Bike
         $bike->description       = $row['description'] ?? null;
         $bike->status            = $row['status'];
         $bike->isShared          = (bool) ($row['is_shared'] ?? false);
+        $bike->autoAccept        = (bool) ($row['auto_accept'] ?? false);
+        $bike->availabilityDays  = $row['availability_days'] ?? null;
         $bike->createdAt         = $row['created_at'];
         $bike->updatedAt         = $row['updated_at'];
 
@@ -113,6 +117,36 @@ class Bike
     public function isShared(): bool
     {
         return $this->isShared;
+    }
+
+    public function isAutoAccept(): bool
+    {
+        return $this->autoAccept;
+    }
+
+    public function getAvailabilityDays(): ?string
+    {
+        return $this->availabilityDays;
+    }
+
+    /**
+     * @return int[] Array of day numbers (1=Mon..7=Sun). All days if NULL.
+     */
+    public function getAvailabilityDaysArray(): array
+    {
+        if ($this->availabilityDays === null || $this->availabilityDays === '') {
+            return [1, 2, 3, 4, 5, 6, 7];
+        }
+
+        return array_map('intval', explode(',', $this->availabilityDays));
+    }
+
+    /**
+     * Check if a given day of week is available (1=Mon..7=Sun).
+     */
+    public function isDayAvailable(int $dayOfWeek): bool
+    {
+        return in_array($dayOfWeek, $this->getAvailabilityDaysArray(), true);
     }
 
     public function getCreatedAt(): string

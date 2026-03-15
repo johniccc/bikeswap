@@ -104,6 +104,23 @@ class Notification
     }
 
     /**
+     * Lucide icon name based on notification type.
+     */
+    public function getIcon(): string
+    {
+        return match ($this->type) {
+            'bike_warning'   => 'alert-triangle',
+            'warning'        => 'alert-circle',
+            'found_report'   => 'search',
+            'reservation'    => 'calendar',
+            'review'         => 'star',
+            'message'        => 'message-circle',
+            'info'           => 'info',
+            default          => 'bell',
+        };
+    }
+
+    /**
      * CSS class for the notification icon based on type.
      */
     public function getIconClass(): string

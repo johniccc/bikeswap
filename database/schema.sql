@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS `bikes` (
     `description`          TEXT            NULL DEFAULT NULL,
     `status`               ENUM('active', 'stolen', 'found', 'recovered') NOT NULL DEFAULT 'active',
     `is_shared`            TINYINT(1)      NOT NULL DEFAULT 0,
+    `auto_accept`          TINYINT(1)      NOT NULL DEFAULT 0,
+    `availability_days`    VARCHAR(20)     DEFAULT NULL,
     `created_at`           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -320,6 +322,20 @@ CREATE TABLE IF NOT EXISTS `rate_limits` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_rate_ip_action` (`ip_address`, `action_type`),
     KEY `idx_rate_first_attempt` (`first_attempt_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
+-- ── BIKE EXCLUDED DATES ──────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `bike_excluded_dates` (
+    `id`            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `bike_id`       INT UNSIGNED    NOT NULL,
+    `excluded_date` DATE            NOT NULL,
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_bike_date` (`bike_id`, `excluded_date`),
+    CONSTRAINT `fk_excluded_bike` FOREIGN KEY (`bike_id`) REFERENCES `bikes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
 

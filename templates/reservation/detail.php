@@ -254,7 +254,7 @@ $bike = $reservation->getBike();
 <?php endif; ?>
 
 <!-- Admin resolution panel -->
-<?php if ($currentUser->isAdmin() && $reservation->canBeAdminResolved()): ?>
+<?php if ($currentUser->hasRole('police') && $reservation->canBeAdminResolved()): ?>
   <div class="card mb-lg" style="border:2px solid var(--accent)">
     <div class="card-header">
       <h3><i data-lucide="shield" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Rozhodnutí správce</h3>

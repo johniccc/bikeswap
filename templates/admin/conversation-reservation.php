@@ -60,40 +60,41 @@
     <span class="admin-badge"><i data-lucide="shield" style="width:11px;height:11px"></i> Administrátor</span>
   </div>
 
-  <div class="conversation-messages" id="conversation-thread">
-    <?php if (empty($messages)): ?>
-      <div class="conversation-empty text-muted text-center" style="padding:2rem">
-        <i data-lucide="message-square" style="width:32px;height:32px;margin-bottom:0.5rem"></i>
-        <p>Zatím žádné zprávy.</p>
-      </div>
-    <?php else: ?>
-      <?php foreach ($messages as $msg): ?>
-        <?php $isAdmin = $msg->getSenderType() === 'admin'; ?>
-        <div class="message <?= $msg->getSenderClass() ?> <?= $isAdmin ? 'mine' : '' ?>">
-          <div class="message-bubble"><?= nl2br(e($msg->getMessage())) ?></div>
-          <?php if (!$msg->isSystemMessage()): ?>
-            <div class="message-meta">
-              <?= e($msg->getSenderLabel()) ?>
-              <?php if ($isAdmin): ?>
-                <span class="admin-badge" style="font-size:0.65rem"><i data-lucide="shield" style="width:10px;height:10px"></i> Admin</span>
-              <?php endif; ?>
-              · <?= e($msg->getFormattedTime()) ?>
-            </div>
-          <?php endif; ?>
+  <div class="card-body" style="padding-bottom:0">
+    <div class="conversation-messages" id="conversation-thread">
+      <?php if (empty($messages)): ?>
+        <div class="conversation-empty text-muted text-center" style="padding:2rem">
+          <i data-lucide="message-square" style="width:32px;height:32px;margin-bottom:0.5rem"></i>
+          <p>Zatím žádné zprávy.</p>
         </div>
-      <?php endforeach; ?>
-    <?php endif; ?>
-  </div>
+      <?php else: ?>
+        <?php foreach ($messages as $msg): ?>
+          <?php $isAdmin = $msg->getSenderType() === 'admin'; ?>
+          <div class="message <?= $msg->getSenderClass() ?> <?= $isAdmin ? 'mine' : '' ?>">
+            <div class="message-bubble"><?= nl2br(e($msg->getMessage())) ?></div>
+            <?php if (!$msg->isSystemMessage()): ?>
+              <div class="message-meta">
+                <?= e($msg->getSenderLabel()) ?>
+                <?php if ($isAdmin): ?>
+                  <span class="admin-badge" style="font-size:0.65rem"><i data-lucide="shield" style="width:10px;height:10px"></i> Admin</span>
+                <?php endif; ?>
+                · <?= e($msg->getFormattedTime()) ?>
+              </div>
+            <?php endif; ?>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
 
-  <div class="conversation-compose">
-    <form method="POST" action="/admin/conversation/reservation/<?= $reservation->getId() ?>/message"
-          style="display:flex;gap:0.5rem;width:100%">
+    <form method="POST" action="/admin/conversation/reservation/<?= $reservation->getId() ?>/message">
       <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-      <textarea name="message" class="form-control" placeholder="Napište zprávu jako administrátor…"
-                rows="2" style="flex:1;resize:vertical" required></textarea>
-      <button type="submit" class="btn btn-primary" style="align-self:flex-end">
-        <i data-lucide="send"></i> Odeslat
-      </button>
+      <div class="conversation-compose">
+        <textarea name="message" placeholder="Napište zprávu jako administrátor…"
+                  rows="2" required></textarea>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="send"></i>
+        </button>
+      </div>
     </form>
   </div>
 </div>

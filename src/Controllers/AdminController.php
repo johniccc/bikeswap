@@ -79,15 +79,13 @@ class AdminController
 
         $stats = [
             'bikes' => $this->bikeRepository->countAll(),
-            'bikes_stolen' => $this->bikeRepository->countAll('stolen'),
             'thefts_open' => $this->theftReportRepository->countOpen(),
             'warnings_active' => $this->bikeWarningRepository->countByStatus('active'),
         ];
 
-        $stats['reservations'] = $this->reservationRepository->countAll();
-        $stats['reservations_pending'] = $this->reservationRepository->countAll('pending');
-
         if ($isAdmin) {
+            $stats['reservations'] = $this->reservationRepository->countAll();
+            $stats['reservations_pending'] = $this->reservationRepository->countAll('pending');
             $stats['users'] = $this->userRepository->countAll();
         }
 
@@ -374,6 +372,9 @@ class AdminController
     public function reservations(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
+        if (!$currentUser->isAdmin()) {
+            throw new \RuntimeException('Nemáte oprávnění.', 403);
+        }
 
         $statusFilter = $request->query('status');
 
@@ -853,14 +854,15 @@ class AdminController
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
-        $bikeId = $request->query('bike_id');
-        $bike = $bikeId ? $this->bikeRepository->findById((int) $bikeId) : null;
+        $allBikes = $this->bikeRepository->findAll(null, withPhotos: true);
+
+        $preselectedId = $request->query('bike_id');
 
         return view('admin/bike-warning-create', [
             'title' => 'Nové upozornění — Admin',
             'currentUser' => $currentUser,
-            'bike' => $bike,
-            'bikeId' => $bikeId,
+            'allBikes' => $allBikes,
+            'preselectedId' => $preselectedId ? (int) $preselectedId : null,
             'session' => $this->session,
         ])->withLayout('layouts/app');
     }
@@ -881,30 +883,44 @@ class AdminController
             return redirect('/admin/warnings/new');
         }
 
-        $bikeId = (int) $request->input('bike_id', '0');
+        $bikeIds = $request->input('bike_ids', []);
+        if (!is_array($bikeIds)) {
+            $bikeIds = [(int) $bikeIds];
+        }
+        $bikeIds = array_filter(array_map('intval', $bikeIds), fn($id) => $id > 0);
+
         $reason = trim($request->input('reason', ''));
         $deadline = $request->input('deadline', '');
         $location = trim($request->input('location', '')) ?: null;
 
-        if ($bikeId <= 0 || $reason === '' || $deadline === '') {
-            $this->session->flash('error', 'Vyplňte všechna povinná pole.');
+        if (empty($bikeIds) || $reason === '' || $deadline === '') {
+            $this->session->flash('error', 'Vyberte alespoň jedno kolo a vyplňte všechna povinná pole.');
             $this->session->setOldInput($_POST);
-            return redirect('/admin/warnings/new?bike_id=' . $bikeId);
+            return redirect('/admin/warnings/new');
         }
 
-        try {
-            $this->bikeWarningService->createWarning(
-                $bikeId,
-                $currentUser->getId(),
-                $reason,
-                $deadline,
-                $location
-            );
-            $this->session->flash('success', 'Upozornění bylo vytvořeno a vlastník byl informován.');
-        } catch (\RuntimeException $e) {
-            $this->session->flash('error', $e->getMessage());
-            $this->session->setOldInput($_POST);
-            return redirect('/admin/warnings/new?bike_id=' . $bikeId);
+        $created = 0;
+        $errors = [];
+        foreach ($bikeIds as $bikeId) {
+            try {
+                $this->bikeWarningService->createWarning(
+                    $bikeId,
+                    $currentUser->getId(),
+                    $reason,
+                    $deadline,
+                    $location
+                );
+                $created++;
+            } catch (\RuntimeException $e) {
+                $errors[] = "Kolo #{$bikeId}: " . $e->getMessage();
+            }
+        }
+
+        if ($created > 0) {
+            $this->session->flash('success', "Vytvořeno {$created} upozornění.");
+        }
+        if (!empty($errors)) {
+            $this->session->flash('error', implode(' ', $errors));
         }
 
         return redirect('/admin/warnings');

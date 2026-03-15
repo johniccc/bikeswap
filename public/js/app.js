@@ -307,7 +307,7 @@
         }
 
         function poll() {
-            fetch(pollUrl + '?after=' + lastId, { credentials: 'same-origin' })
+            fetch(pollUrl + '?after=' + lastId, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
                 .then(function(r) { return r.ok ? r.json() : null; })
                 .then(function(data) {
                     if (!data) return;
@@ -493,7 +493,7 @@
         var lastKnownCount = -1;
 
         function pollNotifications() {
-            fetch('/notifications/count', { credentials: 'same-origin' })
+            fetch('/notifications/count', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
                 .then(function(r) { return r.ok ? r.json() : null; })
                 .then(function(data) {
                     if (data && typeof data.unread_count === 'number') {

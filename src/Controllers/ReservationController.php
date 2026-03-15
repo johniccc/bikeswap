@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
+use App\Repository\BikeExcludedDateRepository;
 use App\Repository\BikeRepository;
 use App\Repository\DisputePhotoRepository;
 use App\Repository\ReservationRepository;
@@ -23,6 +24,7 @@ class ReservationController
     private ReservationMessageRepository $messageRepo;
     private ReservationReviewRepository $reviewRepo;
     private DisputePhotoRepository $disputePhotoRepo;
+    private BikeExcludedDateRepository $excludedDateRepo;
     private BikeRepository $bikeRepo;
     private ReservationService $reservationService;
     private FileUploadService $fileUploadService;
@@ -35,6 +37,7 @@ class ReservationController
         ReservationMessageRepository $messageRepo,
         ReservationReviewRepository $reviewRepo,
         DisputePhotoRepository $disputePhotoRepo,
+        BikeExcludedDateRepository $excludedDateRepo,
         BikeRepository $bikeRepo,
         ReservationService $reservationService,
         FileUploadService $fileUploadService,
@@ -46,6 +49,7 @@ class ReservationController
         $this->messageRepo = $messageRepo;
         $this->reviewRepo = $reviewRepo;
         $this->disputePhotoRepo = $disputePhotoRepo;
+        $this->excludedDateRepo = $excludedDateRepo;
         $this->bikeRepo = $bikeRepo;
         $this->reservationService = $reservationService;
         $this->fileUploadService = $fileUploadService;
@@ -85,7 +89,6 @@ class ReservationController
             yearTo: $yearTo,
             excludeIds: $excludeIds
         );
-        $colors    = $this->bikeRepo->getSharedBikeColors();
         $yearRange = $this->bikeRepo->getSharedBikeYearRange();
 
         $bikeIds            = array_map(fn($b) => $b->getId(), $bikes);
@@ -105,7 +108,6 @@ class ReservationController
             'title'              => 'Sdílená kola – BikeSwap',
             'bikes'              => $bikes,
             'activeReservations' => $activeReservations,
-            'colors'             => $colors,
             'yearMin'            => $yearRange['min'],
             'yearMax'            => $yearRange['max'],
             'filters'            => $filters,
@@ -150,10 +152,18 @@ class ReservationController
         // Get unavailable dates for calendar
         $unavailableDates = $this->reservationService->getUnavailableDates($bikeId);
 
+        // Get availability settings for calendar
+        $availabilityDays = $bike->getAvailabilityDaysArray();
+        $excludedDates = $bike->isAutoAccept()
+            ? $this->excludedDateRepo->findByBikeId($bikeId)
+            : [];
+
         return view('reservation/create', [
             'title' => 'Rezervovat kolo – BikeSwap',
             'bike' => $bike,
             'unavailableDates' => $unavailableDates,
+            'availabilityDays' => $availabilityDays,
+            'excludedDates' => $excludedDates,
             'currentUser' => $currentUser,
             'turnstileSiteKey' => $this->config['turnstile']['site_key'] ?? '',
             'csrf' => $this->session->csrfToken(),
@@ -187,12 +197,23 @@ class ReservationController
             $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
                 'secret' => $secretKey,
                 'response' => $token,
             ]));
-            $result = json_decode(curl_exec($ch) ?: '{}', true);
+            $response = curl_exec($ch);
+            $curlError = curl_errno($ch);
             curl_close($ch);
+
+            if ($curlError !== 0 || $response === false) {
+                $this->session->setOldInput($request->all());
+                $this->session->flash('error', 'Ověření proti botům selhalo (chyba spojení). Zkuste to prosím znovu.');
+                return redirect("/reservation/new/{$bikeId}");
+            }
+
+            $result = json_decode($response, true);
 
             if (empty($result['success'])) {
                 $this->session->setOldInput($request->all());
@@ -223,7 +244,13 @@ class ReservationController
                 $request->input('message')
             );
 
-            $this->session->flash('success', 'Žádost o výpůjčku byla odeslána!');
+            // Check if reservation was auto-approved
+            $reservation = $this->reservationRepo->findById($result['reservation_id']);
+            if ($reservation !== null && $reservation->isApproved()) {
+                $this->session->flash('success', 'Rezervace byla automaticky schválena!');
+            } else {
+                $this->session->flash('success', 'Žádost o výpůjčku byla odeslána!');
+            }
             return redirect('/reservation/' . $result['reservation_id']);
         } catch (\RuntimeException $e) {
             $this->session->flash('error', $e->getMessage());
@@ -502,7 +529,7 @@ class ReservationController
 
         $currentUser = $this->authService->currentUser();
 
-        if (!$currentUser->isAdmin()) {
+        if (!$currentUser->hasRole('police')) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 

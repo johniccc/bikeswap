@@ -37,7 +37,7 @@ foreach ($notifications as $n) {
               <?php if (!$notification->isRead()): ?>
                 <span class="notification-dot"></span>
               <?php endif; ?>
-              <i data-lucide="x-circle"></i>
+              <i data-lucide="<?= e($notification->getIcon()) ?>"></i>
             </div>
 
             <div class="notification-content">
@@ -89,7 +89,7 @@ foreach ($notifications as $n) {
               <?php if (!$notification->isRead()): ?>
                 <span class="notification-dot"></span>
               <?php endif; ?>
-              <i data-lucide="bell"></i>
+              <i data-lucide="<?= e($notification->getIcon()) ?>"></i>
             </div>
 
             <div class="notification-content">

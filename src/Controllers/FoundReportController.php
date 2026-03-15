@@ -125,15 +125,24 @@ class FoundReportController
                 curl_setopt_array($ch, [
                     CURLOPT_POST           => true,
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 5,
+                    CURLOPT_TIMEOUT        => 10,
+                    CURLOPT_CONNECTTIMEOUT => 5,
                     CURLOPT_POSTFIELDS     => http_build_query([
                         'secret'   => $secretKey,
                         'response' => $token,
                     ]),
                 ]);
                 $result = curl_exec($ch);
+                $curlError = curl_errno($ch);
                 curl_close($ch);
-                $data = json_decode($result ?: '', true) ?? [];
+
+                if ($curlError !== 0 || $result === false) {
+                    $this->session->setOldInput($request->all());
+                    $this->session->flash('error', 'Ověření CAPTCHA selhalo (chyba spojení). Zkuste to znovu.');
+                    return redirect("/found/report/{$qrHash}");
+                }
+
+                $data = json_decode($result, true) ?? [];
                 if (!($data['success'] ?? false)) {
                     $this->session->setOldInput($request->all());
                     $this->session->flash('error', 'Ověření CAPTCHA selhalo. Zkuste to znovu.');

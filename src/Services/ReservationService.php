@@ -10,6 +10,7 @@ use App\Repository\ReservationRepository;
 use App\Repository\ReservationMessageRepository;
 use App\Repository\ReservationReviewRepository;
 use App\Repository\DisputePhotoRepository;
+use App\Repository\BikeExcludedDateRepository;
 use App\Repository\BikeRepository;
 use App\Repository\UserRepository;
 use App\Core\Database;
@@ -31,6 +32,7 @@ class ReservationService
     private ReservationMessageRepository $messageRepo;
     private ReservationReviewRepository $reviewRepo;
     private DisputePhotoRepository $disputePhotoRepo;
+    private BikeExcludedDateRepository $excludedDateRepo;
     private BikeRepository $bikeRepo;
     private UserRepository $userRepo;
     private NotificationService $notificationService;
@@ -43,6 +45,7 @@ class ReservationService
         ReservationMessageRepository $messageRepo,
         ReservationReviewRepository $reviewRepo,
         DisputePhotoRepository $disputePhotoRepo,
+        BikeExcludedDateRepository $excludedDateRepo,
         BikeRepository $bikeRepo,
         UserRepository $userRepo,
         NotificationService $notificationService,
@@ -54,6 +57,7 @@ class ReservationService
         $this->messageRepo = $messageRepo;
         $this->reviewRepo = $reviewRepo;
         $this->disputePhotoRepo = $disputePhotoRepo;
+        $this->excludedDateRepo = $excludedDateRepo;
         $this->bikeRepo = $bikeRepo;
         $this->userRepo = $userRepo;
         $this->notificationService = $notificationService;
@@ -142,7 +146,43 @@ class ReservationService
             $this->messageRepo->create($reservationId, 'borrower', $borrowerId, $message);
         }
 
-        // 7. Notify owner
+        // 7. Auto-accept if enabled and dates are within availability
+        if ($bike->isAutoAccept() && $this->canAutoAccept($bike, $dateFrom, $dateTo)) {
+            if (!$this->reservationRepo->hasDateConflict($bikeId, $dateFrom, $dateTo, $reservationId)) {
+                $this->reservationRepo->updateStatus($reservationId, 'approved');
+                $this->messageRepo->create($reservationId, 'system', null, 'Rezervace byla automaticky schválena.');
+
+                // Notify borrower
+                $this->notificationService->notify(
+                    $borrowerId,
+                    'reservation',
+                    'Vaše rezervace kola ' . $bike->getFullName() . ' byla automaticky schválena!',
+                    "/reservation/{$reservationId}"
+                );
+
+                // Notify owner
+                $this->notificationService->notify(
+                    $bike->getOwnerId(),
+                    'reservation',
+                    'Kolo ' . $bike->getFullName() . ' bylo automaticky zapůjčeno na ' . $dateFrom . '–' . $dateTo,
+                    "/reservation/{$reservationId}"
+                );
+
+                // Email both parties
+                $this->emailService->sendReservationStatusChange(
+                    $borrowerId, $bike, $reservationId,
+                    'approved', 'Vaše rezervace byla automaticky schválena!'
+                );
+                $this->emailService->sendReservationStatusChange(
+                    $bike->getOwnerId(), $bike, $reservationId,
+                    'approved', 'Kolo ' . $bike->getFullName() . ' bylo automaticky zapůjčeno.'
+                );
+
+                return ['reservation_id' => $reservationId, 'token' => $token];
+            }
+        }
+
+        // 8. Notify owner (standard pending flow)
         $this->notificationService->notify(
             $bike->getOwnerId(),
             'reservation',
@@ -150,7 +190,7 @@ class ReservationService
             "/reservation/{$reservationId}"
         );
 
-        // 8. Send email to owner
+        // 9. Send email to owner
         $this->emailService->sendReservationRequest($bike->getOwnerId(), $bike, $reservationId);
 
         return ['reservation_id' => $reservationId, 'token' => $token];
@@ -845,6 +885,34 @@ class ReservationService
     }
 
     // ── Internal helpers ───────────────────────────────────
+
+    /**
+     * Check if a reservation can be auto-accepted based on bike availability settings.
+     */
+    private function canAutoAccept(\App\Entity\Bike $bike, string $dateFrom, string $dateTo): bool
+    {
+        $availableDays = $bike->getAvailabilityDaysArray();
+
+        // Check each day in range
+        $current = new \DateTimeImmutable($dateFrom);
+        $end = new \DateTimeImmutable($dateTo);
+
+        while ($current <= $end) {
+            // PHP: N = 1 (Mon) .. 7 (Sun)
+            $dayOfWeek = (int) $current->format('N');
+            if (!in_array($dayOfWeek, $availableDays, true)) {
+                return false;
+            }
+            $current = $current->modify('+1 day');
+        }
+
+        // Check excluded dates
+        if ($this->excludedDateRepo->hasExcludedInRange($bike->getId(), $dateFrom, $dateTo)) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Load reservation, verify it exists and user has the required role.

@@ -52,6 +52,12 @@ class AuthMiddleware
 
         $this->session->flash('error', 'Pro přístup se musíte přihlásit.');
 
-        return redirect('/login?redirect=' . urlencode($request->getPath()));
+        // Don't save polling/API endpoints as redirect targets
+        $path = $request->getPath();
+        if (preg_match('#/(count|poll)$#', $path)) {
+            return redirect('/login');
+        }
+
+        return redirect('/login?redirect=' . urlencode($path));
     }
 }

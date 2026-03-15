@@ -22,4 +22,8 @@
 
 # OS
 .DS_Store
-Thumbs.db.worktrees/
+Thumbs.db
+
+# Claude Code
+.worktrees/
+CLAUDE.md

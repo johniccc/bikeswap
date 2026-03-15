@@ -29,16 +29,6 @@
   <div class="card">
     <div class="card-body">
       <div class="admin-stat">
-        <span class="admin-stat-value"><?= $stats['bikes_stolen'] ?></span>
-        <span class="admin-stat-label">Odcizených kol</span>
-      </div>
-      <a href="/admin/bikes?status=stolen" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-body">
-      <div class="admin-stat">
         <span class="admin-stat-value"><?= $stats['thefts_open'] ?></span>
         <span class="admin-stat-label">Otevřených krádeží</span>
       </div>
@@ -56,35 +46,37 @@
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-body">
-      <div class="admin-stat">
-        <span class="admin-stat-value"><?= $stats['reservations'] ?></span>
-        <span class="admin-stat-label">Rezervací celkem</span>
+  <?php if (!empty($isAdmin)): ?>
+    <div class="card">
+      <div class="card-body">
+        <div class="admin-stat">
+          <span class="admin-stat-value"><?= $stats['reservations'] ?></span>
+          <span class="admin-stat-label">Rezervací celkem</span>
+        </div>
+        <a href="/admin/reservations" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
       </div>
-      <a href="/admin/reservations" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="card-body">
-      <div class="admin-stat">
-        <span class="admin-stat-value"><?= $stats['reservations_pending'] ?></span>
-        <span class="admin-stat-label">Čekajících rezervací</span>
+    <div class="card">
+      <div class="card-body">
+        <div class="admin-stat">
+          <span class="admin-stat-value"><?= $stats['reservations_pending'] ?></span>
+          <span class="admin-stat-label">Čekajících rezervací</span>
+        </div>
+        <a href="/admin/reservations?status=pending" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
       </div>
-      <a href="/admin/reservations?status=pending" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="card-body">
-      <div class="admin-stat">
-        <i data-lucide="message-square" style="width:28px;height:28px;color:var(--primary)"></i>
-        <span class="admin-stat-label">Konverzace</span>
+    <div class="card">
+      <div class="card-body">
+        <div class="admin-stat">
+          <i data-lucide="message-square" style="width:28px;height:28px;color:var(--primary)"></i>
+          <span class="admin-stat-label">Konverzace</span>
+        </div>
+        <a href="/admin/conversations" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
       </div>
-      <a href="/admin/conversations" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
     </div>
-  </div>
+  <?php endif; ?>
 </div>
 
 <!-- Active disputes requiring action -->

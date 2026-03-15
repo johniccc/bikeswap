@@ -42,12 +42,7 @@
       <div class="filter-dropdown-inner">
         <div class="filter-group">
           <label for="stolen-filter-color">Barva</label>
-          <select id="stolen-filter-color" name="color">
-            <option value="">Všechny barvy</option>
-            <?php foreach ($colors as $c): ?>
-              <option value="<?= e($c) ?>" <?= $filters['color'] === $c ? 'selected' : '' ?>><?= e($c) ?></option>
-            <?php endforeach; ?>
-          </select>
+          <input type="text" id="stolen-filter-color" name="color" value="<?= e($filters['color']) ?>" placeholder="např. červená, modrá...">
         </div>
 
         <div class="filter-group">
@@ -73,7 +68,7 @@
           </div>
         </div>
 
-        <div class="filter-group filter-group-search">
+        <div class="filter-group filter-group-frame">
           <label for="stolen-frame-number">Sériové číslo</label>
           <input type="text" id="stolen-frame-number" name="frame_number"
                  value="<?= e($filters['frame_number']) ?>" placeholder="Sériové číslo">

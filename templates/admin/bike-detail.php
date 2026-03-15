@@ -50,6 +50,7 @@
   </div>
 </div>
 
+<?php if ($currentUser->isAdmin()): ?>
 <!-- Edit form -->
 <div class="card mb-lg">
   <div class="card-header">
@@ -144,6 +145,7 @@
       <?php foreach ($bike->getPhotos() as $photo): ?>
         <div class="existing-photo-card <?= $photo->isPrimary() ? 'primary-photo' : '' ?>">
           <img src="<?= e($photo->getUrl()) ?>" alt="Foto kola">
+          <?php if ($currentUser->isAdmin()): ?>
           <div class="existing-photo-actions">
             <?php if ($photo->isPrimary()): ?>
               <span class="photo-preview-badge" title="Hlavní fotografie"><i data-lucide="star"></i></span>
@@ -163,6 +165,7 @@
               </button>
             </form>
           </div>
+          <?php endif; ?>
         </div>
       <?php endforeach; ?>
     </div>
@@ -182,6 +185,7 @@
     </button>
   </form>
 </div>
+<?php endif; ?>
 
 <script>
 document.querySelectorAll('[data-confirm]').forEach(function (btn) {

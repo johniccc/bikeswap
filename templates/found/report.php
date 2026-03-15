@@ -24,7 +24,7 @@
   </div>
 </div>
 
-<form method="POST" action="/found/report/<?= e($bike->getQrHash()) ?>" class="max-w-lg">
+<form method="POST" action="/found/report/<?= e($bike->getQrHash()) ?>" class="max-w-lg" id="found-report-form">
   <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
 
   <!-- Honeypot (anti-bot, hidden via CSS) -->
@@ -54,7 +54,8 @@
       </div>
 
       <?php if (!empty($turnstileSiteKey)): ?>
-        <div class="cf-turnstile" data-sitekey="<?= e($turnstileSiteKey) ?>"></div>
+        <div class="cf-turnstile" data-sitekey="<?= e($turnstileSiteKey) ?>" data-callback="onTurnstileSuccess"></div>
+        <script>function onTurnstileSuccess() { window._turnstileReady = true; }</script>
       <?php endif; ?>
     </fieldset>
   <?php else: ?>
@@ -121,4 +122,9 @@
 
 <?php if (!empty($turnstileSiteKey)): ?>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script>
+  document.getElementById('found-report-form').addEventListener('submit', function(e) {
+      if (!window._turnstileReady) { e.preventDefault(); alert('Počkejte na dokončení ověření proti botům.'); }
+  });
+  </script>
 <?php endif; ?>

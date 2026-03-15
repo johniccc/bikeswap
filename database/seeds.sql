@@ -24,10 +24,19 @@ INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, 
 
 -- ── BIKES (owned by vlastnik, id=1) ─────────────────────────────
 
-INSERT INTO `bikes` (`owner_id`, `qr_hash`, `brand`, `model`, `color`, `frame_number`, `year_of_manufacture`, `description`, `status`, `is_shared`) VALUES
-(1, 'a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8', 'Trek', 'Marlin 7', 'Modrá', 'WTU123456789', 2023, 'Horské kolo, hydraulické brzdy, 29" kola.', 'active', 1),
-(1, 'b2c3d4e5f6a7b8c9b2c3d4e5f6a7b8c9', 'Giant', 'Escape 3', 'Černá', 'GNT987654321', 2022, 'Městské kolo pro dojíždění, lehký rám.', 'active', 0),
-(1, 'c3d4e5f6a7b8c9d0c3d4e5f6a7b8c9d0', 'Specialized', 'Allez', 'Červená', 'SPC456789012', 2024, 'Silniční kolo, karbonová vidlice, Shimano Claris.', 'stolen', 0);
+INSERT INTO `bikes` (`owner_id`, `qr_hash`, `brand`, `model`, `color`, `frame_number`, `year_of_manufacture`, `description`, `status`, `is_shared`, `auto_accept`, `availability_days`) VALUES
+(1, 'a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8', 'Trek', 'Marlin 7', 'Modrá', 'WTU123456789', 2023, 'Horské kolo, hydraulické brzdy, 29" kola.', 'active', 1, 1, '1,2,3,4,5'),
+(1, 'b2c3d4e5f6a7b8c9b2c3d4e5f6a7b8c9', 'Giant', 'Escape 3', 'Černá', 'GNT987654321', 2022, 'Městské kolo pro dojíždění, lehký rám.', 'active', 1, 0, NULL),
+(1, 'c3d4e5f6a7b8c9d0c3d4e5f6a7b8c9d0', 'Specialized', 'Allez', 'Červená', 'SPC456789012', 2024, 'Silniční kolo, karbonová vidlice, Shimano Claris.', 'stolen', 0, 0, NULL);
+
+-- ── BIKE EXCLUDED DATES (Trek auto-accept: exclude Easter + vacation) ──
+
+INSERT INTO `bike_excluded_dates` (`bike_id`, `excluded_date`) VALUES
+(1, '2026-04-03'),
+(1, '2026-04-06'),
+(1, '2026-07-01'),
+(1, '2026-07-02'),
+(1, '2026-07-03');
 
 -- ── THEFT REPORT (for the stolen Specialized) ───────────────────
 

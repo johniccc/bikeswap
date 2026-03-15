@@ -43,12 +43,7 @@
       <div class="filter-dropdown-inner">
         <div class="filter-group">
           <label for="filter-color">Barva</label>
-          <select id="filter-color" name="color">
-            <option value="">Všechny barvy</option>
-            <?php foreach ($colors as $c): ?>
-              <option value="<?= e($c) ?>" <?= $filters['color'] === $c ? 'selected' : '' ?>><?= e($c) ?></option>
-            <?php endforeach; ?>
-          </select>
+          <input type="text" id="filter-color" name="color" value="<?= e($filters['color']) ?>" placeholder="např. červená, modrá...">
         </div>
 
         <div class="filter-group">

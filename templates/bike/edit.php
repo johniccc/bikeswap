@@ -52,12 +52,82 @@
     </div>
   </fieldset>
 
-  <fieldset>
-    <legend>Sdílení</legend>
-    <div class="form-check">
-      <input type="checkbox" name="is_shared" value="1" id="is_shared"
+  <fieldset id="sharing-section">
+    <legend>Sdílení kola</legend>
+
+    <!-- Share toggle -->
+    <label class="toggle-row" for="is_shared">
+      <span class="toggle-row-text">
+        <span class="toggle-row-label"><i data-lucide="share-2" class="toggle-row-icon"></i> Nabídnout k výpůjčce</span>
+        <span class="toggle-row-desc">Kolo se zobrazí v katalogu sdílených kol.</span>
+      </span>
+      <input type="checkbox" name="is_shared" value="1" id="is_shared" class="toggle-switch"
              <?= $bike->isShared() ? 'checked' : '' ?>>
-      <label for="is_shared">Nabídnout kolo k výpůjčce ostatním uživatelům</label>
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+    </label>
+
+    <!-- Auto-accept sub-section -->
+    <div id="sharing-options" class="sharing-subsection" style="display:none">
+      <label class="toggle-row" for="auto_accept">
+        <span class="toggle-row-text">
+          <span class="toggle-row-label"><i data-lucide="zap" class="toggle-row-icon"></i> Automatické schvalování</span>
+          <span class="toggle-row-desc">Rezervace v dostupných termínech budou schváleny bez vašeho zásahu.</span>
+        </span>
+        <input type="checkbox" name="auto_accept" value="1" id="auto_accept" class="toggle-switch"
+               <?= $bike->isAutoAccept() ? 'checked' : '' ?>>
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      </label>
+
+      <!-- Availability configuration -->
+      <div id="availability-options" class="availability-panel" style="display:none">
+
+        <!-- Day picker -->
+        <div class="form-group">
+          <label class="form-group-label"><i data-lucide="calendar-days" style="width:15px;height:15px;display:inline;vertical-align:-2px;margin-right:0.25rem"></i> Dostupné dny</label>
+          <p class="form-text">Dny v týdnu, kdy je kolo k dispozici. Bez výběru = všechny dny.</p>
+          <div class="day-picker">
+            <?php
+              $dayNames = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
+              $currentDays = $bike->getAvailabilityDaysArray();
+              $hasCustomDays = $bike->getAvailabilityDays() !== null && $bike->getAvailabilityDays() !== '';
+              for ($i = 1; $i <= 7; $i++):
+                $checked = $hasCustomDays ? in_array($i, $currentDays) : false;
+            ?>
+              <label class="day-toggle">
+                <input type="checkbox" name="days[]" value="<?= $i ?>" <?= $checked ? 'checked' : '' ?>>
+                <span class="day-toggle-label"><?= $dayNames[$i - 1] ?></span>
+              </label>
+            <?php endfor; ?>
+          </div>
+        </div>
+
+        <hr class="availability-divider">
+
+        <!-- Excluded dates -->
+        <div class="form-group">
+          <label class="form-group-label"><i data-lucide="calendar-x" style="width:15px;height:15px;display:inline;vertical-align:-2px;margin-right:0.25rem"></i> Vyloučená data</label>
+          <p class="form-text">Konkrétní dny, kdy kolo nebude k dispozici (dovolená, oprava...).</p>
+          <div class="excluded-date-input-row">
+            <input type="date" id="exclude-date-input" min="<?= date('Y-m-d') ?>">
+            <button type="button" id="add-exclude-btn" class="btn btn-ghost btn-sm">
+              <i data-lucide="plus"></i> Přidat
+            </button>
+          </div>
+          <div id="excluded-dates-list" class="excluded-dates-tags">
+            <?php foreach ($excludedDates as $date):
+              $d = \DateTimeImmutable::createFromFormat('Y-m-d', $date);
+              $display = $d ? (int)$d->format('j') . '. ' . (int)$d->format('n') . '. ' . $d->format('Y') : $date;
+            ?>
+              <span class="excluded-tag" data-date="<?= e($date) ?>">
+                <i data-lucide="calendar-x2" class="excluded-tag-icon"></i>
+                <?= e($display) ?>
+                <button type="button" class="excluded-tag-remove" title="Odebrat">&times;</button>
+                <input type="hidden" name="excluded_dates[]" value="<?= e($date) ?>">
+              </span>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
     </div>
   </fieldset>
 
@@ -118,6 +188,78 @@
   </div>
 </div>
 <?php endif; ?>
+
+<script>
+(function() {
+    'use strict';
+    var isShared = document.getElementById('is_shared');
+    var sharingOpts = document.getElementById('sharing-options');
+    var autoAccept = document.getElementById('auto_accept');
+    var availOpts = document.getElementById('availability-options');
+    var addBtn = document.getElementById('add-exclude-btn');
+    var dateInput = document.getElementById('exclude-date-input');
+    var datesList = document.getElementById('excluded-dates-list');
+
+    function toggleSharing() {
+        sharingOpts.style.display = isShared.checked ? '' : 'none';
+        if (!isShared.checked) autoAccept.checked = false;
+        toggleAutoAccept();
+    }
+
+    function toggleAutoAccept() {
+        availOpts.style.display = autoAccept.checked ? '' : 'none';
+    }
+
+    isShared.addEventListener('change', toggleSharing);
+    autoAccept.addEventListener('change', toggleAutoAccept);
+    toggleSharing();
+
+    // Format date for display: "3. 4. 2026"
+    function fmtDate(iso) {
+        var p = iso.split('-');
+        return parseInt(p[2]) + '. ' + parseInt(p[1]) + '. ' + p[0];
+    }
+
+    function createTag(val) {
+        var span = document.createElement('span');
+        span.className = 'excluded-tag';
+        span.setAttribute('data-date', val);
+        // Icon placeholder (lucide will render it)
+        var icon = document.createElement('i');
+        icon.setAttribute('data-lucide', 'calendar-x2');
+        icon.className = 'excluded-tag-icon';
+        span.appendChild(icon);
+        span.appendChild(document.createTextNode(' ' + fmtDate(val) + ' '));
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'excluded-tag-remove';
+        removeBtn.title = 'Odebrat';
+        removeBtn.textContent = '\u00d7';
+        removeBtn.addEventListener('click', function() { span.remove(); });
+        span.appendChild(removeBtn);
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'excluded_dates[]';
+        hidden.value = val;
+        span.appendChild(hidden);
+        datesList.appendChild(span);
+        // Re-render lucide icons
+        if (window.lucide) lucide.createIcons();
+    }
+
+    addBtn.addEventListener('click', function() {
+        var val = dateInput.value;
+        if (!val) return;
+        if (datesList.querySelector('[data-date="'+val+'"]')) return;
+        createTag(val);
+        dateInput.value = '';
+    });
+
+    datesList.querySelectorAll('.excluded-tag-remove').forEach(function(btn) {
+        btn.addEventListener('click', function() { btn.parentElement.remove(); });
+    });
+})();
+</script>
 
 <!-- Danger zone: delete bike -->
 <div class="danger-zone">

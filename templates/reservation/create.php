@@ -34,6 +34,11 @@
       <span class="calendar-legend-item">
         <span class="calendar-legend-dot" style="background:var(--primary-light)"></span> Rozsah
       </span>
+      <?php if ($bike->isAutoAccept()): ?>
+      <span class="calendar-legend-item">
+        <span class="calendar-legend-dot" style="background:var(--gray-300, #ccc)"></span> Nedostupné
+      </span>
+      <?php endif; ?>
     </div>
 
     <div id="calendar-container" class="calendar-container"></div>
@@ -60,12 +65,15 @@
   </div>
 
   <?php if (!empty($turnstileSiteKey)): ?>
-    <div class="cf-turnstile mb-md" data-sitekey="<?= e($turnstileSiteKey) ?>"></div>
+    <div class="cf-turnstile mb-md" data-sitekey="<?= e($turnstileSiteKey) ?>" data-callback="onTurnstileSuccess"></div>
+    <script>function onTurnstileSuccess() { window._turnstileReady = true; }</script>
+  <?php else: ?>
+    <script>window._turnstileReady = true;</script>
   <?php endif; ?>
 
   <div class="form-actions">
     <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" disabled>
-      <i data-lucide="calendar-check"></i> Odeslat žádost o výpůjčku
+      <i data-lucide="calendar-check"></i> <?= $bike->isAutoAccept() ? 'Rezervovat kolo' : 'Odeslat žádost o výpůjčku' ?>
     </button>
     <a href="/shared" class="btn btn-ghost">Zpět na seznam</a>
   </div>
@@ -92,6 +100,9 @@
         }
     });
 
+    var availabilityDays = new Set(<?= json_encode($availabilityDays) ?>);
+    var excludedDates = new Set(<?= json_encode($excludedDates) ?>);
+
     var today = new Date(); today.setHours(0,0,0,0);
     var selectedFrom = null, selectedTo = null;
     var baseMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -106,18 +117,25 @@
     }
     function fmtCz(d) { return d.getDate()+'. '+(d.getMonth()+1)+'. '+d.getFullYear(); }
     function isUnavail(s) { return unavailableSet.has(s); }
+    function isNotAvailable(dateStr, dateObj) {
+        // JS getDay: 0=Sun..6=Sat → convert to ISO: 1=Mon..7=Sun
+        var dow = dateObj.getDay() || 7;
+        if (!availabilityDays.has(dow)) return true;
+        if (excludedDates.has(dateStr)) return true;
+        return false;
+    }
     function isPast(d) { return d < today; }
     function inRange(d) { return selectedFrom && selectedTo && d >= selectedFrom && d <= selectedTo; }
     function isSel(d) {
         return (selectedFrom && fmt(d)===fmt(selectedFrom)) || (selectedTo && fmt(d)===fmt(selectedTo));
     }
     function rangeConflict(a,b) {
-        var d=new Date(a); while(d<=b){if(isUnavail(fmt(d)))return true;d.setDate(d.getDate()+1);} return false;
+        var d=new Date(a); while(d<=b){var s=fmt(d);if(isUnavail(s)||isNotAvailable(s,d))return true;d.setDate(d.getDate()+1);} return false;
     }
 
     function handleClick(dateStr) {
         var d = new Date(dateStr+'T00:00:00');
-        if (isPast(d)||isUnavail(dateStr)) return;
+        if (isPast(d)||isUnavail(dateStr)||isNotAvailable(dateStr,d)) return;
         if (!selectedFrom||(selectedFrom&&selectedTo)) { selectedFrom=d; selectedTo=null; }
         else {
             if (d<selectedFrom){selectedTo=selectedFrom;selectedFrom=d;} else {selectedTo=d;}
@@ -163,6 +181,7 @@
             cell.setAttribute('data-date',dateStr);
             if(isPast(dateObj))cell.classList.add('day-disabled');
             else if(isUnavail(dateStr))cell.classList.add('day-unavailable');
+            else if(isNotAvailable(dateStr,dateObj))cell.classList.add('day-disabled');
             if(isSel(dateObj))cell.classList.add('day-selected');
             else if(inRange(dateObj))cell.classList.add('day-range');
             if(fmt(dateObj)===fmt(today))cell.classList.add('day-today');
@@ -189,7 +208,8 @@
     }
 
     document.getElementById('reservation-form').addEventListener('submit',function(e){
-        if(!inputFrom.value||!inputTo.value){e.preventDefault();alert('Nejprve vyberte termín.');}
+        if(!inputFrom.value||!inputTo.value){e.preventDefault();alert('Nejprve vyberte termín.');return;}
+        if(!window._turnstileReady){e.preventDefault();alert('Počkejte na dokončení ověření proti botům.');}
     });
 
     render();

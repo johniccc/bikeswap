@@ -148,16 +148,17 @@
         </p>
         <form method="POST" action="/admin/users/<?= $user->getId() ?>/role">
           <input type="hidden" name="_csrf" value="<?= e($csrf ?? $session->csrfToken()) ?>">
-          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
-            <select name="role" class="form-control" style="width:auto">
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label for="role-select" style="font-size:0.8rem;color:var(--text-muted)">Vybrat roli</label>
+            <select id="role-select" name="role" class="form-control">
               <option value="user" <?= $user->getRole() === 'user' ? 'selected' : '' ?>>Uživatel</option>
               <option value="police" <?= $user->getRole() === 'police' ? 'selected' : '' ?>>Policie</option>
               <option value="admin" <?= $user->getRole() === 'admin' ? 'selected' : '' ?>>Admin</option>
             </select>
-            <button type="submit" class="btn btn-primary btn-sm">
-              <i data-lucide="save"></i> Uložit roli
-            </button>
           </div>
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i data-lucide="save"></i> Uložit roli
+          </button>
         </form>
       </div>
 

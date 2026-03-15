@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
+use App\Repository\BikeExcludedDateRepository;
 use App\Repository\BikeRepository;
 use App\Repository\FoundReportRepository;
 use App\Repository\ReservationRepository;
@@ -19,6 +20,7 @@ use App\Services\QRService;
 
 class BikeController
 {
+    private BikeExcludedDateRepository $excludedDateRepository;
     private BikeRepository $bikeRepository;
     private FoundReportRepository $foundReportRepository;
     private ReservationRepository $reservationRepository;
@@ -30,6 +32,7 @@ class BikeController
     private Session $session;
 
     public function __construct(
+        BikeExcludedDateRepository $excludedDateRepository,
         BikeRepository $bikeRepository,
         FoundReportRepository $foundReportRepository,
         ReservationRepository $reservationRepository,
@@ -40,6 +43,7 @@ class BikeController
         QRService $qrService,
         Session $session
     ) {
+        $this->excludedDateRepository = $excludedDateRepository;
         $this->bikeRepository = $bikeRepository;
         $this->reservationRepository = $reservationRepository;
         $this->foundReportRepository = $foundReportRepository;
@@ -192,6 +196,13 @@ class BikeController
         // Generate unique QR hash
         $qrHash = $this->qrService->generateUniqueHash();
 
+        $isShared = $request->input('is_shared') ? 1 : 0;
+        $autoAccept = ($isShared && $request->input('auto_accept')) ? 1 : 0;
+        $days = $request->input('days');
+        $availabilityDays = ($autoAccept && is_array($days) && !empty($days))
+            ? implode(',', array_map('intval', $days))
+            : null;
+
         // Create bike
         $bikeId = $this->bikeRepository->create([
             'owner_id'             => $currentUser->getId(),
@@ -202,8 +213,17 @@ class BikeController
             'frame_number'         => $request->input('frame_number'),
             'year_of_manufacture'  => $request->input('year_of_manufacture') ?: null,
             'description'          => $request->input('description'),
-            'is_shared'            => $request->input('is_shared') ? 1 : 0,
+            'is_shared'            => $isShared,
+            'auto_accept'          => $autoAccept,
+            'availability_days'    => $availabilityDays,
         ]);
+
+        // Save excluded dates
+        $excludedDates = $request->input('excluded_dates');
+        if ($autoAccept && is_array($excludedDates) && !empty($excludedDates)) {
+            $parsedDates = array_filter($excludedDates, fn($d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d));
+            $this->excludedDateRepository->replaceAll($bikeId, $parsedDates);
+        }
 
         // Handle photo upload(s)
         $photos = $request->file('photos');
@@ -239,9 +259,12 @@ class BikeController
             throw new \RuntimeException('Nemáte oprávnění upravovat toto kolo.', 403);
         }
 
+        $excludedDates = $this->excludedDateRepository->findByBikeId($bikeId);
+
         return view('bike/edit', [
             'title' => 'Upravit kolo – BikeSwap',
             'bike' => $bike,
+            'excludedDates' => $excludedDates,
             'currentUser' => $currentUser,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
@@ -285,6 +308,13 @@ class BikeController
             return redirect("/bike/{$bikeId}/edit");
         }
 
+        $isShared = $request->input('is_shared') ? 1 : 0;
+        $autoAccept = ($isShared && $request->input('auto_accept')) ? 1 : 0;
+        $days = $request->input('days');
+        $availabilityDays = ($autoAccept && is_array($days) && !empty($days))
+            ? implode(',', array_map('intval', $days))
+            : null;
+
         // Update
         $this->bikeRepository->update($bikeId, [
             'brand'                => $request->input('brand'),
@@ -293,8 +323,18 @@ class BikeController
             'frame_number'         => $request->input('frame_number'),
             'year_of_manufacture'  => $request->input('year_of_manufacture') ?: null,
             'description'          => $request->input('description'),
-            'is_shared'            => $request->input('is_shared') ? 1 : 0,
+            'is_shared'            => $isShared,
+            'auto_accept'          => $autoAccept,
+            'availability_days'    => $availabilityDays,
         ]);
+
+        // Save excluded dates
+        $excludedDates = $request->input('excluded_dates');
+        $parsedDates = [];
+        if ($autoAccept && is_array($excludedDates) && !empty($excludedDates)) {
+            $parsedDates = array_filter($excludedDates, fn($d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d));
+        }
+        $this->excludedDateRepository->replaceAll($bikeId, $parsedDates);
 
         // Handle new photo uploads
         $photos = $request->file('photos');

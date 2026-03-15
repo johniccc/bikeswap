@@ -3318,6 +3318,11 @@ td .btn { white-space: nowrap; }
   width: 100%;
 }
 
+.filter-group-frame {
+  flex-basis: 100%;
+  max-width: 20rem;
+}
+
 .filter-bar-actions {
   display: flex;
   align-items: center;
@@ -3578,4 +3583,234 @@ td .btn { white-space: nowrap; }
     align-items: flex-start;
     gap: 0.5rem;
   }
+}
+
+/* ── Toggle switch ─────────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  cursor: pointer;
+}
+
+.toggle-row + .toggle-row {
+  border-top: 1px solid var(--border);
+}
+
+.toggle-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.toggle-row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.toggle-row-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.toggle-row-desc {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.toggle-switch {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  position: relative;
+  width: 42px;
+  min-width: 42px;
+  height: 24px;
+  background: var(--surface-3);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-md) var(--ease);
+  flex-shrink: 0;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--surface);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-md) var(--ease-spring);
+}
+
+.toggle-switch:checked + .toggle-track {
+  background: var(--primary);
+}
+
+.toggle-switch:checked + .toggle-track .toggle-thumb {
+  transform: translateX(18px);
+}
+
+.toggle-switch:focus-visible + .toggle-track {
+  box-shadow: 0 0 0 3px rgba(27,67,50,0.15);
+}
+
+/* ── Sharing sub-sections ─────────────────────────────────── */
+.sharing-subsection {
+  margin-top: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.availability-panel {
+  margin-top: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.availability-panel .form-group {
+  margin-bottom: 1rem;
+}
+
+.availability-panel .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.availability-panel .form-group-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.availability-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+/* ── Day picker (availability) ─────────────────────────────── */
+.day-picker {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.day-toggle {
+  cursor: pointer;
+}
+
+.day-toggle input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.day-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--duration-md) var(--ease);
+  user-select: none;
+}
+
+.day-toggle input[type="checkbox"]:checked + .day-toggle-label {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(27,67,50,0.2);
+}
+
+.day-toggle-label:hover {
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.day-toggle input[type="checkbox"]:focus-visible + .day-toggle-label {
+  box-shadow: 0 0 0 3px rgba(27,67,50,0.15);
+}
+
+/* ── Excluded date input ───────────────────────────────────── */
+.excluded-date-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.excluded-date-input-row input[type="date"] {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* ── Excluded date tags ────────────────────────────────────── */
+.excluded-dates-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.excluded-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--warning-text);
+  transition: all var(--duration) var(--ease);
+}
+
+.excluded-tag-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.excluded-tag-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 0.1rem;
+  color: var(--warning-text);
+  opacity: 0.6;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.excluded-tag-remove:hover {
+  opacity: 1;
+  color: var(--danger);
 }
