@@ -182,8 +182,8 @@ chmod -R 775 web/storage/
 
 - Dvoufázové ověření - řekni mi svůj názor co bude nejlepší implementovat, zda telefonní sms nebo auth aplikaci (google authenticator)
 - K jednotlivým uživatelům se na pozadí budou sbírat hw informace o něm (pro lepší dohledání pro admina). Tudíž budeme muset vymyslet, jak to udělat, aby to bylo v souladu s zákonem. asi postačí jen cookie banner?
-- lepší geolokace
 
+- otestovat geolokaci
 - emaily otestovat
 
 
