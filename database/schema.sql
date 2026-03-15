@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS `users` (
     `verification_token` VARCHAR(64)     NULL DEFAULT NULL,
     `password_reset_token`   VARCHAR(64) NULL DEFAULT NULL,
     `password_reset_expires` DATETIME    NULL DEFAULT NULL,
+    `totp_secret`        VARCHAR(255)    NULL DEFAULT NULL,
+    `totp_enabled`       TINYINT(1)      NOT NULL DEFAULT 0,
     `karma_score`        INT             NOT NULL DEFAULT 0,
     `is_banned`          TINYINT(1)      NOT NULL DEFAULT 0,
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -356,6 +358,21 @@ CREATE TABLE IF NOT EXISTS `bike_warnings` (
     KEY `idx_bw_status` (`status`),
     CONSTRAINT `fk_bw_bike` FOREIGN KEY (`bike_id`) REFERENCES `bikes` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_bw_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
+-- ── USER RECOVERY CODES ──────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `user_recovery_codes` (
+    `id`         INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `user_id`    INT UNSIGNED    NOT NULL,
+    `code_hash`  VARCHAR(255)    NOT NULL,
+    `used_at`    DATETIME        NULL DEFAULT NULL,
+    `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    KEY `idx_recovery_user` (`user_id`),
+    CONSTRAINT `fk_recovery_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
 

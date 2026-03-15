@@ -24,6 +24,8 @@ class User
     private ?string $address;
     private bool $isVerified;
     private ?string $verificationToken;
+    private ?string $totpSecret;
+    private bool $totpEnabled;
     private int $karmaScore;
     private bool $isBanned;
     private string $createdAt;
@@ -49,6 +51,8 @@ class User
         $user->address           = $row['address'] ?? null;
         $user->isVerified        = (bool) ($row['is_verified'] ?? false);
         $user->verificationToken = $row['verification_token'] ?? null;
+        $user->totpSecret        = $row['totp_secret'] ?? null;
+        $user->totpEnabled       = (bool) ($row['totp_enabled'] ?? false);
         $user->karmaScore        = (int) ($row['karma_score'] ?? 0);
         $user->isBanned          = (bool) ($row['is_banned'] ?? false);
         $user->createdAt         = $row['created_at'];
@@ -119,6 +123,16 @@ class User
     public function getVerificationToken(): ?string
     {
         return $this->verificationToken;
+    }
+
+    public function getTotpSecret(): ?string
+    {
+        return $this->totpSecret;
+    }
+
+    public function isTotpEnabled(): bool
+    {
+        return $this->totpEnabled;
     }
 
     public function getKarmaScore(): int

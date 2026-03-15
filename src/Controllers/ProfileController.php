@@ -14,6 +14,7 @@ use App\Repository\UserPreferencesRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
+use App\Services\TwoFactorService;
 
 class ProfileController
 {
@@ -24,6 +25,7 @@ class ProfileController
         private FoundReportRepository $foundReportRepo,
         private UserRepository $userRepo,
         private UserPreferencesRepository $preferencesRepo,
+        private TwoFactorService $twoFactorService,
         private Session $session,
     ) {}
 
@@ -57,14 +59,19 @@ class ProfileController
         }
 
         $preferences = $this->preferencesRepo->findByUserId($user->getId());
+        $recoveryCodesRemaining = $user->isTotpEnabled()
+            ? $this->twoFactorService->countUnusedCodes($user->getId())
+            : 0;
 
         return view('profile/settings', [
-            'title'       => 'Nastavení profilu – BikeSwap',
-            'user'        => $user,
-            'preferences' => $preferences,
-            'csrf'        => $this->session->csrfToken(),
-            'session'     => $this->session,
-            'currentUser' => $user,
+            'title'                  => 'Nastavení profilu – BikeSwap',
+            'user'                   => $user,
+            'preferences'            => $preferences,
+            'twoFactorEnabled'       => $user->isTotpEnabled(),
+            'recoveryCodesRemaining' => $recoveryCodesRemaining,
+            'csrf'                   => $this->session->csrfToken(),
+            'session'                => $this->session,
+            'currentUser'            => $user,
         ])->withLayout('layouts/app');
     }
 

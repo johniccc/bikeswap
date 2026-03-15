@@ -60,8 +60,8 @@ class AuthService
 
     /**
      * Attempt to log in a user.
-     * 
-     * @return array{success: bool, user?: User, error?: string}
+     *
+     * @return array{success: bool, user?: User, requires_2fa?: bool, error?: string}
      */
     public function login(string $email, string $password): array
     {
@@ -79,19 +79,35 @@ class AuthService
             return ['success' => false, 'error' => 'Váš účet byl zablokován.'];
         }
 
-        // Log in: store user ID in session
-        $this->session->login($user->getId());
-
-        // Update last login
-        $this->userRepository->updateLastLogin($user->getId());
-
         // Rehash if bcrypt cost has changed
         if (password_needs_rehash($user->getPasswordHash(), PASSWORD_BCRYPT, ['cost' => 12])) {
             $newHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
             $this->userRepository->updatePassword($user->getId(), $newHash);
         }
 
+        // If 2FA is enabled, enter half-auth state
+        if ($user->isTotpEnabled()) {
+            $this->session->set('2fa_user_id', $user->getId());
+            $this->session->set('2fa_expires', time() + 300); // 5 min
+            return ['success' => true, 'requires_2fa' => true, 'user' => $user];
+        }
+
+        // Full login
+        $this->session->login($user->getId());
+        $this->userRepository->updateLastLogin($user->getId());
+
         return ['success' => true, 'user' => $user];
+    }
+
+    /**
+     * Complete login after successful 2FA verification.
+     */
+    public function complete2faLogin(int $userId): void
+    {
+        $this->session->login($userId);
+        $this->session->remove('2fa_user_id');
+        $this->session->remove('2fa_expires');
+        $this->userRepository->updateLastLogin($userId);
     }
 
     /**

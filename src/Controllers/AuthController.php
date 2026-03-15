@@ -173,6 +173,14 @@ class AuthController
             return redirect('/login');
         }
 
+        // 2FA required — redirect to verification page
+        if (!empty($result['requires_2fa'])) {
+            if ($request->wantsJson()) {
+                return json(['requires_2fa' => true]);
+            }
+            return redirect('/login/2fa');
+        }
+
         if ($request->wantsJson()) {
             return json(['message' => 'Přihlášení úspěšné.']);
         }

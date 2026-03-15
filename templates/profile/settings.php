@@ -135,6 +135,46 @@
   </div>
 </div>
 
+<!-- Dvoufaktorové ověření -->
+<div class="card max-w-lg mb-lg">
+  <div class="card-header">
+    <h3 style="display:flex;align-items:center;gap:0.5rem;">
+      <?php if ($twoFactorEnabled): ?>
+        <i data-lucide="shield-check"></i> Dvoufaktorové ověření
+        <span class="status-badge status-badge-success" style="margin-left:auto;">Aktivní</span>
+      <?php else: ?>
+        <i data-lucide="shield"></i> Dvoufaktorové ověření
+      <?php endif; ?>
+    </h3>
+  </div>
+  <div class="card-body">
+    <?php if ($twoFactorEnabled): ?>
+      <div class="info-row mb-md">
+        <span class="info-label">Záložní kódy</span>
+        <span class="info-value"><?= e($recoveryCodesRemaining) ?> z 8 zbývajících</span>
+      </div>
+      <div class="form-actions">
+        <form method="POST" action="/profile/2fa/regenerate-codes" style="display:inline;">
+          <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+          <button type="submit" class="btn btn-secondary btn-sm">
+            <i data-lucide="refresh-cw"></i> Obnovit záložní kódy
+          </button>
+        </form>
+        <a href="/profile/2fa/disable" class="btn btn-ghost btn-danger btn-sm">
+          <i data-lucide="shield-off"></i> Deaktivovat
+        </a>
+      </div>
+    <?php else: ?>
+      <p class="text-muted text-sm mb-md">
+        Přidejte další vrstvu zabezpečení k vašemu účtu. Po aktivaci budete při přihlášení potřebovat kód z ověřovací aplikace.
+      </p>
+      <a href="/profile/2fa/setup" class="btn btn-primary">
+        <i data-lucide="shield-check"></i> Aktivovat 2FA
+      </a>
+    <?php endif; ?>
+  </div>
+</div>
+
 <!-- E-mailová upozornění -->
 <div class="card max-w-lg mb-lg">
   <div class="card-header">

@@ -20,6 +20,7 @@ use App\Controllers\NotificationController;
 use App\Controllers\ReservationController;
 use App\Controllers\ProfileController;
 
+use App\Controllers\TwoFactorController;
 use App\Controllers\AdminController;
 
 use App\Middleware\AuthMiddleware;
@@ -44,6 +45,9 @@ $router->post('/register', [AuthController::class, 'register']);
 $router->get('/login', [AuthController::class, 'loginForm']);
 $router->post('/login', [AuthController::class, 'login']);
 $router->post('/logout', [AuthController::class, 'logout']);
+$router->get('/login/2fa', [TwoFactorController::class, 'verifyForm']);
+$router->post('/login/2fa', [TwoFactorController::class, 'verify']);
+$router->get('/login/2fa/cancel', [TwoFactorController::class, 'cancelVerify']);
 $router->get('/forgot-password', [AuthController::class, 'forgotPasswordForm']);
 $router->post('/forgot-password', [AuthController::class, 'forgotPassword']);
 $router->get('/reset-password', [AuthController::class, 'resetPasswordForm']);
@@ -71,6 +75,14 @@ $router->group('', [AuthMiddleware::class], function ($router) {
     $router->post('/profile/settings/email', [ProfileController::class, 'changeEmail']);
     $router->post('/profile/settings/preferences', [ProfileController::class, 'updatePreferences']);
     $router->post('/profile/settings/password', [ProfileController::class, 'changePassword']);
+
+    // 2FA management
+    $router->get('/profile/2fa/setup', [TwoFactorController::class, 'setupForm']);
+    $router->post('/profile/2fa/enable', [TwoFactorController::class, 'enableSetup']);
+    $router->get('/profile/2fa/recovery-codes', [TwoFactorController::class, 'showRecoveryCodes']);
+    $router->post('/profile/2fa/regenerate-codes', [TwoFactorController::class, 'regenerateCodes']);
+    $router->get('/profile/2fa/disable', [TwoFactorController::class, 'disableForm']);
+    $router->post('/profile/2fa/disable', [TwoFactorController::class, 'disable']);
 
     // Bike CRUD (BEFORE the public /bike/{hash} route!)
     $router->get('/bike/new', [BikeController::class, 'createForm']);
