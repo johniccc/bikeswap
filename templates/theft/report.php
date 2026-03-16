@@ -8,30 +8,7 @@
 </div>
 
 <!-- Bike summary -->
-<div class="card mb-lg">
-  <div class="card-body">
-    <div class="flex gap-lg items-center flex-wrap">
-      <?php $photo = $bike->getPrimaryPhoto(); ?>
-      <?php if ($photo): ?>
-        <img src="<?= e($photo->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>"
-             style="width:100px;height:75px;object-fit:cover;border-radius:var(--radius-md)">
-      <?php endif; ?>
-      <div>
-        <h3 style="margin-bottom:0.15rem"><?= e($bike->getFullName()) ?></h3>
-        <p class="text-muted text-sm">
-          <i data-lucide="palette" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
-          <?= e($bike->getColor()) ?>
-        </p>
-        <?php if ($bike->getFrameNumber()): ?>
-          <p class="text-muted text-sm">
-            <i data-lucide="hash" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
-            SČ: <?= e($bike->getFrameNumber()) ?>
-          </p>
-        <?php endif; ?>
-      </div>
-    </div>
-  </div>
-</div>
+<?php include __DIR__ . '/../partials/bike-card.php'; ?>
 
 <form method="POST" action="/theft/report/<?= $bike->getId() ?>" class="max-w-lg">
   <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
@@ -47,32 +24,13 @@
              max="<?= date('Y-m-d') ?>">
     </div>
 
-    <div class="form-group">
-      <label for="theft_location_text">Místo krádeže *</label>
-      <div class="address-autocomplete-wrapper">
-        <input type="text" id="theft_location_text" name="theft_location_text" required
-               placeholder="např. Pardubice, ul. Karla IV., u nádraží" value="<?= e(old('theft_location_text')) ?>"
-               data-address-autocomplete
-               data-lat-input="theft_location_lat"
-               data-lng-input="theft_location_lng"
-               data-address-validated="theft_address_validated"
-               autocomplete="off">
-      </div>
-    </div>
-
-    <!-- Hidden GPS + validation fields -->
-    <input type="hidden" id="theft_location_lat" name="theft_location_lat">
-    <input type="hidden" id="theft_location_lng" name="theft_location_lng">
-    <input type="hidden" id="theft_address_validated" name="address_validated" value="0">
-
-    <div class="form-group geo-row">
-      <button type="button" class="btn btn-ghost btn-sm" data-geolocate
-              data-lat-input="theft_location_lat" data-lng-input="theft_location_lng"
-              data-text-input="theft_location_text" data-validated-input="theft_address_validated">
-        <i data-lucide="map-pin"></i> Zjistit moji polohu
-      </button>
-      <small class="geo-status text-muted text-sm"></small>
-    </div>
+    <?php
+      $geoPrefix      = 'theft_location';
+      $geoLabel       = 'Místo krádeže *';
+      $geoPlaceholder = 'např. Pardubice, ul. Karla IV., u nádraží';
+      $geoValue       = old('theft_location_text');
+      include __DIR__ . '/../partials/geolocation-input.php';
+    ?>
 
     <div class="form-group">
       <label for="description">Popis okolností</label>

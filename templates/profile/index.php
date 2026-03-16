@@ -23,12 +23,12 @@
         <i data-lucide="user" style="width:32px;height:32px"></i>
       </div>
       <div>
-        <h2 style="margin-bottom:0.15rem"><?= e($user->getName()) ?></h2>
+        <h2 style="margin-bottom:0.15rem"><?= e($user->getFullName()) ?></h2>
         <p class="text-muted text-sm"><?= e($user->getEmail()) ?></p>
       </div>
       <div style="margin-left:auto;text-align:right">
         <?php if ($user->isPolice()): ?>
-          <span class="police-badge" style="font-size:0.85rem;padding:0.25rem 0.6rem"><i data-lucide="shield" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Policie ČR</span>
+          <span class="police-badge" style="font-size:0.85rem;padding:0.25rem 0.6rem"><i data-lucide="shield" class="icon-inline"></i> Policie ČR</span>
         <?php else: ?>
           <div class="karma-score"><?= e((string)$user->getKarmaScore()) ?></div>
           <span class="status-badge status-active"><?= e($user->getKarmaLevel()) ?></span>
@@ -42,7 +42,7 @@
 <!-- Bikes -->
 <div class="card mb-lg">
   <div class="card-header">
-    <h3><i data-lucide="bike" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Moje kola</h3>
+    <h3><i data-lucide="bike" class="icon-inline-lg"></i> Moje kola</h3>
   </div>
   <div class="card-body">
     <?php if (empty($bikes)): ?>
@@ -88,7 +88,7 @@
 <!-- Reservations -->
 <div class="card mb-lg">
   <div class="card-header">
-    <h3><i data-lucide="calendar" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Moje rezervace</h3>
+    <h3><i data-lucide="calendar" class="icon-inline-lg"></i> Moje rezervace</h3>
   </div>
   <div class="card-body">
     <?php if (empty($reservations)): ?>
@@ -129,7 +129,7 @@
 <?php if (!empty($foundReports)): ?>
 <div class="card">
   <div class="card-header">
-    <h3><i data-lucide="map-pin" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Moje nálezy</h3>
+    <h3><i data-lucide="map-pin" class="icon-inline-lg"></i> Moje nálezy</h3>
   </div>
   <div class="card-body">
     <div class="table-wrapper">

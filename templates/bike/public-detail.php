@@ -121,7 +121,7 @@
         <div class="card-body flex items-center gap-lg flex-wrap">
           <div style="flex:1">
             <h3 style="margin:0 0 0.25rem">
-              <i data-lucide="repeat" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i>
+              <i data-lucide="repeat" class="icon-inline-lg"></i>
               Toto kolo je k dispozici k zapůjčení
             </h3>
             <p class="text-muted text-sm">Vyberte termín a pošlete žádost o výpůjčku majiteli.</p>
@@ -136,7 +136,7 @@
         <div class="card-body flex items-center gap-lg flex-wrap">
           <div style="flex:1">
             <h3 style="margin:0 0 0.25rem">
-              <i data-lucide="repeat" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i>
+              <i data-lucide="repeat" class="icon-inline-lg"></i>
               Toto kolo je k dispozici k zapůjčení
             </h3>
             <p class="text-muted text-sm">Pro rezervaci se přihlaste nebo zaregistrujte.</p>

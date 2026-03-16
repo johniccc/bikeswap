@@ -11,7 +11,7 @@
           <span class="admin-stat-value"><?= $stats['users'] ?></span>
           <span class="admin-stat-label">Uživatelů</span>
         </div>
-        <a href="/admin/users" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+        <a href="/admin/users" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
       </div>
     </div>
   <?php endif; ?>
@@ -22,7 +22,7 @@
         <span class="admin-stat-value"><?= $stats['bikes'] ?></span>
         <span class="admin-stat-label">Kol celkem</span>
       </div>
-      <a href="/admin/bikes" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+      <a href="/admin/bikes" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
     </div>
   </div>
 
@@ -32,7 +32,7 @@
         <span class="admin-stat-value"><?= $stats['thefts_open'] ?></span>
         <span class="admin-stat-label">Otevřených krádeží</span>
       </div>
-      <a href="/admin/thefts?status=open" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+      <a href="/admin/thefts?status=open" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
     </div>
   </div>
 
@@ -42,7 +42,7 @@
         <span class="admin-stat-value"><?= $stats['warnings_active'] ?? 0 ?></span>
         <span class="admin-stat-label">Aktivních upozornění</span>
       </div>
-      <a href="/admin/warnings?status=active" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+      <a href="/admin/warnings?status=active" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
     </div>
   </div>
 
@@ -53,7 +53,7 @@
           <span class="admin-stat-value"><?= $stats['reservations'] ?></span>
           <span class="admin-stat-label">Rezervací celkem</span>
         </div>
-        <a href="/admin/reservations" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+        <a href="/admin/reservations" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
       </div>
     </div>
 
@@ -63,7 +63,7 @@
           <span class="admin-stat-value"><?= $stats['reservations_pending'] ?></span>
           <span class="admin-stat-label">Čekajících rezervací</span>
         </div>
-        <a href="/admin/reservations?status=pending" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+        <a href="/admin/reservations?status=pending" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
       </div>
     </div>
 
@@ -73,7 +73,7 @@
           <i data-lucide="message-square" style="width:28px;height:28px;color:var(--primary)"></i>
           <span class="admin-stat-label">Konverzace</span>
         </div>
-        <a href="/admin/conversations" class="btn btn-sm btn-secondary" style="margin-top:auto">Zobrazit</a>
+        <a href="/admin/conversations" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
       </div>
     </div>
   <?php endif; ?>
@@ -108,8 +108,8 @@
           <strong><?= $resBike ? e($resBike->getFullName()) : 'Rezervace #' . $res->getId() ?></strong>
           <span class="text-sm">
             <?= e($res->getStatusLabel()) ?>
-            — majitel: <?= $owner ? e($owner->getName()) : '?' ?>
-            — vypůjčitel: <?= $borrower ? e($borrower->getName()) : '?' ?>
+            — majitel: <?= $owner ? e($owner->getFullName()) : '?' ?>
+            — vypůjčitel: <?= $borrower ? e($borrower->getFullName()) : '?' ?>
             — <?= e($res->getDateRangeText()) ?>
           </span>
         </div>

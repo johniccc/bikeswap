@@ -4,25 +4,11 @@
 </div>
 
 <!-- Bike summary -->
-<div class="card mb-lg">
-  <div class="card-body">
-    <div class="flex gap-lg items-center flex-wrap">
-      <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
-      <?php if ($primaryPhoto): ?>
-        <img src="<?= e($primaryPhoto->getUrl()) ?>" alt="<?= e($bike->getFullName()) ?>"
-             style="width:100px;height:75px;object-fit:cover;border-radius:var(--radius-md)">
-      <?php endif; ?>
-      <div>
-        <h3 style="margin-bottom:0.15rem"><?= e($bike->getFullName()) ?></h3>
-        <p class="text-muted text-sm">
-          <i data-lucide="palette" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
-          <?= e($bike->getColor()) ?>
-        </p>
-        <span class="status-badge status-stolen">Odcizené</span>
-      </div>
-    </div>
-  </div>
-</div>
+<?php
+  $extraHtml = '<span class="status-badge status-stolen">Odcizené</span>';
+  include __DIR__ . '/../partials/bike-card.php';
+  $extraHtml = '';
+?>
 
 <form method="POST" action="/found/report/<?= e($bike->getQrHash()) ?>" class="max-w-lg" id="found-report-form">
   <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
@@ -61,7 +47,7 @@
   <?php else: ?>
     <div class="alert alert-info mb-lg">
       <i data-lucide="user-check"></i>
-      <span>Nahlašujete nález jako <strong><?= e($currentUser->getName()) ?></strong> (<?= e($currentUser->getEmail()) ?>).</span>
+      <span>Nahlašujete nález jako <strong><?= e($currentUser->getFullName()) ?></strong> (<?= e($currentUser->getEmail()) ?>).</span>
     </div>
   <?php endif; ?>
 
@@ -74,32 +60,13 @@
              value="<?= e(old('found_date', date('Y-m-d'))) ?>" max="<?= date('Y-m-d') ?>">
     </div>
 
-    <div class="form-group">
-      <label for="found_location_text">Místo nálezu *</label>
-      <div class="address-autocomplete-wrapper">
-        <input type="text" id="found_location_text" name="found_location_text" required
-               placeholder="např. Pardubice, park u Labe, u lavičky" value="<?= e(old('found_location_text')) ?>"
-               data-address-autocomplete
-               data-lat-input="found_location_lat"
-               data-lng-input="found_location_lng"
-               data-address-validated="found_address_validated"
-               autocomplete="off">
-      </div>
-    </div>
-
-    <!-- Hidden GPS + validation fields -->
-    <input type="hidden" id="found_location_lat" name="found_location_lat">
-    <input type="hidden" id="found_location_lng" name="found_location_lng">
-    <input type="hidden" id="found_address_validated" name="address_validated" value="0">
-
-    <div class="form-group geo-row">
-      <button type="button" class="btn btn-ghost btn-sm" data-geolocate
-              data-lat-input="found_location_lat" data-lng-input="found_location_lng"
-              data-text-input="found_location_text" data-validated-input="found_address_validated">
-        <i data-lucide="map-pin"></i> Zjistit moji polohu
-      </button>
-      <small class="geo-status text-muted text-sm"></small>
-    </div>
+    <?php
+      $geoPrefix      = 'found_location';
+      $geoLabel       = 'Místo nálezu *';
+      $geoPlaceholder = 'např. Pardubice, park u Labe, u lavičky';
+      $geoValue       = old('found_location_text');
+      include __DIR__ . '/../partials/geolocation-input.php';
+    ?>
 
     <div class="form-group">
       <label for="description">Popis situace</label>

@@ -36,7 +36,7 @@
         <div>
           <h3 style="margin-bottom:0.15rem"><?= e($bike->getFullName()) ?></h3>
           <p class="text-muted text-sm">
-            <i data-lucide="palette" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
+            <i data-lucide="palette" class="icon-inline"></i>
             <?= e($bike->getColor()) ?>
           </p>
         </div>
@@ -53,7 +53,7 @@
       <?php if ($report->getFoundLocationText()): ?>
         <div class="reservation-detail-item">
           <span class="text-muted text-sm">
-            <i data-lucide="map-pin" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Místo nálezu
+            <i data-lucide="map-pin" class="icon-inline"></i> Místo nálezu
           </span>
           <strong><?= e($report->getFoundLocationText()) ?></strong>
         </div>
@@ -62,7 +62,7 @@
       <?php if ($report->getFoundDate()): ?>
         <div class="reservation-detail-item">
           <span class="text-muted text-sm">
-            <i data-lucide="calendar" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Datum nálezu
+            <i data-lucide="calendar" class="icon-inline"></i> Datum nálezu
           </span>
           <strong><?= e($report->getFormattedFoundDate()) ?></strong>
         </div>
@@ -71,7 +71,7 @@
       <?php if ($viewerType === 'owner' && isset($finderLabel)): ?>
         <div class="reservation-detail-item">
           <span class="text-muted text-sm">
-            <i data-lucide="user" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Nálezce
+            <i data-lucide="user" class="icon-inline"></i> Nálezce
           </span>
           <strong><?= e($finderLabel) ?></strong>
         </div>
@@ -83,7 +83,7 @@
 <!-- Messages -->
 <div class="card">
   <div class="card-header">
-    <h3><i data-lucide="message-circle" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Zprávy</h3>
+    <h3><i data-lucide="message-circle" class="icon-inline-lg"></i> Zprávy</h3>
   </div>
   <div class="card-body" style="padding-bottom:0">
     <div class="conversation-messages" id="messages"
@@ -174,12 +174,4 @@
 
 <?php if ($needsPublicPadding): ?></div><!-- .main-public-padded --><?php endif; ?>
 
-<script>
-(function() {
-    'use strict';
-    var msgContainer = document.getElementById('messages');
-    if (msgContainer) {
-        msgContainer.scrollTop = msgContainer.scrollHeight;
-    }
-})();
-</script>
+<script src="/js/conversation.js"></script>

@@ -53,7 +53,7 @@ $bike = $reservation->getBike();
             <a href="/bike/<?= e($bike->getQrHash()) ?>"><?= e($bike->getFullName()) ?></a>
           </h3>
           <p class="text-muted text-sm">
-            <i data-lucide="palette" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
+            <i data-lucide="palette" class="icon-inline"></i>
             <?= e($bike->getColor()) ?>
           </p>
         </div>
@@ -68,7 +68,7 @@ $bike = $reservation->getBike();
     <div class="reservation-detail-grid mt-lg">
       <div class="reservation-detail-item">
         <span class="text-muted text-sm">
-          <i data-lucide="calendar" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i> Termín
+          <i data-lucide="calendar" class="icon-inline"></i> Termín
         </span>
         <strong><?= $reservation->getDateRangeText() ?></strong>
         <span class="text-muted text-sm">
@@ -79,10 +79,10 @@ $bike = $reservation->getBike();
       <?php if ($otherUser): ?>
         <div class="reservation-detail-item">
           <span class="text-muted text-sm">
-            <i data-lucide="user" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
+            <i data-lucide="user" class="icon-inline"></i>
             <?= $isOwner ? 'Vypůjčitel' : 'Majitel' ?>
           </span>
-          <strong><?= e($otherUser->getName()) ?></strong>
+          <strong><?= e($otherUser->getFullName()) ?></strong>
           <span class="text-muted text-sm">
             <?= e($otherUser->getKarmaLevel()) ?> (<?= $otherUser->getKarmaScore() ?> karma)
           </span>
@@ -101,7 +101,7 @@ $bike = $reservation->getBike();
   <?php if ($hasActions): ?>
     <div class="card mb-lg">
       <div class="card-header">
-        <h3><i data-lucide="settings" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Akce majitele</h3>
+        <h3><i data-lucide="settings" class="icon-inline-lg"></i> Akce majitele</h3>
       </div>
       <div class="card-body">
         <div class="flex gap-sm flex-wrap">
@@ -257,7 +257,7 @@ $bike = $reservation->getBike();
 <?php if ($currentUser->hasRole('police') && $reservation->canBeAdminResolved()): ?>
   <div class="card mb-lg" style="border:2px solid var(--accent)">
     <div class="card-header">
-      <h3><i data-lucide="shield" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Rozhodnutí správce</h3>
+      <h3><i data-lucide="shield" class="icon-inline-lg"></i> Rozhodnutí správce</h3>
     </div>
     <div class="card-body">
       <p class="mb-md">Rozhodněte, která strana má pravdu. Toto rozhodnutí je nevratné.</p>
@@ -332,7 +332,7 @@ $bike = $reservation->getBike();
 <?php if ($reservation->canBeReviewed()): ?>
   <div class="card mb-lg">
     <div class="card-header">
-      <h3><i data-lucide="star" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Hodnocení</h3>
+      <h3><i data-lucide="star" class="icon-inline-lg"></i> Hodnocení</h3>
     </div>
     <div class="card-body">
       <?php if (!$hasReviewed): ?>
@@ -364,7 +364,7 @@ $bike = $reservation->getBike();
         </form>
 
         <p class="text-muted text-sm mt-md">
-          <i data-lucide="info" style="width:14px;height:14px;display:inline;vertical-align:-2px"></i>
+          <i data-lucide="info" class="icon-inline"></i>
           Hodnocení se zobrazí až poté, co jej odešlou obě strany.
         </p>
       <?php else: ?>
@@ -406,7 +406,7 @@ $bike = $reservation->getBike();
 <!-- Conversation -->
 <div class="card">
   <div class="card-header">
-    <h3><i data-lucide="message-circle" style="width:18px;height:18px;display:inline;vertical-align:-3px"></i> Konverzace</h3>
+    <h3><i data-lucide="message-circle" class="icon-inline-lg"></i> Konverzace</h3>
   </div>
   <div class="card-body" style="padding-bottom:0">
     <div class="conversation-messages" id="messages"
@@ -445,12 +445,4 @@ $bike = $reservation->getBike();
   </div>
 </div>
 
-<script>
-(function() {
-    'use strict';
-    var msgContainer = document.getElementById('messages');
-    if (msgContainer) {
-        msgContainer.scrollTop = msgContainer.scrollHeight;
-    }
-})();
-</script>
+<script src="/js/conversation.js"></script>
