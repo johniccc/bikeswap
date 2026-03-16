@@ -836,7 +836,146 @@
         });
     })();
 
-    // ── 18. Clickable cards with data-href ─────────────────
+    // ── 18. Password visibility toggle ───────────────────────
+    (function() {
+        function createSvg(paths) {
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('stroke-width', '2');
+            svg.setAttribute('stroke-linecap', 'round');
+            svg.setAttribute('stroke-linejoin', 'round');
+            paths.forEach(function(d) {
+                var el;
+                if (d.r) {
+                    el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    el.setAttribute('cx', d.cx);
+                    el.setAttribute('cy', d.cy);
+                    el.setAttribute('r', d.r);
+                } else {
+                    el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    el.setAttribute('d', d);
+                }
+                svg.appendChild(el);
+            });
+            return svg;
+        }
+
+        var eyePaths = [
+            'M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0',
+            {cx: '12', cy: '12', r: '3'}
+        ];
+        var eyeOffPaths = [
+            'M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49',
+            'M14.084 14.158a3 3 0 0 1-4.242-4.242',
+            'M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143',
+            'm2 2 20 20'
+        ];
+
+        document.querySelectorAll('input[type="password"]').forEach(function(input) {
+            if (input.parentElement.classList.contains('password-input-wrap')) return;
+
+            var wrap = document.createElement('div');
+            wrap.className = 'password-input-wrap';
+            input.parentNode.insertBefore(wrap, input);
+            wrap.appendChild(input);
+
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'password-toggle-btn';
+            btn.setAttribute('aria-label', 'Zobrazit heslo');
+            btn.setAttribute('tabindex', '-1');
+            btn.appendChild(createSvg(eyePaths));
+            wrap.appendChild(btn);
+
+            btn.addEventListener('click', function() {
+                var isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                btn.removeChild(btn.firstChild);
+                btn.appendChild(createSvg(isPassword ? eyeOffPaths : eyePaths));
+                btn.setAttribute('aria-label', isPassword ? 'Skrýt heslo' : 'Zobrazit heslo');
+                input.focus();
+            });
+        });
+    })();
+
+    // ── 19. Cookie consent banner ────────────────────────────
+    (function() {
+        var banner = document.getElementById('cookie-consent');
+        if (!banner) return;
+
+        function getCookie(name) {
+            var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+
+        // Show banner if no consent cookie exists
+        if (!getCookie('cookie_consent')) {
+            banner.style.display = '';
+        }
+
+        function setConsent(value) {
+            // Set cookie for 365 days
+            var expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+            document.cookie = 'cookie_consent=' + value + ';path=/;expires=' + expires + ';SameSite=Lax';
+
+            // Save to server
+            fetch('/api/cookie-consent', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ consent: value })
+            }).catch(function() {});
+
+            // Hide banner
+            banner.style.display = 'none';
+
+            // If full consent, load fingerprint
+            if (value === 'all') {
+                var s = document.createElement('script');
+                s.src = '/js/fingerprint.js';
+                document.body.appendChild(s);
+            }
+        }
+
+        var btnAll = document.getElementById('cookie-consent-all');
+        var btnNecessary = document.getElementById('cookie-consent-necessary');
+        if (btnAll) btnAll.addEventListener('click', function() { setConsent('all'); });
+        if (btnNecessary) btnNecessary.addEventListener('click', function() { setConsent('necessary'); });
+    })();
+
+    // ── 20. Cookie consent reset (privacy page) ────────────
+    (function() {
+        var resetBtn = document.getElementById('reset-cookie-consent');
+        if (!resetBtn) return;
+
+        resetBtn.addEventListener('click', function() {
+            // Delete cookie_consent cookie
+            document.cookie = 'cookie_consent=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT;SameSite=Lax';
+
+            // Clear fingerprint session flag so it doesn't auto-send
+            try { sessionStorage.removeItem('fp_sent'); } catch(e) {}
+
+            // Show banner again if it exists on the page
+            var banner = document.getElementById('cookie-consent');
+            if (banner) {
+                banner.style.display = '';
+                if (window.lucide) window.lucide.createIcons();
+            }
+
+            // Visual feedback on button
+            resetBtn.textContent = 'Nastavení bylo resetováno';
+            resetBtn.disabled = true;
+            resetBtn.classList.remove('btn-primary');
+            resetBtn.classList.add('btn-ghost');
+        });
+    })();
+
+    // ── 21. Clickable cards with data-href ─────────────────
     // Cards with data-href navigate to that URL on click,
     // but <a>, <button>, and [data-confirm] inside the card work independently.
     document.addEventListener('click', function(e) {

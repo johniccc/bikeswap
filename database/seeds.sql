@@ -1,6 +1,6 @@
 -- BikeSwap Demo Seed Data
 -- Run after schema.sql to populate demo accounts
--- All passwords: 1234
+-- All passwords: BikeSwap2026!
 
 SET NAMES utf8mb4;
 
@@ -8,19 +8,19 @@ SET NAMES utf8mb4;
 
 -- 1) Vlastnik (owner) - owns bikes, manages reservations
 INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `address`, `is_verified`, `karma_score`) VALUES
-('vlastnik@vlastnik.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'user', 'Vlastník', 'Demo', '+420111111111', 'Pardubice, Zelená 15', 1, 15);
+('vlastnik@vlastnik.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'user', 'Vlastník', 'Demo', '+420111111111', 'Pardubice, Zelená 15', 1, 15);
 
 -- 2) Vypujcitel (borrower/finder) - borrows bikes, reports found bikes
 INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `address`, `is_verified`, `karma_score`) VALUES
-('vypujcitel@vypujcitel.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'user', 'Vypůjčitel', 'Demo', '+420222222222', 'Pardubice, Hlavní 8', 1, 5);
+('vypujcitel@vypujcitel.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'user', 'Vypůjčitel', 'Demo', '+420222222222', 'Pardubice, Hlavní 8', 1, 5);
 
 -- 3) Policie (police) - police role, can view admin panel + found report conversations
 INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `is_verified`) VALUES
-('policie@policie.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'police', 'Policie', 'ČR', '+420333333333', 1);
+('policie@policie.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'police', 'Policie', 'ČR', '+420333333333', 1);
 
 -- 4) Admin - full admin access
 INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `is_verified`) VALUES
-('admin@admin.cz', '$2y$12$alpJ5/h1VLPw2QQbp6R4/eVsH9aEIbox/eBuqO/5ZPZFpFIA67H5y', 'admin', 'Administrátor', '', 1);
+('admin@admin.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'admin', 'Administrátor', '', 1);
 
 -- ── BIKES (owned by vlastnik, id=1) ─────────────────────────────
 

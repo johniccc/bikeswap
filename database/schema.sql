@@ -376,4 +376,46 @@ CREATE TABLE IF NOT EXISTS `user_recovery_codes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
 
+-- ── USER DEVICES (fingerprinting) ────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `user_devices` (
+    `id`                INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `user_id`           INT UNSIGNED    NOT NULL,
+    `fingerprint_hash`  VARCHAR(64)     NOT NULL,
+    `ip_address`        VARCHAR(45)     NULL DEFAULT NULL,
+    `user_agent`        VARCHAR(500)    NULL DEFAULT NULL,
+    `screen_resolution` VARCHAR(20)     NULL DEFAULT NULL,
+    `timezone`          VARCHAR(100)    NULL DEFAULT NULL,
+    `language`          VARCHAR(20)     NULL DEFAULT NULL,
+    `platform`          VARCHAR(100)    NULL DEFAULT NULL,
+    `color_depth`       SMALLINT UNSIGNED NULL DEFAULT NULL,
+    `touch_support`     TINYINT(1)      NULL DEFAULT NULL,
+    `do_not_track`      TINYINT(1)      NULL DEFAULT NULL,
+    `first_seen_at`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `last_seen_at`      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_user_fingerprint` (`user_id`, `fingerprint_hash`),
+    CONSTRAINT `fk_devices_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
+-- ── COOKIE CONSENTS ──────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `cookie_consents` (
+    `id`              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    `session_id`      VARCHAR(128)    NOT NULL,
+    `user_id`         INT UNSIGNED    NULL DEFAULT NULL,
+    `consent_given`   ENUM('all','necessary') NOT NULL,
+    `ip_address`      VARCHAR(45)     NULL DEFAULT NULL,
+    `created_at`      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    KEY `idx_consent_session` (`session_id`),
+    KEY `idx_consent_user` (`user_id`),
+    CONSTRAINT `fk_consent_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+
 SET FOREIGN_KEY_CHECKS = 1;

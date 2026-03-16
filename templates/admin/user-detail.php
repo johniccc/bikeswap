@@ -229,6 +229,131 @@
   </div>
 <?php endif; ?>
 
+<!-- User devices -->
+<div class="admin-detail-section">
+  <div class="section-title-row">
+    <h2 class="section-title">
+      <i data-lucide="monitor-smartphone"></i>
+      Zařízení uživatele
+      <?php if (!empty($devices)): ?>
+        <span class="badge-count"><?= count($devices) ?></span>
+      <?php endif; ?>
+    </h2>
+  </div>
+
+  <?php if (empty($devices)): ?>
+    <div class="card">
+      <div class="card-body">
+        <p class="text-muted text-center">Žádná zaznamenaná zařízení. Zařízení se zobrazí poté, co se uživatel přihlásí z prohlížeče, ve kterém přijal cookies volbou „Přijmout vše".</p>
+      </div>
+    </div>
+  <?php else: ?>
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>IP adresa</th>
+                <th>Platforma</th>
+                <th>Rozlišení</th>
+                <th>Timezone</th>
+                <th>Jazyk</th>
+                <th>První přístup</th>
+                <th>Poslední přístup</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($devices as $device): ?>
+                <tr>
+                  <td><code><?= e($device->getIpAddress() ?? '—') ?></code></td>
+                  <td><?= e($device->getPlatform() ?? '—') ?></td>
+                  <td><?= e($device->getScreenResolution() ?? '—') ?></td>
+                  <td><?= e($device->getTimezone() ?? '—') ?></td>
+                  <td><?= e($device->getLanguage() ?? '—') ?></td>
+                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($device->getFirstSeenAt())) ?></td>
+                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($device->getLastSeenAt())) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+</div>
+
+<!-- Activity log -->
+<div class="admin-detail-section">
+  <div class="section-title-row">
+    <h2 class="section-title">
+      <i data-lucide="activity"></i>
+      Historie aktivity
+      <?php if (!empty($activityLogs)): ?>
+        <span class="badge-count"><?= count($activityLogs) ?></span>
+      <?php endif; ?>
+    </h2>
+  </div>
+
+  <?php if (empty($activityLogs)): ?>
+    <div class="card">
+      <div class="card-body">
+        <p class="text-muted text-center">Žádná zaznamenaná aktivita.</p>
+      </div>
+    </div>
+  <?php else: ?>
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Akce</th>
+                <th>Entita</th>
+                <th>IP adresa</th>
+                <th>User-Agent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($activityLogs as $log): ?>
+                <?php
+                  $actionClass = match(true) {
+                    str_contains($log->getAction(), 'login') && !str_contains($log->getAction(), 'failed') => 'action-login',
+                    str_contains($log->getAction(), 'failed') => 'action-failed',
+                    $log->getAction() === 'logout' => 'action-logout',
+                    $log->getAction() === 'register' => 'action-register',
+                    str_starts_with($log->getAction(), 'admin_') => 'action-admin',
+                    default => 'action-profile',
+                  };
+                ?>
+                <tr>
+                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($log->getCreatedAt())) ?></td>
+                  <td>
+                    <span class="activity-action-badge <?= $actionClass ?>">
+                      <?= e($log->getActionLabel()) ?>
+                    </span>
+                  </td>
+                  <td>
+                    <?= e($log->getEntityType()) ?>
+                    <?php if ($log->getEntityId()): ?>
+                      <span class="text-muted">#<?= $log->getEntityId() ?></span>
+                    <?php endif; ?>
+                  </td>
+                  <td><code><?= e($log->getIpAddress() ?? '—') ?></code></td>
+                  <td class="ua-cell" title="<?= e($log->getUserAgent() ?? '') ?>">
+                    <?= e($log->getShortUserAgent()) ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+</div>
+
 <script>
 (function () {
   var toggleBtn = document.getElementById('toggle-edit-user');

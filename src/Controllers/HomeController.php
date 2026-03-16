@@ -37,4 +37,15 @@ class HomeController
             'currentUser' => $currentUser,
         ])->withLayout('layouts/public');
     }
+
+    public function privacy(Request $request): Response
+    {
+        $currentUser = $this->session->isLoggedIn() ? $this->authService->currentUser() : null;
+
+        return view('privacy', [
+            'title' => 'Ochrana osobních údajů – BikeSwap',
+            'session' => $this->session,
+            'currentUser' => $currentUser,
+        ])->withLayout('layouts/public');
+    }
 }

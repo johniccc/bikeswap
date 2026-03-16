@@ -14,6 +14,17 @@ docker compose up -d
 
 Aplikace běží na `http://localhost`.
 
+## Testovací účty
+
+Po importu `database/seeds.sql` jsou k dispozici tyto účty:
+
+| Role          | E-mail                     | Heslo           |
+| ------------- | -------------------------- | --------------- |
+| Administrátor | `admin@admin.cz`           | `BikeSwap2026!` |
+| Policie       | `policie@policie.cz`       | `BikeSwap2026!` |
+| Vlastník      | `vlastnik@vlastnik.cz`     | `BikeSwap2026!` |
+| Vypůjčitel    | `vypujcitel@vypujcitel.cz` | `BikeSwap2026!` |
+
 ## Nasazení na školní server
 
 Server: `stefacja22.mp.spse-net.cz`
@@ -71,10 +82,6 @@ web/
 
 ### 2. Nahrání přes SFTP
 
-```bash
-sftp -P 2245 stefacja22@sftp.stefacja22.mp.spse-net.cz
-```
-
 **Nahrát tyto složky/soubory do `web/`:**
 
 | Zdroj (lokální)    | Cíl na serveru      | Poznámka                               |
@@ -103,27 +110,11 @@ sftp -P 2245 stefacja22@sftp.stefacja22.mp.spse-net.cz
 
 Na serveru přes SSH (pokud je dostupné):
 
-```bash
-ssh -p 2245 stefacja22@sftp.stefacja22.mp.spse-net.cz
-cd web
-composer install --no-dev --optimize-autoloader
-```
-
-Pokud SSH nefunguje, nahrát celou složku `vendor/` přes SFTP.
+nahrát celou složku `vendor/` přes SFTP.
 
 ### 4. Databáze
 
-Importovat schéma přes phpMyAdmin nebo CLI:
-
-```bash
-mysql -h db.mp.spse-net.cz -u stefacja22 -p stefacja22_1 < database/schema.sql
-```
-
-Volitelně naplnit testovacími daty:
-
-```bash
-mysql -h db.mp.spse-net.cz -u stefacja22 -p stefacja22_1 < database/seeds.sql
-```
+Importovat schéma přes phpMyAdmin a seeds
 
 ### 5. Oprávnění složek
 
@@ -132,21 +123,6 @@ Složka `storage/` musí být zapisovatelná webserverem:
 ```bash
 chmod -R 775 web/storage/
 ```
-
-### 6. Ověření
-
-1. Otevřít `https://stefacja22.mp.spse-net.cz/`
-2. Zkontrolovat přihlášení, registraci
-3. Ověřit že e-maily chodí (registrace, zapomenuté heslo)
-
-## Testovací účty (seeds.sql)
-
-| Email              | Heslo     | Role   |
-| ------------------ | --------- | ------ |
-| vlastnik@test.cz   | Heslo123! | user   |
-| vypujcitel@test.cz | Heslo123! | user   |
-| policie@test.cz    | Heslo123! | police |
-| admin@test.cz      | Heslo123! | admin  |
 
 ### Dodatečné
 
@@ -179,11 +155,16 @@ chmod -R 775 web/storage/
 - failuje captcha (nebo takhle, banner říká suuccess ale neposunu se dál). stane se to jen jednou za čas ale i tak
 - je dobrý nápad dávat barvy do dropdownu?
 - domlouvali jsme se že policie bude moct řešit spory? taky, teď mi to píše že policie nemá přístup ke kolům
-
 - Dvoufázové ověření - řekni mi svůj názor co bude nejlepší implementovat, zda telefonní sms nebo auth aplikaci (google authenticator)
 - K jednotlivým uživatelům se na pozadí budou sbírat hw informace o něm (pro lepší dohledání pro admina). Tudíž budeme muset vymyslet, jak to udělat, aby to bylo v souladu s zákonem. asi postačí jen cookie banner?
+- sekce histori aktivity u uživatele se zobrazuje na počítači správně, na mobilu však tabulka není vidět. to stejné platí pro stejnou tabulku na dashboardu admina
+- sekce zařízení uživatele když je prázdná tak je text moc nalepený na stranách kontejneru. udělej tam trochu padding
+- u sekce zařízení uživatele mám také lehké podezření že nefunguje. po odsouhlasení uživatelem, na kterého v adminu koukám, se nezobrazí informace o zařízení. ten proces trvá, nebo něco nefunguje?
+- má uživatel možnost opt out z toho sledování (cookies banner)?
+- jsou v tuto chvíli logovány i akce nepřihlášeného uživatele po souhlasu s cookies? sbírají se tam i ty hw info a jsou pak vidět v logách?
 
-- otestovat geolokaci
+
+- formuláře s adresou (všude, takže u krádeží, v profilu apod) by mohli adresy napovídat a automaticky doplňovat. adresy mimo daný formát nebo prostě mimo systémem daným výběrem se nebudou počítat. na tohle nejspíš budeš potřebovat nějaké api, tak použij nějaké bezplatné a spolehlivé bez rate limitingu. Toto bude platit i pro tlačítko zjistit polohu, to bych chtěl mimo jiné u každého pole s adresou a aby bylo funkční (kdyžtak mi vysvětli jestli je třeba potřeba https nebo něcoo jiného)
 - emaily otestovat
 
 

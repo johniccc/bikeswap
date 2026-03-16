@@ -104,6 +104,7 @@
       <div class="footer-links">
         <a href="/stolen">Odcizená kola</a>
         <a href="/shared">Sdílená kola</a>
+        <a href="/privacy">Ochrana osobních údajů</a>
       </div>
       <div class="footer-text">&copy; <?= date('Y') ?> BikeSwap. Všechna práva vyhrazena.</div>
     </div>
@@ -121,10 +122,12 @@
   <!-- ── Toast Container ── -->
   <div class="toast-container" id="toast-container"></div>
 
+  <?php include __DIR__ . '/../partials/cookie-consent.php'; ?>
+
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="/js/app.js"></script>
-
+  <script src="/js/fingerprint.js"></script>
 
 </body>
 </html>

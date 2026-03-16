@@ -22,6 +22,8 @@ use App\Controllers\ProfileController;
 
 use App\Controllers\TwoFactorController;
 use App\Controllers\AdminController;
+use App\Controllers\CookieConsentController;
+use App\Controllers\DeviceFingerprintController;
 
 use App\Middleware\AuthMiddleware;
 use App\Middleware\AdminMiddleware;
@@ -31,6 +33,10 @@ use App\Middleware\AdminMiddleware;
 $router->get('/', [HomeController::class, 'index']);
 $router->get('/stolen', [TheftController::class, 'publicList']);
 $router->get('/shared', [ReservationController::class, 'sharedBikes']);
+$router->get('/privacy', [HomeController::class, 'privacy']);
+
+// ── API routes (no auth required) ────────────────────────────
+$router->post('/api/cookie-consent', [CookieConsentController::class, 'store']);
 
 // ── File serving (images, QR codes) ───────────────────────────
 
@@ -64,6 +70,9 @@ $router->get('/found/{token}/poll', [MessagePollController::class, 'foundMessage
 // ── Authenticated routes ───────────────────────────────────────
 
 $router->group('', [AuthMiddleware::class], function ($router) {
+    // Device fingerprint API
+    $router->post('/api/device-fingerprint', [DeviceFingerprintController::class, 'store']);
+
     // Dashboard
     $router->get('/dashboard', [BikeController::class, 'myBikes']);
     $router->get('/dashboard/poll', [BikeController::class, 'dashboardPoll']);

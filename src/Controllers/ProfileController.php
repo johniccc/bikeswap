@@ -13,6 +13,7 @@ use App\Repository\FoundReportRepository;
 use App\Repository\UserPreferencesRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
+use App\Services\ActivityLogService;
 use App\Services\AuthService;
 use App\Services\TwoFactorService;
 
@@ -26,6 +27,7 @@ class ProfileController
         private UserRepository $userRepo,
         private UserPreferencesRepository $preferencesRepo,
         private TwoFactorService $twoFactorService,
+        private ActivityLogService $activityLog,
         private Session $session,
     ) {}
 
@@ -106,6 +108,7 @@ class ProfileController
             'address'    => trim($request->input('address', '')) ?: null,
         ]);
 
+        $this->activityLog->log('profile_update', 'user', $user->getId());
         $this->session->flash('success', 'Profil byl úspěšně aktualizován.');
         return redirect('/profile/settings');
     }
@@ -144,6 +147,7 @@ class ProfileController
         $hash = password_hash($request->input('new_password'), PASSWORD_BCRYPT, ['cost' => 12]);
         $this->userRepo->updatePassword($user->getId(), $hash);
 
+        $this->activityLog->log('password_change', 'user', $user->getId());
         $this->session->flash('success', 'Heslo bylo úspěšně změněno.');
         return redirect('/profile/settings');
     }
@@ -194,6 +198,7 @@ class ProfileController
 
         $this->userRepo->updateEmail($user->getId(), $newEmail);
 
+        $this->activityLog->log('email_change', 'user', $user->getId());
         $this->session->flash('success', 'E-mail byl úspěšně změněn na ' . $newEmail . '.');
         return redirect('/profile/settings');
     }

@@ -38,6 +38,7 @@ class App
         $session->start();
 
         $request = Request::capture();
+        $this->container->singleton(Request::class, fn() => $request);
 
         try {
             $response = $this->router->dispatch($request);

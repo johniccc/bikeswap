@@ -9,6 +9,7 @@ use App\Core\Session;
 use App\Core\Validator;
 use App\Repository\UserRepository;
 use App\Response\Response;
+use App\Services\ActivityLogService;
 use App\Services\AuthService;
 use App\Services\EmailService;
 
@@ -18,14 +19,16 @@ class AuthController
     private UserRepository $userRepo;
     private Session $session;
     private EmailService $emailService;
+    private ActivityLogService $activityLog;
     private string $appUrl;
 
-    public function __construct(AuthService $authService, UserRepository $userRepo, Session $session, EmailService $emailService, array $config)
+    public function __construct(AuthService $authService, UserRepository $userRepo, Session $session, EmailService $emailService, ActivityLogService $activityLog, array $config)
     {
         $this->authService  = $authService;
         $this->userRepo     = $userRepo;
         $this->session      = $session;
         $this->emailService = $emailService;
+        $this->activityLog  = $activityLog;
         $this->appUrl       = rtrim($config['app']['url'] ?? 'http://localhost', '/');
     }
 
@@ -203,6 +206,7 @@ class AuthController
      */
     public function logout(Request $request): Response
     {
+        $this->activityLog->log('logout', 'user', $this->session->userId());
         $this->authService->logout();
 
         if ($request->wantsJson()) {

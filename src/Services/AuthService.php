@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Session;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Services\ActivityLogService;
 
 /**
  * Authentication service.
@@ -18,11 +19,13 @@ class AuthService
 {
     private UserRepository $userRepository;
     private Session $session;
+    private ActivityLogService $activityLog;
 
-    public function __construct(UserRepository $userRepository, Session $session)
+    public function __construct(UserRepository $userRepository, Session $session, ActivityLogService $activityLog)
     {
         $this->userRepository = $userRepository;
         $this->session = $session;
+        $this->activityLog = $activityLog;
     }
 
     /**
@@ -55,6 +58,8 @@ class AuthService
 
         // TODO: Send verification email
 
+        $this->activityLog->log('register', 'user', $userId);
+
         return ['success' => true, 'user_id' => $userId];
     }
 
@@ -72,6 +77,7 @@ class AuthService
         }
 
         if (!password_verify($password, $user->getPasswordHash())) {
+            $this->activityLog->log('login_failed', 'user', $user->getId());
             return ['success' => false, 'error' => 'Neplatný e-mail nebo heslo.'];
         }
 
@@ -95,6 +101,7 @@ class AuthService
         // Full login
         $this->session->login($user->getId());
         $this->userRepository->updateLastLogin($user->getId());
+        $this->activityLog->log('login', 'user', $user->getId());
 
         return ['success' => true, 'user' => $user];
     }

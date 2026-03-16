@@ -118,3 +118,72 @@
     <?php endforeach; ?>
   </div>
 <?php endif; ?>
+
+<!-- Recent activity log (admin only) -->
+<?php if (!empty($recentActivity)): ?>
+  <div class="admin-detail-section">
+    <div class="section-title-row">
+      <h2 class="section-title">
+        <i data-lucide="activity"></i>
+        Poslední aktivita
+        <span class="badge-count"><?= count($recentActivity) ?></span>
+      </h2>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Uživatel</th>
+                <th>Akce</th>
+                <th>Entita</th>
+                <th>IP adresa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($recentActivity as $log): ?>
+                <?php
+                  $actionClass = match(true) {
+                    str_contains($log->getAction(), 'login') && !str_contains($log->getAction(), 'failed') => 'action-login',
+                    str_contains($log->getAction(), 'failed') => 'action-failed',
+                    $log->getAction() === 'logout' => 'action-logout',
+                    $log->getAction() === 'register' => 'action-register',
+                    str_starts_with($log->getAction(), 'admin_') => 'action-admin',
+                    default => 'action-profile',
+                  };
+                ?>
+                <tr>
+                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($log->getCreatedAt())) ?></td>
+                  <td>
+                    <?php if ($log->getUserId()): ?>
+                      <a href="/admin/users/<?= $log->getUserId() ?>" class="activity-user-link">
+                        <?= e($log->getUserName() ?? 'Uživatel #' . $log->getUserId()) ?>
+                      </a>
+                    <?php else: ?>
+                      <span class="text-muted">—</span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <span class="activity-action-badge <?= $actionClass ?>">
+                      <?= e($log->getActionLabel()) ?>
+                    </span>
+                  </td>
+                  <td>
+                    <?= e($log->getEntityType()) ?>
+                    <?php if ($log->getEntityId()): ?>
+                      <span class="text-muted">#<?= $log->getEntityId() ?></span>
+                    <?php endif; ?>
+                  </td>
+                  <td><code><?= e($log->getIpAddress() ?? '—') ?></code></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>

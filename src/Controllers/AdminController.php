@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
+use App\Repository\ActivityLogRepository;
 use App\Repository\BikeRepository;
 use App\Repository\FoundReportRepository;
 use App\Repository\FoundReportMessageRepository;
@@ -14,8 +15,10 @@ use App\Repository\ReservationRepository;
 use App\Repository\ReservationMessageRepository;
 use App\Repository\TheftReportRepository;
 use App\Repository\BikeWarningRepository;
+use App\Repository\UserDeviceRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
+use App\Services\ActivityLogService;
 use App\Services\AuthService;
 use App\Services\BikeWarningService;
 use App\Services\FileUploadService;
@@ -35,6 +38,9 @@ class AdminController
     private QRService $qrService;
     private BikeWarningRepository $bikeWarningRepository;
     private BikeWarningService $bikeWarningService;
+    private ActivityLogService $activityLog;
+    private ActivityLogRepository $activityLogRepository;
+    private UserDeviceRepository $userDeviceRepository;
     private Session $session;
 
     public function __construct(
@@ -50,6 +56,9 @@ class AdminController
         QRService $qrService,
         BikeWarningRepository $bikeWarningRepository,
         BikeWarningService $bikeWarningService,
+        ActivityLogService $activityLog,
+        ActivityLogRepository $activityLogRepository,
+        UserDeviceRepository $userDeviceRepository,
         Session $session
     ) {
         $this->userRepository = $userRepository;
@@ -64,6 +73,9 @@ class AdminController
         $this->qrService = $qrService;
         $this->bikeWarningRepository = $bikeWarningRepository;
         $this->bikeWarningService = $bikeWarningService;
+        $this->activityLog = $activityLog;
+        $this->activityLogRepository = $activityLogRepository;
+        $this->userDeviceRepository = $userDeviceRepository;
         $this->session = $session;
     }
 
@@ -91,12 +103,15 @@ class AdminController
 
         $disputes = $this->reservationRepository->findDisputed(withRelations: true);
 
+        $recentActivity = $isAdmin ? $this->activityLogRepository->findAllWithUsers(20) : [];
+
         return view('admin/dashboard', [
             'title' => 'Administrace',
             'currentUser' => $currentUser,
             'isAdmin' => $isAdmin,
             'stats' => $stats,
             'disputes' => $disputes,
+            'recentActivity' => $recentActivity,
             'session' => $this->session,
         ])->withLayout('layouts/app');
     }
@@ -143,12 +158,16 @@ class AdminController
         }
 
         $bikes = $this->bikeRepository->findByOwner($userId, withPhotos: true);
+        $devices = $this->userDeviceRepository->findByUserId($userId);
+        $activityLogs = $this->activityLogRepository->findByUserId($userId);
 
         return view('admin/user-detail', [
             'title' => $user->getName() . ' — Admin',
             'currentUser' => $currentUser,
             'user' => $user,
             'bikes' => $bikes,
+            'devices' => $devices,
+            'activityLogs' => $activityLogs,
             'session' => $this->session,
         ])->withLayout('layouts/app');
     }
@@ -187,6 +206,7 @@ class AdminController
         }
 
         $this->userRepository->ban($userId);
+        $this->activityLog->log('admin_ban', 'user', $userId);
         $this->session->flash('success', 'Uživatel byl zablokován.');
 
         return redirect("/admin/users/{$userId}");
@@ -216,6 +236,7 @@ class AdminController
         }
 
         $this->userRepository->unban($userId);
+        $this->activityLog->log('admin_unban', 'user', $userId);
         $this->session->flash('success', 'Uživatel byl odblokován.');
 
         return redirect("/admin/users/{$userId}");
@@ -256,6 +277,7 @@ class AdminController
         }
 
         $this->userRepository->updateRole($userId, $newRole);
+        $this->activityLog->log('admin_role_change', 'user', $userId, ['role' => $user->getRole()], ['role' => $newRole]);
         $this->session->flash('success', 'Role uživatele byla změněna.');
 
         return redirect("/admin/users/{$userId}");
@@ -340,6 +362,7 @@ class AdminController
         }
 
         $this->userRepository->delete($userId);
+        $this->activityLog->log('admin_user_delete', 'user', $userId);
         $this->session->flash('success', 'Uživatel byl smazán.');
 
         return redirect('/admin/users');
@@ -528,6 +551,7 @@ class AdminController
             $this->handleAdminPhotoUploads($photos, $bikeId, $currentUser->getId(), $primaryIndex);
         }
 
+        $this->activityLog->log('admin_bike_create', 'bike', $bikeId);
         $this->session->flash('success', 'Kolo bylo úspěšně vytvořeno.');
         return redirect("/admin/bikes/{$bikeId}");
     }
@@ -587,6 +611,7 @@ class AdminController
             $this->handleAdminPhotoUploads($photos, $bikeId, $currentUser->getId(), $primaryIndex);
         }
 
+        $this->activityLog->log('admin_bike_update', 'bike', $bikeId);
         $this->session->flash('success', 'Kolo bylo úspěšně upraveno.');
         return redirect("/admin/bikes/{$bikeId}");
     }
@@ -620,6 +645,7 @@ class AdminController
         }
 
         $this->bikeRepository->delete($bikeId);
+        $this->activityLog->log('admin_bike_delete', 'bike', $bikeId);
         $this->session->flash('success', 'Kolo bylo smazáno.');
 
         return redirect('/admin/bikes');
