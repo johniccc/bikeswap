@@ -86,6 +86,37 @@ class FileUploadService
     }
 
     /**
+     * Normalize PHP's $_FILES array for multiple uploads into an array of single-file arrays.
+     * Handles both multi-file (tmp_name is array) and single-file uploads.
+     *
+     * @return array[] Each element is a single-file array with tmp_name, name, size, type, error.
+     */
+    public function normalizeFileArray(array $files): array
+    {
+        $normalized = [];
+
+        if (isset($files['tmp_name']) && is_array($files['tmp_name'])) {
+            $count = count($files['tmp_name']);
+            for ($i = 0; $i < $count; $i++) {
+                if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+                $normalized[] = [
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'name'     => $files['name'][$i],
+                    'size'     => $files['size'][$i],
+                    'type'     => $files['type'][$i],
+                    'error'    => $files['error'][$i],
+                ];
+            }
+        } elseif (isset($files['tmp_name']) && ($files['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            $normalized[] = $files;
+        }
+
+        return $normalized;
+    }
+
+    /**
      * Core upload logic.
      */
     private function upload(array $file, string $targetDir): array

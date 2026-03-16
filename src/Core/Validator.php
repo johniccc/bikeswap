@@ -195,6 +195,20 @@ class Validator
         return $this;
     }
 
+    /**
+     * Validate a password field with standard rules (min 8 chars, uppercase, digit, confirmation).
+     */
+    public function password(string $field, string $confirmField): self
+    {
+        $this->required($field, 'Heslo je povinné.')
+             ->minLength($field, 8, 'Heslo musí mít alespoň 8 znaků.')
+             ->regex($field, '/[A-Z]/', 'Heslo musí obsahovat alespoň jedno velké písmeno.')
+             ->regex($field, '/[0-9]/', 'Heslo musí obsahovat alespoň jedno číslo.')
+             ->matches($field, $confirmField, 'Hesla se neshodují.');
+
+        return $this;
+    }
+
     private function addError(string $field, string $message): void
     {
         $this->errors[$field][] = $message;
