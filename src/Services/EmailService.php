@@ -191,6 +191,23 @@ class EmailService
     }
 
     /**
+     * Send email verification link. Always sent — security email (no preference check).
+     */
+    public function sendEmailVerification(string $email, string $token): void
+    {
+        $subject = 'Ověření e-mailu – BikeSwap';
+        $body = sprintf(
+            "Dobrý den,\n\nděkujeme za registraci na BikeSwap.\n\n" .
+            "Pro ověření vašeho e-mailu klikněte na tento odkaz:\n%s\n\n" .
+            "Pokud jste se na BikeSwap neregistrovali, tento e-mail ignorujte.\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $this->url('/verify-email?token=' . $token)
+        );
+
+        $this->send($email, $subject, $body);
+    }
+
+    /**
      * Send password reset email. Always sent — no preference check (security email).
      */
     public function sendPasswordReset(string $email, string $resetUrl): void

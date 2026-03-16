@@ -21,12 +21,18 @@ use App\Controllers\ReservationController;
 use App\Controllers\ProfileController;
 
 use App\Controllers\TwoFactorController;
-use App\Controllers\AdminController;
+use App\Controllers\Admin\AdminDashboardController;
+use App\Controllers\Admin\AdminUserController;
+use App\Controllers\Admin\AdminBikeController;
+use App\Controllers\Admin\AdminReservationController;
+use App\Controllers\Admin\AdminConversationController;
+use App\Controllers\Admin\AdminBikeWarningController;
 use App\Controllers\CookieConsentController;
 use App\Controllers\DeviceFingerprintController;
 
 use App\Middleware\AuthMiddleware;
 use App\Middleware\AdminMiddleware;
+use App\Middleware\CsrfMiddleware;
 
 // ── Public routes ──────────────────────────────────────────────
 
@@ -47,29 +53,35 @@ $router->get('/file/qr/{hash}', [FileController::class, 'qrCode']);
 // ── Auth routes ────────────────────────────────────────────────
 
 $router->get('/register', [AuthController::class, 'registerForm']);
-$router->post('/register', [AuthController::class, 'register']);
 $router->get('/login', [AuthController::class, 'loginForm']);
-$router->post('/login', [AuthController::class, 'login']);
-$router->post('/logout', [AuthController::class, 'logout']);
 $router->get('/login/2fa', [TwoFactorController::class, 'verifyForm']);
-$router->post('/login/2fa', [TwoFactorController::class, 'verify']);
 $router->get('/login/2fa/cancel', [TwoFactorController::class, 'cancelVerify']);
+$router->get('/verify-email', [AuthController::class, 'verifyEmail']);
 $router->get('/forgot-password', [AuthController::class, 'forgotPasswordForm']);
-$router->post('/forgot-password', [AuthController::class, 'forgotPassword']);
 $router->get('/reset-password', [AuthController::class, 'resetPasswordForm']);
-$router->post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // ── Found reports (public — no auth required) ──────────────────
 
 $router->get('/found/report/{qrHash}', [FoundReportController::class, 'reportForm']);
-$router->post('/found/report/{qrHash}', [FoundReportController::class, 'report']);
 $router->get('/found/conversation/{token}', [FoundReportController::class, 'finderConversation']);
-$router->post('/found/conversation/{token}/message', [FoundReportController::class, 'finderSendMessage']);
 $router->get('/found/{token}/poll', [MessagePollController::class, 'foundMessages']);
+
+// ── Public POST routes (CSRF protected) ──────────────────────────
+
+$router->group('', [CsrfMiddleware::class], function ($router) {
+    $router->post('/register', [AuthController::class, 'register']);
+    $router->post('/login', [AuthController::class, 'login']);
+    $router->post('/logout', [AuthController::class, 'logout']);
+    $router->post('/login/2fa', [TwoFactorController::class, 'verify']);
+    $router->post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    $router->post('/reset-password', [AuthController::class, 'resetPassword']);
+    $router->post('/found/report/{qrHash}', [FoundReportController::class, 'report']);
+    $router->post('/found/conversation/{token}/message', [FoundReportController::class, 'finderSendMessage']);
+});
 
 // ── Authenticated routes ───────────────────────────────────────
 
-$router->group('', [AuthMiddleware::class], function ($router) {
+$router->group('', [AuthMiddleware::class, CsrfMiddleware::class], function ($router) {
     // Device fingerprint API
     $router->post('/api/device-fingerprint', [DeviceFingerprintController::class, 'store']);
 
@@ -153,30 +165,30 @@ $router->get('/bike/{hash}', [BikeController::class, 'publicDetail']);
 
 // ── Admin routes ───────────────────────────────────────────────
 
-$router->group('/admin', [AdminMiddleware::class], function ($router) {
-    $router->get('', [AdminController::class, 'dashboard']);
-    $router->get('/users', [AdminController::class, 'users']);
-    $router->get('/users/{id}', [AdminController::class, 'userDetail']);
-    $router->post('/users/{id}/edit', [AdminController::class, 'updateUser']);
-    $router->post('/users/{id}/delete', [AdminController::class, 'deleteUser']);
-    $router->post('/users/{id}/ban', [AdminController::class, 'banUser']);
-    $router->post('/users/{id}/unban', [AdminController::class, 'unbanUser']);
-    $router->post('/users/{id}/role', [AdminController::class, 'changeRole']);
-    $router->get('/warnings', [AdminController::class, 'bikeWarnings']);
-    $router->get('/warnings/new', [AdminController::class, 'createBikeWarningForm']);
-    $router->post('/warnings/new', [AdminController::class, 'storeBikeWarning']);
-    $router->post('/warnings/{id}/resolve', [AdminController::class, 'resolveBikeWarning']);
-    $router->get('/bikes', [AdminController::class, 'bikes']);
-    $router->get('/bikes/new', [AdminController::class, 'createBikeForm']);
-    $router->post('/bikes/new', [AdminController::class, 'createBike']);
-    $router->get('/bikes/{id}', [AdminController::class, 'bikeDetail']);
-    $router->post('/bikes/{id}/edit', [AdminController::class, 'updateBike']);
-    $router->post('/bikes/{id}/delete', [AdminController::class, 'deleteBike']);
-    $router->get('/reservations', [AdminController::class, 'reservations']);
-    $router->get('/thefts', [AdminController::class, 'thefts']);
-    $router->get('/conversations', [AdminController::class, 'conversations']);
-    $router->get('/conversation/reservation/{id}', [AdminController::class, 'reservationConversation']);
-    $router->post('/conversation/reservation/{id}/message', [AdminController::class, 'sendReservationMessage']);
-    $router->get('/conversation/found/{id}', [AdminController::class, 'foundConversation']);
-    $router->post('/conversation/found/{id}/message', [AdminController::class, 'sendFoundMessage']);
+$router->group('/admin', [AdminMiddleware::class, CsrfMiddleware::class], function ($router) {
+    $router->get('', [AdminDashboardController::class, 'dashboard']);
+    $router->get('/users', [AdminUserController::class, 'users']);
+    $router->get('/users/{id}', [AdminUserController::class, 'userDetail']);
+    $router->post('/users/{id}/edit', [AdminUserController::class, 'updateUser']);
+    $router->post('/users/{id}/delete', [AdminUserController::class, 'deleteUser']);
+    $router->post('/users/{id}/ban', [AdminUserController::class, 'banUser']);
+    $router->post('/users/{id}/unban', [AdminUserController::class, 'unbanUser']);
+    $router->post('/users/{id}/role', [AdminUserController::class, 'changeRole']);
+    $router->get('/warnings', [AdminBikeWarningController::class, 'bikeWarnings']);
+    $router->get('/warnings/new', [AdminBikeWarningController::class, 'createBikeWarningForm']);
+    $router->post('/warnings/new', [AdminBikeWarningController::class, 'storeBikeWarning']);
+    $router->post('/warnings/{id}/resolve', [AdminBikeWarningController::class, 'resolveBikeWarning']);
+    $router->get('/bikes', [AdminBikeController::class, 'bikes']);
+    $router->get('/bikes/new', [AdminBikeController::class, 'createBikeForm']);
+    $router->post('/bikes/new', [AdminBikeController::class, 'createBike']);
+    $router->get('/bikes/{id}', [AdminBikeController::class, 'bikeDetail']);
+    $router->post('/bikes/{id}/edit', [AdminBikeController::class, 'updateBike']);
+    $router->post('/bikes/{id}/delete', [AdminBikeController::class, 'deleteBike']);
+    $router->get('/reservations', [AdminReservationController::class, 'reservations']);
+    $router->get('/thefts', [AdminReservationController::class, 'thefts']);
+    $router->get('/conversations', [AdminConversationController::class, 'conversations']);
+    $router->get('/conversation/reservation/{id}', [AdminConversationController::class, 'reservationConversation']);
+    $router->post('/conversation/reservation/{id}/message', [AdminConversationController::class, 'sendReservationMessage']);
+    $router->get('/conversation/found/{id}', [AdminConversationController::class, 'foundConversation']);
+    $router->post('/conversation/found/{id}/message', [AdminConversationController::class, 'sendFoundMessage']);
 });

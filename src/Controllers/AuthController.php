@@ -54,13 +54,6 @@ class AuthController
      */
     public function register(Request $request): Response
     {
-        // CSRF check
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token. Zkuste to znovu.');
-
-            return redirect('/register');
-        }
-
         // Validate input
         $validator = new Validator($request->all());
         $validator
@@ -69,11 +62,7 @@ class AuthController
             ->required('email', 'E-mail je povinný.')
             ->email('email')
             ->phone('phone', 'Neplatný formát telefonu. Použijte formát +420 123 456 789.')
-            ->required('password', 'Heslo je povinné.')
-            ->minLength('password', 8, 'Heslo musí mít alespoň 8 znaků.')
-            ->regex('password', '/[A-Z]/', 'Heslo musí obsahovat alespoň jedno velké písmeno.')
-            ->regex('password', '/[0-9]/', 'Heslo musí obsahovat alespoň jedno číslo.')
-            ->matches('password', 'password_confirmation', 'Hesla se neshodují.');
+            ->password('password', 'password_confirmation');
 
         if ($validator->fails()) {
             if ($request->wantsJson()) {
@@ -110,7 +99,7 @@ class AuthController
             return json(['user_id' => $result['user_id']], 201);
         }
 
-        $this->session->flash('registration_success', 'Registrace proběhla úspěšně! Nyní se můžete přihlásit.');
+        $this->session->flash('registration_success', 'Registrace proběhla úspěšně! Na váš e-mail jsme odeslali ověřovací odkaz.');
 
         return redirect('/login');
     }
@@ -137,13 +126,6 @@ class AuthController
      */
     public function login(Request $request): Response
     {
-        // CSRF check
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token. Zkuste to znovu.');
-
-            return redirect('/login');
-        }
-
         // Validate input
         $validator = new Validator($request->all());
         $validator
@@ -188,13 +170,18 @@ class AuthController
             return json(['message' => 'Přihlášení úspěšné.']);
         }
 
+        $user = $this->authService->currentUser();
+
+        if ($user && !$user->isVerified()) {
+            $this->session->flash('warning', 'Váš e-mail zatím nebyl ověřen.');
+        }
+
         $this->session->flash('success', 'Vítejte zpět!');
 
         $redirect = $this->session->get('auth_redirect', '');
         $this->session->remove('auth_redirect');
 
         if (!$redirect) {
-            $user = $this->authService->currentUser();
             $redirect = ($user && $user->isPolice()) ? '/admin' : '/dashboard';
         }
 
@@ -217,6 +204,22 @@ class AuthController
     }
 
     /**
+     * Verify email address via token from verification link.
+     */
+    public function verifyEmail(Request $request): Response
+    {
+        $token = $request->query('token', '');
+
+        if ($token === '' || !$this->authService->verifyEmail($token)) {
+            $this->session->flash('error', 'Ověřovací odkaz je neplatný nebo již byl použit.');
+            return redirect('/');
+        }
+
+        $this->session->flash('success', 'E-mail byl úspěšně ověřen! Nyní se můžete přihlásit.');
+        return redirect('/login');
+    }
+
+    /**
      * Show forgot password form.
      */
     public function forgotPasswordForm(Request $request): Response
@@ -233,11 +236,6 @@ class AuthController
      */
     public function forgotPassword(Request $request): Response
     {
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/forgot-password');
-        }
-
         $email = trim($request->input('email', ''));
         $user  = $this->userRepo->findByEmail($email);
 
@@ -282,11 +280,6 @@ class AuthController
      */
     public function resetPassword(Request $request): Response
     {
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/forgot-password');
-        }
-
         $token = $request->input('token', '');
         $user  = $token ? $this->userRepo->findByPasswordResetToken($token) : null;
 
@@ -297,11 +290,7 @@ class AuthController
 
         $validator = new Validator($request->all());
         $validator
-            ->required('password', 'Heslo je povinné.')
-            ->minLength('password', 8, 'Heslo musí mít alespoň 8 znaků.')
-            ->regex('password', '/[A-Z]/', 'Heslo musí obsahovat alespoň jedno velké písmeno.')
-            ->regex('password', '/[0-9]/', 'Heslo musí obsahovat alespoň jedno číslo.')
-            ->matches('password', 'password_confirmation', 'Hesla se neshodují.');
+            ->password('password', 'password_confirmation');
 
         if ($validator->fails()) {
             $this->session->flash('error', $validator->allErrors()[0]);

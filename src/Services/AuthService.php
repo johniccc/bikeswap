@@ -20,12 +20,14 @@ class AuthService
     private UserRepository $userRepository;
     private Session $session;
     private ActivityLogService $activityLog;
+    private EmailService $emailService;
 
-    public function __construct(UserRepository $userRepository, Session $session, ActivityLogService $activityLog)
+    public function __construct(UserRepository $userRepository, Session $session, ActivityLogService $activityLog, EmailService $emailService)
     {
         $this->userRepository = $userRepository;
         $this->session = $session;
         $this->activityLog = $activityLog;
+        $this->emailService = $emailService;
     }
 
     /**
@@ -56,7 +58,7 @@ class AuthService
             'verification_token' => $verificationToken,
         ]);
 
-        // TODO: Send verification email
+        $this->emailService->sendEmailVerification($email, $verificationToken);
 
         $this->activityLog->log('register', 'user', $userId);
 
