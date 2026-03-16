@@ -75,7 +75,7 @@
     <div class="sidebar-footer">
       <?php if (isset($currentUser)): ?>
         <a href="/profile" class="sidebar-profile-link">
-          <i data-lucide="user"></i> <?= e($currentUser->getName()) ?>
+          <i data-lucide="user"></i> <?= e($currentUser->getFullName()) ?>
         </a>
       <?php endif; ?>
       <?php if (isset($session)): ?>

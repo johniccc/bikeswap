@@ -99,12 +99,6 @@ class User
         return trim($this->firstName . ' ' . $this->surname);
     }
 
-    /** @deprecated Use getFullName() — kept for backwards compatibility with templates */
-    public function getName(): string
-    {
-        return $this->getFullName();
-    }
-
     public function getPhone(): ?string
     {
         return $this->phone;

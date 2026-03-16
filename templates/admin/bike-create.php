@@ -20,7 +20,7 @@
           <?php if ($u->getRole() !== 'police'): ?>
             <option value="<?= $u->getId() ?>"
               <?= $u->getId() === $preselectedOwnerId ? 'selected' : '' ?>>
-              <?= e($u->getName()) ?> (<?= e($u->getEmail()) ?>)
+              <?= e($u->getFullName()) ?> (<?= e($u->getEmail()) ?>)
             </option>
           <?php endif; ?>
         <?php endforeach; ?>

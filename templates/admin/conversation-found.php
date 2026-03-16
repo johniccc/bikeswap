@@ -119,9 +119,4 @@
   </div>
 </div>
 
-<script>
-(function () {
-  var t = document.getElementById('conversation-thread');
-  if (t) t.scrollTop = t.scrollHeight;
-}());
-</script>
+<script src="/js/conversation.js"></script>

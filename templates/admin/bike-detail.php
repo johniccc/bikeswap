@@ -24,7 +24,7 @@
       <span class="info-label">Vlastník</span>
       <span class="info-value">
         <?php if ($owner): ?>
-          <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getName()) ?></a>
+          <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getFullName()) ?></a>
         <?php else: ?>
           —
         <?php endif; ?>

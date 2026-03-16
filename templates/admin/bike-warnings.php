@@ -52,7 +52,7 @@
               </td>
               <td>
                 <?php if ($owner): ?>
-                  <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getName()) ?></a>
+                  <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getFullName()) ?></a>
                 <?php else: ?>
                   —
                 <?php endif; ?>
@@ -97,7 +97,7 @@
           <div class="admin-card-item-meta">
             <span><?= e($w->getLocationDescription()) ?></span>
             <span>Termín: <?= e($w->getFormattedDeadline()) ?></span>
-            <?php if ($owner): ?><span>Vlastník: <?= e($owner->getName()) ?></span><?php endif; ?>
+            <?php if ($owner): ?><span>Vlastník: <?= e($owner->getFullName()) ?></span><?php endif; ?>
           </div>
           <?php if ($w->isActive()): ?>
             <div style="margin-top: 0.5rem">

@@ -46,7 +46,7 @@ $owner = $reservation->getOwner();
           <p class="text-muted text-sm">
             Termín: <?= $reservation->getDateRangeText() ?>
             <?php if ($owner): ?>
-              — Majitel: <?= e($owner->getName()) ?>
+              — Majitel: <?= e($owner->getFullName()) ?>
             <?php endif; ?>
           </p>
         </div>

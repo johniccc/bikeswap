@@ -111,7 +111,7 @@
             <span class="text-sm">
               <?= $label ?>
               <?php if ($otherUser): ?>
-                — <?= $isOwner ? 'vypůjčitel' : 'majitel' ?>: <?= e($otherUser->getName()) ?>
+                — <?= $isOwner ? 'vypůjčitel' : 'majitel' ?>: <?= e($otherUser->getFullName()) ?>
               <?php endif; ?>
             </span>
           </div>

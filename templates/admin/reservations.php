@@ -53,14 +53,14 @@
               </td>
               <td>
                 <?php if ($owner): ?>
-                  <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getName()) ?></a>
+                  <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getFullName()) ?></a>
                 <?php else: ?>
                   —
                 <?php endif; ?>
               </td>
               <td>
                 <?php if ($borrower): ?>
-                  <a href="/admin/users/<?= $borrower->getId() ?>"><?= e($borrower->getName()) ?></a>
+                  <a href="/admin/users/<?= $borrower->getId() ?>"><?= e($borrower->getFullName()) ?></a>
                 <?php else: ?>
                   —
                 <?php endif; ?>
@@ -93,8 +93,8 @@
           </div>
           <div class="admin-card-item-meta">
             <span><?= e($res->getDateRangeText()) ?></span>
-            <?php if ($owner): ?><span>Majitel: <?= e($owner->getName()) ?></span><?php endif; ?>
-            <?php if ($borrower): ?><span>Vypůjčitel: <?= e($borrower->getName()) ?></span><?php endif; ?>
+            <?php if ($owner): ?><span>Majitel: <?= e($owner->getFullName()) ?></span><?php endif; ?>
+            <?php if ($borrower): ?><span>Vypůjčitel: <?= e($borrower->getFullName()) ?></span><?php endif; ?>
           </div>
         </a>
       <?php endforeach; ?>

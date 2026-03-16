@@ -26,7 +26,7 @@
       <span class="info-label">Vlastník</span>
       <span class="info-value">
         <?php if ($owner): ?>
-          <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getName()) ?></a>
+          <a href="/admin/users/<?= $owner->getId() ?>"><?= e($owner->getFullName()) ?></a>
         <?php else: ?>—<?php endif; ?>
       </span>
     </div>
@@ -34,7 +34,7 @@
       <span class="info-label">Výpůjčník</span>
       <span class="info-value">
         <?php if ($borrower): ?>
-          <a href="/admin/users/<?= $borrower->getId() ?>"><?= e($borrower->getName()) ?></a>
+          <a href="/admin/users/<?= $borrower->getId() ?>"><?= e($borrower->getFullName()) ?></a>
         <?php else: ?>—<?php endif; ?>
       </span>
     </div>
@@ -99,9 +99,4 @@
   </div>
 </div>
 
-<script>
-(function () {
-  var t = document.getElementById('conversation-thread');
-  if (t) t.scrollTop = t.scrollHeight;
-}());
-</script>
+<script src="/js/conversation.js"></script>

@@ -76,7 +76,7 @@
               </td>
               <td>
                 <?php if ($r->getBorrower()): ?>
-                  <?= e($r->getBorrower()->getName()) ?>
+                  <?= e($r->getBorrower()->getFullName()) ?>
                 <?php endif; ?>
               </td>
               <td class="text-sm"><?= $r->getDateRangeText() ?></td>
@@ -138,7 +138,7 @@
               </td>
               <td>
                 <?php if ($r->getOwner()): ?>
-                  <?= e($r->getOwner()->getName()) ?>
+                  <?= e($r->getOwner()->getFullName()) ?>
                 <?php endif; ?>
               </td>
               <td class="text-sm"><?= $r->getDateRangeText() ?></td>

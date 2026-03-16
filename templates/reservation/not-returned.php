@@ -34,7 +34,7 @@ $borrower = $reservation->getBorrower();
           <p class="text-muted text-sm">
             Termín: <?= $reservation->getDateRangeText() ?>
             <?php if ($borrower): ?>
-              — Vypůjčitel: <?= e($borrower->getName()) ?>
+              — Vypůjčitel: <?= e($borrower->getFullName()) ?>
             <?php endif; ?>
           </p>
         </div>

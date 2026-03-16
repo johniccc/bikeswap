@@ -35,8 +35,8 @@
             <tr>
               <td>#<?= $res->getId() ?></td>
               <td><?= $res->getBike() ? e($res->getBike()->getFullName()) : '—' ?></td>
-              <td><?= $res->getOwner() ? e($res->getOwner()->getName()) : '—' ?></td>
-              <td><?= $res->getBorrower() ? e($res->getBorrower()->getName()) : '—' ?></td>
+              <td><?= $res->getOwner() ? e($res->getOwner()->getFullName()) : '—' ?></td>
+              <td><?= $res->getBorrower() ? e($res->getBorrower()->getFullName()) : '—' ?></td>
               <td><span class="status-badge status-<?= e($res->getStatus()) ?>"><?= e($res->getStatusLabel()) ?></span></td>
               <td><?= date('d.m.Y', strtotime($res->getCreatedAt())) ?></td>
               <td>
@@ -62,10 +62,10 @@
           </div>
           <div class="admin-card-item-meta">
             <?php if ($res->getOwner()): ?>
-              <span>Vlastník: <?= e($res->getOwner()->getName()) ?></span>
+              <span>Vlastník: <?= e($res->getOwner()->getFullName()) ?></span>
             <?php endif; ?>
             <?php if ($res->getBorrower()): ?>
-              <span>Výpůjčník: <?= e($res->getBorrower()->getName()) ?></span>
+              <span>Výpůjčník: <?= e($res->getBorrower()->getFullName()) ?></span>
             <?php endif; ?>
             <span><?= date('d.m.Y', strtotime($res->getCreatedAt())) ?></span>
           </div>
