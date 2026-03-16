@@ -17,6 +17,7 @@ use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\FileUploadService;
 use App\Services\ReservationService;
+use App\Services\TurnstileService;
 
 class ReservationController
 {
@@ -28,6 +29,7 @@ class ReservationController
     private BikeRepository $bikeRepo;
     private ReservationService $reservationService;
     private FileUploadService $fileUploadService;
+    private TurnstileService $turnstile;
     private AuthService $authService;
     private Session $session;
     private array $config;
@@ -41,6 +43,7 @@ class ReservationController
         BikeRepository $bikeRepo,
         ReservationService $reservationService,
         FileUploadService $fileUploadService,
+        TurnstileService $turnstile,
         AuthService $authService,
         Session $session,
         array $config = []
@@ -53,6 +56,7 @@ class ReservationController
         $this->bikeRepo = $bikeRepo;
         $this->reservationService = $reservationService;
         $this->fileUploadService = $fileUploadService;
+        $this->turnstile = $turnstile;
         $this->authService = $authService;
         $this->session = $session;
         $this->config = $config;
@@ -185,41 +189,12 @@ class ReservationController
 
         $bikeId = (int) $request->param('bikeId');
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect("/reservation/new/{$bikeId}");
-        }
-
         // Turnstile CAPTCHA verification
-        $secretKey = $this->config['turnstile']['secret_key'] ?? '';
-        if ($secretKey !== '') {
-            $token = $request->input('cf-turnstile-response', '');
-            $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-                'secret' => $secretKey,
-                'response' => $token,
-            ]));
-            $response = curl_exec($ch);
-            $curlError = curl_errno($ch);
-            curl_close($ch);
-
-            if ($curlError !== 0 || $response === false) {
-                $this->session->setOldInput($request->all());
-                $this->session->flash('error', 'Ověření proti botům selhalo (chyba spojení). Zkuste to prosím znovu.');
-                return redirect("/reservation/new/{$bikeId}");
-            }
-
-            $result = json_decode($response, true);
-
-            if (empty($result['success'])) {
-                $this->session->setOldInput($request->all());
-                $this->session->flash('error', 'Ověření proti botům selhalo. Zkuste to prosím znovu.');
-                return redirect("/reservation/new/{$bikeId}");
-            }
+        $captchaError = $this->turnstile->verify($request->input('cf-turnstile-response', ''));
+        if ($captchaError !== null) {
+            $this->session->setOldInput($request->all());
+            $this->session->flash('error', $captchaError);
+            return redirect("/reservation/new/{$bikeId}");
         }
 
         $validator = new Validator($request->all());
@@ -397,11 +372,6 @@ class ReservationController
     {
         $id = (int) $request->param('id');
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect("/reservation/{$id}/not-returned");
-        }
-
         $currentUser = $this->authService->currentUser();
         $reason = trim($request->input('reason', ''));
 
@@ -461,11 +431,6 @@ class ReservationController
     {
         $id = (int) $request->param('id');
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect("/reservation/{$id}/dispute");
-        }
-
         $currentUser = $this->authService->currentUser();
         $reason = trim($request->input('reason', ''));
 
@@ -477,27 +442,9 @@ class ReservationController
         // Handle evidence photo uploads
         $photoPaths = [];
         $files = $request->file('photos');
-        if ($files !== null && isset($files['tmp_name'])) {
-            if (is_array($files['tmp_name'])) {
-                $count = count($files['tmp_name']);
-                for ($i = 0; $i < $count; $i++) {
-                    if ($files['error'][$i] !== UPLOAD_ERR_OK) {
-                        continue;
-                    }
-                    $singleFile = [
-                        'tmp_name' => $files['tmp_name'][$i],
-                        'name'     => $files['name'][$i],
-                        'size'     => $files['size'][$i],
-                        'type'     => $files['type'][$i],
-                        'error'    => $files['error'][$i],
-                    ];
-                    $result = $this->fileUploadService->uploadReportPhoto($singleFile);
-                    if ($result['success']) {
-                        $photoPaths[] = $result['path'];
-                    }
-                }
-            } elseif ($files['error'] === UPLOAD_ERR_OK) {
-                $result = $this->fileUploadService->uploadReportPhoto($files);
+        if ($files !== null) {
+            foreach ($this->fileUploadService->normalizeFileArray($files) as $singleFile) {
+                $result = $this->fileUploadService->uploadReportPhoto($singleFile);
                 if ($result['success']) {
                     $photoPaths[] = $result['path'];
                 }
@@ -521,11 +468,6 @@ class ReservationController
     public function adminResolve(Request $request): Response
     {
         $id = (int) $request->param('id');
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect("/reservation/{$id}");
-        }
 
         $currentUser = $this->authService->currentUser();
 
@@ -555,11 +497,6 @@ class ReservationController
     {
         $id = (int) $request->param('id');
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect("/reservation/{$id}");
-        }
-
         $message = trim($request->input('message', ''));
 
         if ($message === '') {
@@ -587,11 +524,6 @@ class ReservationController
     public function submitReview(Request $request): Response
     {
         $id = (int) $request->param('id');
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect("/reservation/{$id}");
-        }
 
         $rating = (int) $request->input('rating', '0');
         $comment = trim($request->input('comment', ''));
@@ -715,11 +647,6 @@ class ReservationController
     private function handleStatusAction(Request $request, string $method, string $successMessage): Response
     {
         $id = (int) $request->param('id');
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect("/reservation/{$id}");
-        }
 
         $currentUser = $this->authService->currentUser();
 
