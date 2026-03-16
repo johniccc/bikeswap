@@ -84,11 +84,6 @@ class ProfileController
             return redirect('/login?redirect=/profile/settings');
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/profile/settings');
-        }
-
         $validator = new Validator($request->all());
         $validator
             ->required('first_name', 'Jméno je povinné.')
@@ -127,19 +122,10 @@ class ProfileController
             return redirect('/login?redirect=/profile/settings');
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/profile/settings');
-        }
-
         $validator = new Validator($request->all());
         $validator
             ->required('current_password', 'Aktuální heslo je povinné.')
-            ->required('new_password', 'Nové heslo je povinné.')
-            ->minLength('new_password', 8, 'Nové heslo musí mít alespoň 8 znaků.')
-            ->regex('new_password', '/[A-Z]/', 'Nové heslo musí obsahovat alespoň jedno velké písmeno.')
-            ->regex('new_password', '/[0-9]/', 'Nové heslo musí obsahovat alespoň jedno číslo.')
-            ->matches('new_password', 'new_password_confirmation', 'Nová hesla se neshodují.');
+            ->password('new_password', 'new_password_confirmation');
 
         if ($validator->fails()) {
             $this->session->flash('error', $validator->allErrors()[0]);
@@ -164,11 +150,6 @@ class ProfileController
         $user = $this->authService->currentUser();
         if ($user === null) {
             return redirect('/login?redirect=/profile/settings');
-        }
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/profile/settings');
         }
 
         $validator = new Validator($request->all());
@@ -215,11 +196,6 @@ class ProfileController
         $user = $this->authService->currentUser();
         if ($user === null) {
             return redirect('/login?redirect=/profile/settings');
-        }
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/profile/settings');
         }
 
         $this->preferencesRepo->save($user->getId(), [

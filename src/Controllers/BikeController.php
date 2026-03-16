@@ -163,13 +163,6 @@ class BikeController
             return redirect('/dashboard');
         }
 
-        // CSRF
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect('/bike/new');
-        }
-
         // Validate
         $validator = new Validator($request->all());
         $validator
@@ -287,12 +280,6 @@ class BikeController
 
         if (!$bike->isOwnedBy($currentUser->getId()) && !$currentUser->isAdmin()) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/bike/{$bikeId}/edit");
         }
 
         // Validate
@@ -479,12 +466,6 @@ class BikeController
         $bikeId = (int) $request->param('id');
         $photoId = (int) $request->param('photoId');
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/bike/{$bikeId}/edit");
-        }
-
         $bike = $this->bikeRepository->findById($bikeId);
         $currentUser = $this->authService->currentUser();
 
@@ -519,12 +500,6 @@ class BikeController
         $bikeId = (int) $request->param('id');
         $photoId = (int) $request->param('photoId');
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/bike/{$bikeId}/edit");
-        }
-
         $bike = $this->bikeRepository->findById($bikeId);
         $currentUser = $this->authService->currentUser();
 
@@ -558,41 +533,21 @@ class BikeController
      */
     private function handlePhotoUploads(array $files, int $bikeId, int $uploadedBy, int $primaryIndex = 0): void
     {
-        // Normalize files array (PHP's $_FILES structure for multiple files is weird)
-        if (isset($files['tmp_name']) && is_array($files['tmp_name'])) {
-            $count = count($files['tmp_name']);
-            $isFirstBikePhoto = empty($this->bikeRepository->findPhotosByBikeId($bikeId));
+        $normalized = $this->fileUploadService->normalizeFileArray($files);
 
-            // Clamp primaryIndex to valid range
-            $primaryIndex = min($primaryIndex, $count - 1);
+        if (empty($normalized)) {
+            return;
+        }
 
-            for ($i = 0; $i < $count; $i++) {
-                if ($files['error'][$i] !== UPLOAD_ERR_OK) {
-                    continue;
-                }
+        $isFirstBikePhoto = empty($this->bikeRepository->findPhotosByBikeId($bikeId));
+        $primaryIndex = min($primaryIndex, count($normalized) - 1);
 
-                $singleFile = [
-                    'tmp_name' => $files['tmp_name'][$i],
-                    'name'     => $files['name'][$i],
-                    'size'     => $files['size'][$i],
-                    'type'     => $files['type'][$i],
-                    'error'    => $files['error'][$i],
-                ];
-
-                $result = $this->fileUploadService->uploadBikePhoto($singleFile);
-
-                if ($result['success']) {
-                    $isPrimary = ($i === $primaryIndex && $isFirstBikePhoto);
-                    $this->bikeRepository->addPhoto($bikeId, $result['path'], $uploadedBy, $isPrimary);
-                }
-            }
-        } elseif (isset($files['tmp_name']) && $files['error'] === UPLOAD_ERR_OK) {
-            // Single file upload
-            $result = $this->fileUploadService->uploadBikePhoto($files);
+        foreach ($normalized as $i => $singleFile) {
+            $result = $this->fileUploadService->uploadBikePhoto($singleFile);
 
             if ($result['success']) {
-                $isFirstBikePhoto = empty($this->bikeRepository->findPhotosByBikeId($bikeId));
-                $this->bikeRepository->addPhoto($bikeId, $result['path'], $uploadedBy, $isFirstBikePhoto);
+                $isPrimary = ($i === $primaryIndex && $isFirstBikePhoto);
+                $this->bikeRepository->addPhoto($bikeId, $result['path'], $uploadedBy, $isPrimary);
             }
         }
     }

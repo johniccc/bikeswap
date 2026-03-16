@@ -53,11 +53,6 @@ class TwoFactorController
             return redirect('/login');
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/login/2fa');
-        }
-
         $code = trim($request->input('code', ''));
         $useRecovery = (bool) $request->input('use_recovery', false);
 
@@ -163,11 +158,6 @@ class TwoFactorController
             return redirect('/login');
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/profile/2fa/setup');
-        }
-
         $secret = $this->session->get('2fa_setup_secret');
         if (!$secret) {
             $this->session->flash('error', 'Nastavení vypršelo. Zkuste to znovu.');
@@ -223,11 +213,6 @@ class TwoFactorController
             return redirect('/login');
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/profile/settings');
-        }
-
         if (!$user->isTotpEnabled()) {
             return redirect('/profile/settings');
         }
@@ -269,11 +254,6 @@ class TwoFactorController
         $user = $this->authService->currentUser();
         if ($user === null) {
             return redirect('/login');
-        }
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-            return redirect('/profile/2fa/disable');
         }
 
         if (!$user->isTotpEnabled()) {

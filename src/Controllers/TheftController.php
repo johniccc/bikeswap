@@ -86,12 +86,6 @@ class TheftController
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/theft/report/{$bikeId}");
-        }
-
         // Validate
         $validator = new Validator($request->all());
         $validator->required('theft_location_text', 'Místo krádeže je povinné.');
@@ -220,12 +214,6 @@ class TheftController
 
         if ($bike === null || (!$bike->isOwnedBy($currentUser->getId()) && !$currentUser->isAdmin())) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect('/bike/' . $bike->getQrHash());
         }
 
         try {
