@@ -15,6 +15,7 @@ use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\FoundReportService;
 use App\Services\KarmaService;
+use App\Services\TurnstileService;
 
 class FoundReportController
 {
@@ -25,6 +26,7 @@ class FoundReportController
     private FoundReportService $foundReportService;
     private AuthService $authService;
     private KarmaService $karmaService;
+    private TurnstileService $turnstile;
     private Session $session;
     private array $config;
 
@@ -36,6 +38,7 @@ class FoundReportController
         FoundReportService $foundReportService,
         AuthService $authService,
         KarmaService $karmaService,
+        TurnstileService $turnstile,
         Session $session,
         array $config
     ) {
@@ -46,6 +49,7 @@ class FoundReportController
         $this->foundReportService = $foundReportService;
         $this->authService = $authService;
         $this->karmaService = $karmaService;
+        $this->turnstile = $turnstile;
         $this->session = $session;
         $this->config = $config;
     }
@@ -101,13 +105,6 @@ class FoundReportController
             return redirect('/bike/' . $qrHash);
         }
 
-        // CSRF check
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/found/report/{$qrHash}");
-        }
-
         $currentUser = $this->authService->currentUser();
 
         // Validate — logged-in users skip email requirement (we have it)
@@ -118,37 +115,11 @@ class FoundReportController
                       ->email('reporter_email');
 
             // Turnstile CAPTCHA verification for anonymous users
-            $secretKey = $_ENV['TURNSTILE_SECRET_KEY'] ?? '';
-            if ($secretKey !== '') {
-                $token = $request->input('cf-turnstile-response', '');
-                $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
-                curl_setopt_array($ch, [
-                    CURLOPT_POST           => true,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 10,
-                    CURLOPT_CONNECTTIMEOUT => 5,
-                    CURLOPT_POSTFIELDS     => http_build_query([
-                        'secret'   => $secretKey,
-                        'response' => $token,
-                    ]),
-                ]);
-                $result = curl_exec($ch);
-                $curlError = curl_errno($ch);
-                curl_close($ch);
-
-                if ($curlError !== 0 || $result === false) {
-                    $this->session->setOldInput($request->all());
-                    $this->session->flash('error', 'Ověření CAPTCHA selhalo (chyba spojení). Zkuste to znovu.');
-                    return redirect("/found/report/{$qrHash}");
-                }
-
-                $data = json_decode($result, true) ?? [];
-                if (!($data['success'] ?? false)) {
-                    $this->session->setOldInput($request->all());
-                    $this->session->flash('error', 'Ověření CAPTCHA selhalo. Zkuste to znovu.');
-
-                    return redirect("/found/report/{$qrHash}");
-                }
+            $captchaError = $this->turnstile->verify($request->input('cf-turnstile-response', ''));
+            if ($captchaError !== null) {
+                $this->session->setOldInput($request->all());
+                $this->session->flash('error', $captchaError);
+                return redirect("/found/report/{$qrHash}");
             }
         }
 
@@ -255,12 +226,6 @@ class FoundReportController
             throw new \RuntimeException('Konverzace nenalezena.', 404);
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/found/conversation/{$token}");
-        }
-
         $currentUser = $this->authService->currentUser();
 
         try {
@@ -345,12 +310,6 @@ class FoundReportController
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/found/{$reportId}/conversation");
-        }
-
         try {
             $this->foundReportService->sendMessage(
                 $reportId,
@@ -385,12 +344,6 @@ class FoundReportController
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný bezpečnostní token.');
-
-            return redirect("/found/{$reportId}/conversation");
-        }
-
         try {
             $this->foundReportService->resolveReport($reportId, $bike->getId());
 
@@ -409,12 +362,6 @@ class FoundReportController
     public function closeConversation(Request $request): Response
     {
         $reportId = (int) $request->param('reportId');
-
-        if (!$this->session->validateCsrf($request->input('_csrf', ''))) {
-            $this->session->flash('error', 'Neplatný token.');
-
-            return redirect("/found/{$reportId}/conversation");
-        }
 
         $user   = $this->authService->currentUser();
         $report = $this->foundReportRepository->findById($reportId);
@@ -509,7 +456,7 @@ class FoundReportController
             $html .= '</div>';
         }
 
-        $html .= '<p class="meta">Exportováno: ' . date('d.m.Y H:i') . ' uživatelem ' . htmlspecialchars($currentUser->getName()) . '</p>';
+        $html .= '<p class="meta">Exportováno: ' . date('d.m.Y H:i') . ' uživatelem ' . htmlspecialchars($currentUser->getFullName()) . '</p>';
         $html .= '</body></html>';
 
         $dompdf = new \Dompdf\Dompdf();
@@ -519,9 +466,9 @@ class FoundReportController
 
         $filename = 'bikeswap-nalez-' . $reportId . '.pdf';
 
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        echo $dompdf->output();
-        exit;
+        $response = new \App\Response\FileResponse($dompdf->output(), 'application/pdf', $filename);
+        $response->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->withHeader('Cache-Control', 'no-store');
+        return $response;
     }
 }

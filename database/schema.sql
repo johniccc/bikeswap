@@ -349,7 +349,7 @@ CREATE TABLE IF NOT EXISTS `bike_warnings` (
     `created_by`           INT UNSIGNED    NOT NULL,
     `reason`               TEXT            NOT NULL,
     `deadline`             DATE            NOT NULL,
-    `location_description` VARCHAR(255)    NOT NULL DEFAULT 'Pardubice hlavní nádraží',
+    `location_description` VARCHAR(255)    NULL DEFAULT NULL,
     `status`               ENUM('active','resolved','expired') NOT NULL DEFAULT 'active',
     `created_at`           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

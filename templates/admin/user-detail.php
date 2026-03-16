@@ -1,5 +1,5 @@
 <div class="page-header">
-  <h1><?= e($user->getName()) ?></h1>
+  <h1><?= e($user->getFullName()) ?></h1>
   <div class="page-header-actions">
     <a href="/admin/users" class="btn btn-secondary btn-sm">
       <i data-lucide="arrow-left"></i> Zpět na seznam
@@ -25,7 +25,7 @@
       </div>
       <div class="info-row">
         <span class="info-label">Jméno</span>
-        <span class="info-value"><?= e($user->getName()) ?></span>
+        <span class="info-value"><?= e($user->getFullName()) ?></span>
       </div>
       <div class="info-row">
         <span class="info-label">Email</span>
@@ -43,7 +43,7 @@
         <span class="info-label">Role</span>
         <span class="info-value">
           <?php $roleLabels = ['user' => 'Uživatel', 'police' => 'Policie', 'admin' => 'Admin']; ?>
-          <?= $roleLabels[$user->getRole()] ?? $user->getRole() ?>
+          <?= e($roleLabels[$user->getRole()] ?? $user->getRole()) ?>
         </span>
       </div>
       <div class="info-row">

@@ -48,9 +48,9 @@
             ?>
             <tr>
               <td class="text-muted">#<?= $user->getId() ?></td>
-              <td><strong><?= e($user->getName()) ?></strong></td>
+              <td><strong><?= e($user->getFullName()) ?></strong></td>
               <td class="text-muted"><?= e($user->getEmail()) ?></td>
-              <td><span class="status-badge <?= $roleClass ?>"><?= $roleLabels[$user->getRole()] ?? $user->getRole() ?></span></td>
+              <td><span class="status-badge <?= $roleClass ?>"><?= e($roleLabels[$user->getRole()] ?? $user->getRole()) ?></span></td>
               <td><?= $user->getKarmaScore() ?></td>
               <td>
                 <?php if ($user->isBanned()): ?>
@@ -81,11 +81,11 @@
         ?>
         <a href="/admin/users/<?= $user->getId() ?>" class="admin-card-item">
           <div class="admin-card-item-header">
-            <span class="admin-card-item-title"><?= e($user->getName()) ?></span>
+            <span class="admin-card-item-title"><?= e($user->getFullName()) ?></span>
             <?php if ($user->isBanned()): ?>
               <span class="status-badge status-stolen">Blokován</span>
             <?php else: ?>
-              <span class="status-badge <?= $roleClass ?>"><?= $roleLabels[$user->getRole()] ?? $user->getRole() ?></span>
+              <span class="status-badge <?= $roleClass ?>"><?= e($roleLabels[$user->getRole()] ?? $user->getRole()) ?></span>
             <?php endif; ?>
           </div>
           <div class="admin-card-item-meta">

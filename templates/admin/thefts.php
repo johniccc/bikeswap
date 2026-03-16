@@ -58,7 +58,7 @@
               </td>
               <td class="text-sm"><?= $report->getTheftDate() ? e($report->getFormattedTheftDate()) : '—' ?></td>
               <td class="text-sm"><?= $report->getTheftLocationText() ? e($report->getTheftLocationText()) : '—' ?></td>
-              <td><span class="status-badge <?= $statusClass ?>"><?= $statusLabels[$report->getStatus()] ?? $report->getStatus() ?></span></td>
+              <td><span class="status-badge <?= $statusClass ?>"><?= e($statusLabels[$report->getStatus()] ?? $report->getStatus()) ?></span></td>
               <td class="text-muted text-sm"><?= date('d.m.Y', strtotime($report->getCreatedAt())) ?></td>
               <td>
                 <?php if ($reportBike): ?>
@@ -86,7 +86,7 @@
         <a href="<?= $reportBike ? '/bike/' . e($reportBike->getQrHash()) : '#' ?>" class="admin-card-item">
           <div class="admin-card-item-header">
             <span class="admin-card-item-title"><?= $reportBike ? e($reportBike->getFullName()) : 'Kolo #' . $report->getBikeId() ?></span>
-            <span class="status-badge <?= $statusClass ?>"><?= $statusLabels[$report->getStatus()] ?? $report->getStatus() ?></span>
+            <span class="status-badge <?= $statusClass ?>"><?= e($statusLabels[$report->getStatus()] ?? $report->getStatus()) ?></span>
           </div>
           <div class="admin-card-item-meta">
             <?php if ($report->getTheftDate()): ?><span><?= e($report->getFormattedTheftDate()) ?></span><?php endif; ?>
