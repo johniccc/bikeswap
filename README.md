@@ -73,8 +73,6 @@ web/
 │   ├── uploads/
 │   │   ├── bikes/
 │   │   └── reports/
-│   ├── logs/
-│   └── cache/
 ├── vendor/                 ← composer install
 ├── composer.json
 └── composer.lock
