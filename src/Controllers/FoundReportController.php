@@ -154,6 +154,13 @@ class FoundReportController
 
         $validator->required('found_location_text', 'Místo nálezu je povinné.');
 
+        if ($request->input('address_validated', '0') !== '1') {
+            $this->session->setOldInput($request->all());
+            $this->session->flash('error', 'Vyberte adresu z nabídky nebo použijte tlačítko "Zjistit moji polohu".');
+
+            return redirect("/found/report/{$qrHash}");
+        }
+
         if ($validator->fails()) {
             $this->session->setOldInput($request->all());
             $this->session->flash('error', $validator->allErrors()[0]);

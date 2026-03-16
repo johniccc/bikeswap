@@ -51,8 +51,27 @@
 
       <div class="form-group">
         <label for="settings-address">Adresa <span class="text-muted" style="font-weight:400">(nepovinné)</span></label>
-        <input type="text" id="settings-address" name="address" maxlength="255"
-               value="<?= e(old('address', $user->getAddress() ?? '')) ?>" placeholder="Ulice, město">
+        <div class="address-autocomplete-wrapper">
+          <input type="text" id="settings-address" name="address" maxlength="255"
+                 value="<?= e(old('address', $user->getAddress() ?? '')) ?>" placeholder="Ulice, město"
+                 data-address-autocomplete
+                 data-lat-input="settings_address_lat"
+                 data-lng-input="settings_address_lng"
+                 data-address-validated="settings_address_validated"
+                 autocomplete="off">
+        </div>
+        <input type="hidden" id="settings_address_lat" name="address_lat">
+        <input type="hidden" id="settings_address_lng" name="address_lng">
+        <input type="hidden" id="settings_address_validated" name="address_validated" value="<?= e(old('address', $user->getAddress() ?? '')) !== '' ? '1' : '0' ?>">
+      </div>
+
+      <div class="form-group geo-row">
+        <button type="button" class="btn btn-ghost btn-sm" data-geolocate
+                data-lat-input="settings_address_lat" data-lng-input="settings_address_lng"
+                data-text-input="settings-address" data-validated-input="settings_address_validated">
+          <i data-lucide="map-pin"></i> Zjistit moji polohu
+        </button>
+        <small class="geo-status text-muted text-sm"></small>
       </div>
 
       <div class="form-actions">

@@ -76,17 +76,26 @@
 
     <div class="form-group">
       <label for="found_location_text">Místo nálezu *</label>
-      <input type="text" id="found_location_text" name="found_location_text" required
-             placeholder="např. Pardubice, park u Labe, u lavičky" value="<?= e(old('found_location_text')) ?>">
+      <div class="address-autocomplete-wrapper">
+        <input type="text" id="found_location_text" name="found_location_text" required
+               placeholder="např. Pardubice, park u Labe, u lavičky" value="<?= e(old('found_location_text')) ?>"
+               data-address-autocomplete
+               data-lat-input="found_location_lat"
+               data-lng-input="found_location_lng"
+               data-address-validated="found_address_validated"
+               autocomplete="off">
+      </div>
     </div>
 
-    <!-- Hidden GPS fields -->
+    <!-- Hidden GPS + validation fields -->
     <input type="hidden" id="found_location_lat" name="found_location_lat">
     <input type="hidden" id="found_location_lng" name="found_location_lng">
+    <input type="hidden" id="found_address_validated" name="address_validated" value="0">
 
-    <div class="form-group">
+    <div class="form-group geo-row">
       <button type="button" class="btn btn-ghost btn-sm" data-geolocate
-              data-lat-input="found_location_lat" data-lng-input="found_location_lng">
+              data-lat-input="found_location_lat" data-lng-input="found_location_lng"
+              data-text-input="found_location_text" data-validated-input="found_address_validated">
         <i data-lucide="map-pin"></i> Zjistit moji polohu
       </button>
       <small class="geo-status text-muted text-sm"></small>

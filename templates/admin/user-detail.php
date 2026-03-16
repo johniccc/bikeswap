@@ -94,7 +94,19 @@
         </div>
         <div class="form-group">
           <label>Adresa</label>
-          <input type="text" name="address" maxlength="255" value="<?= e($user->getAddress() ?? '') ?>">
+          <div class="address-autocomplete-wrapper">
+            <input type="text" name="address" maxlength="255"
+                   value="<?= e($user->getAddress() ?? '') ?>"
+                   data-address-autocomplete
+                   data-lat-input="admin_address_lat"
+                   data-lng-input="admin_address_lng"
+                   data-address-validated="admin_address_validated"
+                   autocomplete="off">
+          </div>
+          <input type="hidden" id="admin_address_lat" name="address_lat">
+          <input type="hidden" id="admin_address_lng" name="address_lng">
+          <input type="hidden" id="admin_address_validated" name="address_validated"
+                 value="<?= e($user->getAddress() ?? '') !== '' ? '1' : '0' ?>">
         </div>
 
         <div class="flex gap-sm">

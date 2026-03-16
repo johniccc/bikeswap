@@ -8,11 +8,11 @@ SET NAMES utf8mb4;
 
 -- 1) Vlastnik (owner) - owns bikes, manages reservations
 INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `address`, `is_verified`, `karma_score`) VALUES
-('vlastnik@vlastnik.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'user', 'Vlastník', 'Demo', '+420111111111', 'Pardubice, Zelená 15', 1, 15);
+('vlastnik@vlastnik.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'user', 'Vlastník', 'Demo', '+420111111111', 'Zelená 15, Pardubice, Pardubický kraj', 1, 15);
 
 -- 2) Vypujcitel (borrower/finder) - borrows bikes, reports found bikes
 INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `address`, `is_verified`, `karma_score`) VALUES
-('vypujcitel@vypujcitel.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'user', 'Vypůjčitel', 'Demo', '+420222222222', 'Pardubice, Hlavní 8', 1, 5);
+('vypujcitel@vypujcitel.cz', '$2y$12$vbp.tIwy3as6hZsvQ8J/TOQaderFbfiWH5gtyTl.FrN1PEvMmuLmW', 'user', 'Vypůjčitel', 'Demo', '+420222222222', 'Hlavní třída 8, Pardubice, Pardubický kraj', 1, 5);
 
 -- 3) Policie (police) - police role, can view admin panel + found report conversations
 INSERT INTO `users` (`email`, `password_hash`, `role`, `first_name`, `surname`, `phone`, `is_verified`) VALUES
@@ -41,7 +41,7 @@ INSERT INTO `bike_excluded_dates` (`bike_id`, `excluded_date`) VALUES
 -- ── THEFT REPORT (for the stolen Specialized) ───────────────────
 
 INSERT INTO `theft_reports` (`bike_id`, `reported_by`, `theft_date`, `theft_location_text`, `description`, `police_case_number`, `status`) VALUES
-(3, 1, '2026-02-20', 'Praha 2, Náměstí Míru', 'Kolo bylo uzamčeno u stojanu, zámek přeříznut.', 'PČR-2026-00123', 'open');
+(3, 1, '2026-02-20', 'náměstí Míru, Praha 2, Hlavní město Praha', 'Kolo bylo uzamčeno u stojanu, zámek přeříznut.', 'PČR-2026-00123', 'open');
 
 -- ── RESERVATIONS ─────────────────────────────────────────────────
 
@@ -92,7 +92,7 @@ INSERT INTO `reservation_reviews` (`reservation_id`, `reviewer_id`, `reviewed_us
 -- ── FOUND REPORT (vypujcitel found the stolen Specialized) ──────
 
 INSERT INTO `found_reports` (`bike_id`, `qr_hash_scanned`, `reported_by`, `reporter_email`, `conversation_token`, `found_date`, `found_location_text`, `description`, `status`) VALUES
-(3, 'c3d4e5f6a7b8c9d0c3d4e5f6a7b8c9d0', 2, 'vypujcitel@vypujcitel.cz', 'found_token_demo_x1y2z3w4v5u6t7s8', '2026-03-01', 'Praha 3, park Parukářka', 'Kolo stálo opřené o strom, bez zámku.', 'contacted');
+(3, 'c3d4e5f6a7b8c9d0c3d4e5f6a7b8c9d0', 2, 'vypujcitel@vypujcitel.cz', 'found_token_demo_x1y2z3w4v5u6t7s8', '2026-03-01', 'Parukářka, Praha 3 - Žižkov, Hlavní město Praha', 'Kolo stálo opřené o strom, bez zámku.', 'contacted');
 
 -- ── FOUND REPORT MESSAGES ────────────────────────────────────────
 

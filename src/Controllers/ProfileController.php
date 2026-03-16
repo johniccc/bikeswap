@@ -101,6 +101,13 @@ class ProfileController
             return redirect('/profile/settings');
         }
 
+        $address = trim($request->input('address', ''));
+        if ($address !== '' && $request->input('address_validated', '0') !== '1') {
+            $this->session->setOldInput($request->all());
+            $this->session->flash('error', 'Vyberte adresu z nabídky nebo použijte tlačítko "Zjistit moji polohu".');
+            return redirect('/profile/settings');
+        }
+
         $this->userRepo->updateProfile($user->getId(), [
             'first_name' => trim($request->input('first_name', '')),
             'surname'    => trim($request->input('surname', '')),

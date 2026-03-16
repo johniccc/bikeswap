@@ -561,44 +561,288 @@
         }, 4000);
     };
 
-    // ── 12. Geolocation helper (data-attribute driven) ─
+    // ── 12. Address autocomplete (Nominatim) ──────────
+    (function() {
+        var NOMINATIM_SEARCH = 'https://nominatim.openstreetmap.org/search';
+        var NOMINATIM_REVERSE = 'https://nominatim.openstreetmap.org/reverse';
+        var USER_AGENT = 'BikeSwap/1.0 (school project)';
+        var MIN_CHARS = 3;
+        var DEBOUNCE_MS = 300;
+
+        function createMapPinIcon() {
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('stroke-width', '2');
+            svg.setAttribute('stroke-linecap', 'round');
+            svg.setAttribute('stroke-linejoin', 'round');
+            var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0');
+            svg.appendChild(path);
+            var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', '12');
+            circle.setAttribute('cy', '10');
+            circle.setAttribute('r', '3');
+            svg.appendChild(circle);
+            return svg;
+        }
+
+        function nominatimSearch(query, callback) {
+            var url = NOMINATIM_SEARCH + '?q=' + encodeURIComponent(query) +
+                '&format=json&addressdetails=1&countrycodes=cz&limit=5&accept-language=cs';
+            fetch(url, { headers: { 'User-Agent': USER_AGENT } })
+                .then(function(r) { return r.ok ? r.json() : []; })
+                .then(callback)
+                .catch(function() { callback([]); });
+        }
+
+        function nominatimReverse(lat, lng, callback) {
+            var url = NOMINATIM_REVERSE + '?lat=' + lat + '&lon=' + lng +
+                '&format=json&accept-language=cs';
+            fetch(url, { headers: { 'User-Agent': USER_AGENT } })
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(callback)
+                .catch(function() { callback(null); });
+        }
+
+        function formatAddress(item) {
+            var a = item.address || {};
+            var parts = [];
+            if (a.road) parts.push(a.road + (a.house_number ? ' ' + a.house_number : ''));
+            var city = a.city || a.town || a.village || a.municipality || '';
+            if (city) parts.push(city);
+            if (a.state) parts.push(a.state);
+            return parts.join(', ') || item.display_name;
+        }
+
+        // Expose for geolocation section
+        window._bikeswapNominatimReverse = nominatimReverse;
+        window._bikeswapFormatAddress = formatAddress;
+
+        document.querySelectorAll('[data-address-autocomplete]').forEach(function(input) {
+            var latInputId = input.getAttribute('data-lat-input');
+            var lngInputId = input.getAttribute('data-lng-input');
+            var validatedId = input.getAttribute('data-address-validated');
+            var latInput = latInputId ? document.getElementById(latInputId) : null;
+            var lngInput = lngInputId ? document.getElementById(lngInputId) : null;
+            var validatedInput = validatedId ? document.getElementById(validatedId) : null;
+
+            var dropdown = null;
+            var activeIndex = -1;
+            var debounceTimer = null;
+            var results = [];
+
+            function setValidated(val) {
+                if (validatedInput) validatedInput.value = val ? '1' : '0';
+            }
+
+            function positionDropdown() {
+                if (!dropdown) return;
+                var rect = input.getBoundingClientRect();
+                dropdown.style.top = rect.bottom + 'px';
+                dropdown.style.left = rect.left + 'px';
+                dropdown.style.width = rect.width + 'px';
+            }
+
+            function createDropdown() {
+                if (dropdown) return;
+                dropdown = document.createElement('ul');
+                dropdown.className = 'address-dropdown';
+                dropdown.style.display = 'none';
+                document.body.appendChild(dropdown);
+
+                window.addEventListener('scroll', positionDropdown, true);
+                window.addEventListener('resize', positionDropdown);
+            }
+
+            function showDropdown(items) {
+                createDropdown();
+                results = items;
+                activeIndex = -1;
+                while (dropdown.firstChild) dropdown.removeChild(dropdown.firstChild);
+
+                if (items.length === 0) {
+                    var empty = document.createElement('li');
+                    empty.className = 'address-dropdown-empty';
+                    empty.textContent = 'Žádné výsledky';
+                    dropdown.appendChild(empty);
+                    dropdown.style.display = 'block';
+                    positionDropdown();
+                    return;
+                }
+
+                items.forEach(function(item, i) {
+                    var li = document.createElement('li');
+                    li.className = 'address-dropdown-item';
+                    li.appendChild(createMapPinIcon());
+                    var span = document.createElement('span');
+                    span.textContent = formatAddress(item);
+                    li.appendChild(span);
+                    li.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        selectItem(i);
+                    });
+                    dropdown.appendChild(li);
+                });
+                dropdown.style.display = 'block';
+                positionDropdown();
+            }
+
+            function hideDropdown() {
+                if (dropdown) dropdown.style.display = 'none';
+                activeIndex = -1;
+            }
+
+            function selectItem(i) {
+                var item = results[i];
+                if (!item) return;
+                input.value = formatAddress(item);
+                if (latInput) latInput.value = item.lat;
+                if (lngInput) lngInput.value = item.lon;
+                setValidated(true);
+                hideDropdown();
+            }
+
+            function updateActive() {
+                if (!dropdown) return;
+                var items = dropdown.querySelectorAll('.address-dropdown-item');
+                items.forEach(function(el, i) {
+                    el.classList.toggle('active', i === activeIndex);
+                });
+                if (activeIndex >= 0 && items[activeIndex]) {
+                    items[activeIndex].scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            input.addEventListener('input', function() {
+                setValidated(false);
+                if (latInput) latInput.value = '';
+                if (lngInput) lngInput.value = '';
+
+                var q = input.value.trim();
+                if (q.length < MIN_CHARS) {
+                    hideDropdown();
+                    return;
+                }
+
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    createDropdown();
+                    while (dropdown.firstChild) dropdown.removeChild(dropdown.firstChild);
+                    var loading = document.createElement('li');
+                    loading.className = 'address-dropdown-loading';
+                    var spinner = document.createElement('span');
+                    spinner.className = 'address-dropdown-spinner';
+                    loading.appendChild(spinner);
+                    dropdown.appendChild(loading);
+                    dropdown.style.display = 'block';
+                    positionDropdown();
+                    nominatimSearch(q, function(data) {
+                        showDropdown(data);
+                    });
+                }, DEBOUNCE_MS);
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (!dropdown || dropdown.style.display === 'none') return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (activeIndex < results.length - 1) activeIndex++;
+                    updateActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (activeIndex > 0) activeIndex--;
+                    updateActive();
+                } else if (e.key === 'Enter') {
+                    if (activeIndex >= 0) {
+                        e.preventDefault();
+                        selectItem(activeIndex);
+                    }
+                } else if (e.key === 'Escape') {
+                    hideDropdown();
+                }
+            });
+
+            input.addEventListener('blur', function() {
+                setTimeout(hideDropdown, 150);
+            });
+        });
+    })();
+
+    // ── 12b. Geolocation helper (data-attribute driven) + reverse geocoding ─
+    function geoStatusSpinner(el) {
+        el.textContent = '';
+        var s = document.createElement('span');
+        s.className = 'geo-status-spinner';
+        el.appendChild(s);
+    }
+
+    function geoStatusText(el, text) {
+        el.textContent = text;
+    }
+
     document.querySelectorAll('[data-geolocate]').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var latInput = document.getElementById(btn.getAttribute('data-lat-input'));
             var lngInput = document.getElementById(btn.getAttribute('data-lng-input'));
+            var textInputId = btn.getAttribute('data-text-input');
+            var validatedInputId = btn.getAttribute('data-validated-input');
+            var textInput = textInputId ? document.getElementById(textInputId) : null;
+            var validatedInput = validatedInputId ? document.getElementById(validatedInputId) : null;
             var status = btn.parentElement.querySelector('.geo-status');
 
             if (!navigator.geolocation) {
-                if (status) status.textContent = 'Geolokace neni podporovana vasim prohlizecem.';
+                if (status) geoStatusText(status, 'Geolokace není podporována vaším prohlížečem.');
                 return;
             }
 
             if (window.isSecureContext === false) {
-                if (status) status.textContent = 'Geolokace vyzaduje HTTPS pripojeni.';
+                if (status) geoStatusText(status, 'Geolokace vyžaduje HTTPS připojení.');
                 return;
             }
 
-            if (status) status.textContent = 'Zjistuji polohu...';
+            if (status) geoStatusSpinner(status);
             btn.disabled = true;
 
             navigator.geolocation.getCurrentPosition(
                 function(position) {
-                    if (latInput) latInput.value = position.coords.latitude;
-                    if (lngInput) lngInput.value = position.coords.longitude;
-                    if (status) {
-                        status.textContent = 'Poloha zjistena (' +
-                            position.coords.latitude.toFixed(5) + ', ' +
-                            position.coords.longitude.toFixed(5) + ')';
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    if (latInput) latInput.value = lat;
+                    if (lngInput) lngInput.value = lng;
+
+                    if (textInput && window._bikeswapNominatimReverse) {
+                        window._bikeswapNominatimReverse(lat, lng, function(data) {
+                            if (data && data.display_name) {
+                                textInput.value = window._bikeswapFormatAddress ? window._bikeswapFormatAddress(data) : data.display_name;
+                                if (validatedInput) validatedInput.value = '1';
+                                if (status) geoStatusText(status, 'Poloha a adresa zjištěny.');
+                            } else {
+                                if (status) {
+                                    geoStatusText(status, 'Poloha zjištěna (' +
+                                        lat.toFixed(5) + ', ' + lng.toFixed(5) +
+                                        '), adresu se nepodařilo rozpoznat.');
+                                }
+                            }
+                            btn.disabled = false;
+                        });
+                    } else {
+                        if (status) {
+                            geoStatusText(status, 'Poloha zjištěna (' +
+                                lat.toFixed(5) + ', ' + lng.toFixed(5) + ')');
+                        }
+                        btn.disabled = false;
                     }
-                    btn.disabled = false;
                 },
                 function(error) {
                     var msgs = {
-                        1: 'Pristup k poloze byl zamitnut.',
-                        2: 'Poloha neni dostupna.',
-                        3: 'Zjistovani polohy vyprelo.'
+                        1: 'Přístup k poloze byl zamítnut.',
+                        2: 'Poloha není dostupná.',
+                        3: 'Zjišťování polohy vypršelo.'
                     };
-                    if (status) status.textContent = msgs[error.code] || 'Chyba geolokace.';
+                    if (status) geoStatusText(status, msgs[error.code] || 'Chyba geolokace.');
                     btn.disabled = false;
                 },
                 { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }

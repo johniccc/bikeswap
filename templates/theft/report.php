@@ -49,17 +49,26 @@
 
     <div class="form-group">
       <label for="theft_location_text">Místo krádeže *</label>
-      <input type="text" id="theft_location_text" name="theft_location_text" required
-             placeholder="např. Pardubice, ul. Karla IV., u nádraží" value="<?= e(old('theft_location_text')) ?>">
+      <div class="address-autocomplete-wrapper">
+        <input type="text" id="theft_location_text" name="theft_location_text" required
+               placeholder="např. Pardubice, ul. Karla IV., u nádraží" value="<?= e(old('theft_location_text')) ?>"
+               data-address-autocomplete
+               data-lat-input="theft_location_lat"
+               data-lng-input="theft_location_lng"
+               data-address-validated="theft_address_validated"
+               autocomplete="off">
+      </div>
     </div>
 
-    <!-- Hidden GPS fields -->
+    <!-- Hidden GPS + validation fields -->
     <input type="hidden" id="theft_location_lat" name="theft_location_lat">
     <input type="hidden" id="theft_location_lng" name="theft_location_lng">
+    <input type="hidden" id="theft_address_validated" name="address_validated" value="0">
 
-    <div class="form-group">
+    <div class="form-group geo-row">
       <button type="button" class="btn btn-ghost btn-sm" data-geolocate
-              data-lat-input="theft_location_lat" data-lng-input="theft_location_lng">
+              data-lat-input="theft_location_lat" data-lng-input="theft_location_lng"
+              data-text-input="theft_location_text" data-validated-input="theft_address_validated">
         <i data-lucide="map-pin"></i> Zjistit moji polohu
       </button>
       <small class="geo-status text-muted text-sm"></small>

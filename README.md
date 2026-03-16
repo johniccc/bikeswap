@@ -162,11 +162,9 @@ chmod -R 775 web/storage/
 - u sekce zařízení uživatele mám také lehké podezření že nefunguje. po odsouhlasení uživatelem, na kterého v adminu koukám, se nezobrazí informace o zařízení. ten proces trvá, nebo něco nefunguje?
 - má uživatel možnost opt out z toho sledování (cookies banner)?
 - jsou v tuto chvíli logovány i akce nepřihlášeného uživatele po souhlasu s cookies? sbírají se tam i ty hw info a jsou pak vidět v logách?
-
-
 - formuláře s adresou (všude, takže u krádeží, v profilu apod) by mohli adresy napovídat a automaticky doplňovat. adresy mimo daný formát nebo prostě mimo systémem daným výběrem se nebudou počítat. na tohle nejspíš budeš potřebovat nějaké api, tak použij nějaké bezplatné a spolehlivé bez rate limitingu. Toto bude platit i pro tlačítko zjistit polohu, to bych chtěl mimo jiné u každého pole s adresou a aby bylo funkční (kdyžtak mi vysvětli jestli je třeba potřeba https nebo něcoo jiného)
-- emaily otestovat
 
+- emaily otestovat
 
 ### Až na konec
 

@@ -316,12 +316,18 @@ class AdminController
             }
         }
 
+        $address = trim($request->input('address', ''));
+        if ($address !== '' && $request->input('address_validated', '0') !== '1') {
+            $this->session->flash('error', 'Vyberte adresu z nabídky.');
+            return redirect("/admin/users/{$userId}");
+        }
+
         $this->userRepository->adminUpdateUser($userId, [
             'first_name' => trim($request->input('first_name', '')),
             'surname'    => trim($request->input('surname', '')),
             'email'      => $newEmail,
             'phone'      => preg_replace('/\s+/', '', trim($request->input('phone', ''))) ?: null,
-            'address'    => trim($request->input('address', '')) ?: null,
+            'address'    => $address ?: null,
         ]);
 
         $this->session->flash('success', 'Údaje uživatele byly aktualizovány.');
