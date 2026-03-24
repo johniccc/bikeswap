@@ -20,6 +20,9 @@
 .DS_Store
 Thumbs.db
 
+# Dev notes
+problems.md
+
 # Claude Code
 .worktrees/
 CLAUDE.md

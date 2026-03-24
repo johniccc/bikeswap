@@ -19,6 +19,11 @@ use App\Services\FileUploadService;
 use App\Services\ReservationService;
 use App\Services\TurnstileService;
 
+/**
+ * Manages the full reservation lifecycle: browsing shared bikes, creating
+ * reservations, status transitions, messaging, reviews, disputes, and
+ * non-return reporting.
+ */
 class ReservationController
 {
     private ReservationRepository $reservationRepo;

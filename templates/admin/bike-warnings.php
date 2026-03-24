@@ -31,9 +31,9 @@
   <!-- ── Active warnings tab ── -->
   <?php if (empty($warnings)): ?>
     <div class="card">
-      <div class="card-body" style="padding:2rem 1.5rem;text-align:center">
+      <div class="card-body text-center p-lg">
         <i data-lucide="check-circle" style="width:36px;height:36px;color:var(--success);margin:0 auto 0.75rem;display:block"></i>
-        <p style="font-weight:600;margin-bottom:0.25rem">Žádná aktivní upozornění</p>
+        <p class="font-bold mb-0">Žádná aktivní upozornění</p>
         <p class="text-muted text-sm">Kompletní historii najdete v detailu každého kola.</p>
       </div>
     </div>
@@ -81,13 +81,13 @@
                 </td>
                 <td>
                   <div class="flex gap-xs">
-                    <form method="post" action="/admin/warnings/<?= $w->getId() ?>/resolve" style="display:inline">
+                    <form method="post" action="/admin/warnings/<?= $w->getId() ?>/resolve">
                       <input type="hidden" name="_csrf" value="<?= $session->csrfToken() ?>">
                       <button type="submit" class="btn btn-sm btn-success" data-confirm="Opravdu označit jako vyřešené?">
                         <i data-lucide="check"></i> Vyřešit
                       </button>
                     </form>
-                    <form method="post" action="/admin/warnings/<?= $w->getBikeId() ?>/seize" style="display:inline">
+                    <form method="post" action="/admin/warnings/<?= $w->getBikeId() ?>/seize">
                       <input type="hidden" name="_csrf" value="<?= $session->csrfToken() ?>">
                       <button type="submit" class="btn btn-sm btn-danger" data-confirm="Opravdu chcete toto kolo odvézt?">
                         <i data-lucide="truck"></i> Odvézt
@@ -129,7 +129,7 @@
               <?php if ($owner): ?><span>Vlastník: <?= e($owner->getFullName()) ?></span><?php endif; ?>
               <?php if ($w->getReason()): ?><span class="text-muted"><?= e(mb_strimwidth($w->getReason(), 0, 80, '...')) ?></span><?php endif; ?>
             </div>
-            <div class="flex gap-xs" style="margin-top: 0.5rem">
+            <div class="flex gap-xs mt-sm">
               <form method="post" action="/admin/warnings/<?= $w->getId() ?>/resolve">
                 <input type="hidden" name="_csrf" value="<?= $session->csrfToken() ?>">
                 <button type="submit" class="btn btn-sm btn-success" data-confirm="Opravdu označit jako vyřešené?">
@@ -331,10 +331,10 @@
   <!-- Results -->
   <?php if (empty($seizedBikes)): ?>
     <div class="card">
-      <div class="card-body" style="padding:2rem 1.5rem;text-align:center">
+      <div class="card-body text-center p-lg">
         <?php if ($hasSeizedFilters): ?>
           <i data-lucide="search-x" style="width:36px;height:36px;color:var(--text-muted);margin:0 auto 0.75rem;display:block"></i>
-          <p style="font-weight:600;margin-bottom:0.25rem">Žádná odvezená kola neodpovídají hledání</p>
+          <p class="font-bold mb-0">Žádná odvezená kola neodpovídají hledání</p>
           <p class="text-muted text-sm">Zkuste změnit nebo zrušit filtr.</p>
         <?php else: ?>
           <p class="text-muted">Žádná odvezená kola.</p>
@@ -391,7 +391,7 @@
                     <a href="/bike/<?= e($sb->getQrHash()) ?>" class="btn btn-sm btn-secondary">
                       <i data-lucide="eye"></i> Detail
                     </a>
-                    <form method="post" action="/admin/warnings/<?= $sb->getId() ?>/return" style="display:inline">
+                    <form method="post" action="/admin/warnings/<?= $sb->getId() ?>/return">
                       <input type="hidden" name="_csrf" value="<?= $session->csrfToken() ?>">
                       <button type="submit" class="btn btn-sm btn-success"
                               data-confirm="Opravdu chcete kolo vrátit majiteli?" data-confirm-ok="Ano, vrátit" data-confirm-class="btn-success">
@@ -425,7 +425,7 @@
               <span><?= e($sb->getColor()) ?></span>
               <span><?= date('d.m.Y', strtotime($sb->getCreatedAt())) ?></span>
             </div>
-            <div class="flex gap-xs" style="margin-top: 0.5rem">
+            <div class="flex gap-xs mt-sm">
               <a href="/bike/<?= e($sb->getQrHash()) ?>" class="btn btn-sm btn-secondary">
                 <i data-lucide="eye"></i> Detail
               </a>

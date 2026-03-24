@@ -30,7 +30,7 @@
                inputmode="numeric" autocomplete="one-time-code"
                pattern="[0-9]{6}" maxlength="6" required
                placeholder="000000"
-               style="font-family:monospace;font-size:1.1rem;letter-spacing:0.3rem;max-width:200px;">
+               class="totp-input">
       </div>
 
       <div class="form-actions">

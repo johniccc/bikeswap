@@ -14,6 +14,10 @@ use App\Repository\FoundReportMessageRepository;
 use App\Response\Response;
 use App\Services\AuthService;
 
+/**
+ * AJAX polling endpoints for real-time message updates in reservation
+ * and found-report conversations.
+ */
 class MessagePollController
 {
     public function __construct(

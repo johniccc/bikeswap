@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+/**
+ * Immutable representation of a bike warning timeline event.
+ *
+ * Events can be warnings (bike found unattended), owner pickups,
+ * or seizures. Each has a status, type, and optional deadline/location.
+ */
 class BikeWarning
 {
     private int $id;
@@ -41,6 +47,9 @@ class BikeWarning
         $this->updatedAt = $updatedAt;
     }
 
+    /**
+     * Construct a BikeWarning from a database row.
+     */
     public static function fromRow(array $row): self
     {
         return new self(
@@ -88,6 +97,9 @@ class BikeWarning
         return $this->type === 'seized';
     }
 
+    /**
+     * Get a Czech-language label for the warning status.
+     */
     public function getStatusLabel(): string
     {
         return match ($this->status) {
@@ -97,6 +109,9 @@ class BikeWarning
         };
     }
 
+    /**
+     * Get CSS class for status badge styling.
+     */
     public function getStatusClass(): string
     {
         return match ($this->status) {
@@ -106,6 +121,9 @@ class BikeWarning
         };
     }
 
+    /**
+     * Get a Czech-language label for the warning type.
+     */
     public function getTypeLabel(): string
     {
         return match ($this->type) {
@@ -116,6 +134,9 @@ class BikeWarning
         };
     }
 
+    /**
+     * Get the Lucide icon name for this warning type.
+     */
     public function getTypeIcon(): string
     {
         return match ($this->type) {
@@ -126,6 +147,9 @@ class BikeWarning
         };
     }
 
+    /**
+     * Get the color theme name for this warning type (for CSS classes).
+     */
     public function getTypeColor(): string
     {
         return match ($this->type) {
@@ -136,6 +160,9 @@ class BikeWarning
         };
     }
 
+    /**
+     * Format the pickup deadline as dd.mm.yyyy, or a dash if none set.
+     */
     public function getFormattedDeadline(): string
     {
         if ($this->deadline === null) {

@@ -15,6 +15,9 @@ use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
 
+/**
+ * Renders the admin/police dashboard with platform statistics and actionable items.
+ */
 class AdminDashboardController
 {
     private BikeRepository $bikeRepository;

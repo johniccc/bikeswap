@@ -9,7 +9,7 @@
 
 <!-- User info + edit form -->
 <div class="card mb-lg">
-  <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+  <div class="card-header flex items-center justify-between">
     <h3>Informace o uživateli</h3>
     <button type="button" class="btn btn-secondary btn-sm" id="toggle-edit-user">
       <i data-lucide="pencil"></i> Upravit
@@ -126,12 +126,12 @@
     <div class="card-header">
       <h3>Akce</h3>
     </div>
-    <div class="card-body" style="display:flex;flex-direction:column;gap:1.25rem">
+    <div class="card-body flex flex-col gap-xl">
 
       <!-- Ban / Unban -->
       <?php if (!$user->isAdmin()): ?>
         <div>
-          <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.5rem">
+          <p class="section-label text-muted">
             Stav účtu
           </p>
           <?php if ($user->isBanned()): ?>
@@ -155,13 +155,13 @@
 
       <!-- Role change -->
       <div>
-        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.5rem">
+        <p class="section-label text-muted">
           Role
         </p>
         <form method="POST" action="/admin/users/<?= $user->getId() ?>/role">
           <input type="hidden" name="_csrf" value="<?= e($csrf ?? $session->csrfToken()) ?>">
-          <div class="form-group" style="margin-bottom:0.5rem">
-            <label for="role-select" style="font-size:0.8rem;color:var(--text-muted)">Vybrat roli</label>
+          <div class="form-group mb-sm">
+            <label for="role-select" class="text-sm text-muted">Vybrat roli</label>
             <select id="role-select" name="role" class="form-control">
               <option value="user" <?= $user->getRole() === 'user' ? 'selected' : '' ?>>Uživatel</option>
               <option value="police" <?= $user->getRole() === 'police' ? 'selected' : '' ?>>Policie</option>
@@ -176,9 +176,9 @@
 
       <!-- Danger zone -->
       <?php if (!$user->isAdmin()): ?>
-        <hr style="border:none;border-top:1px solid var(--border);margin:0">
+        <hr class="divider" style="margin:0">
         <div>
-          <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--danger);margin-bottom:0.5rem">
+          <p class="section-label text-danger">
             Nebezpečná zóna
           </p>
           <form method="POST" action="/admin/users/<?= $user->getId() ?>/delete">
@@ -201,7 +201,7 @@
     Kola uživatele
     <span class="badge-count"><?= count($bikes) ?></span>
   </h2>
-  <a href="/admin/bikes/new?owner=<?= $user->getId() ?>" class="btn btn-primary btn-sm" style="margin-left:auto">
+  <a href="/admin/bikes/new?owner=<?= $user->getId() ?>" class="btn btn-primary btn-sm ml-auto">
     <i data-lucide="plus"></i> Přidat kolo
   </a>
 </div>
@@ -215,7 +215,7 @@
 <?php else: ?>
   <div class="bike-grid">
     <?php foreach ($bikes as $bike): ?>
-      <a href="/admin/bikes/<?= $bike->getId() ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
+      <a href="/admin/bikes/<?= $bike->getId() ?>" class="bike-card card-hover no-underline" style="color:inherit">
         <div class="bike-card-photo-wrap">
           <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
           <?php if ($primaryPhoto): ?>
@@ -283,8 +283,8 @@
                   <td><?= e($device->getScreenResolution() ?? '—') ?></td>
                   <td><?= e($device->getTimezone() ?? '—') ?></td>
                   <td><?= e($device->getLanguage() ?? '—') ?></td>
-                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($device->getFirstSeenAt())) ?></td>
-                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($device->getLastSeenAt())) ?></td>
+                  <td class="nowrap"><?= date('d.m.Y H:i', strtotime($device->getFirstSeenAt())) ?></td>
+                  <td class="nowrap"><?= date('d.m.Y H:i', strtotime($device->getLastSeenAt())) ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -340,7 +340,7 @@
                   };
                 ?>
                 <tr>
-                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($log->getCreatedAt())) ?></td>
+                  <td class="nowrap"><?= date('d.m.Y H:i', strtotime($log->getCreatedAt())) ?></td>
                   <td>
                     <span class="activity-action-badge <?= $actionClass ?>">
                       <?= e($log->getActionLabel()) ?>

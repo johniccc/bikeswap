@@ -113,7 +113,7 @@
             — <?= e($res->getDateRangeText()) ?>
           </span>
         </div>
-        <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+        <i data-lucide="chevron-right" class="ml-auto" style="opacity:0.5"></i>
       </a>
     <?php endforeach; ?>
   </div>
@@ -156,7 +156,7 @@
                   };
                 ?>
                 <tr>
-                  <td style="white-space:nowrap"><?= date('d.m.Y H:i', strtotime($log->getCreatedAt())) ?></td>
+                  <td class="nowrap"><?= date('d.m.Y H:i', strtotime($log->getCreatedAt())) ?></td>
                   <td>
                     <?php if ($log->getUserId()): ?>
                       <a href="/admin/users/<?= $log->getUserId() ?>" class="activity-user-link">

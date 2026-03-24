@@ -28,7 +28,7 @@
   <div class="bike-grid">
     <?php foreach ($bikes as $bike): ?>
       <div class="bike-card card-hover" style="position:relative">
-        <a href="/admin/bikes/<?= $bike->getId() ?>" style="text-decoration:none;color:inherit">
+        <a href="/admin/bikes/<?= $bike->getId() ?>" class="no-underline" style="color:inherit">
           <div class="bike-card-photo-wrap">
             <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
             <?php if ($primaryPhoto): ?>

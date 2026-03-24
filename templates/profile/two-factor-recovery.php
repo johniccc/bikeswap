@@ -12,9 +12,9 @@
       </div>
     </div>
 
-    <div id="recovery-codes-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1.5rem;">
+    <div id="recovery-codes-grid" class="grid-2 mb-lg">
       <?php foreach ($codes as $code): ?>
-        <div style="font-family:monospace;font-size:1rem;text-align:center;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-secondary);">
+        <div class="text-mono text-center p-sm rounded" style="border:1px solid var(--border);background:var(--bg-secondary);">
           <?= e($code) ?>
         </div>
       <?php endforeach; ?>

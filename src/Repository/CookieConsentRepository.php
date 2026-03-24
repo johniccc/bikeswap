@@ -6,6 +6,12 @@ namespace App\Repository;
 
 use App\Core\Database;
 
+/**
+ * Database operations for cookie consent records.
+ *
+ * Tracks per-session consent choices, updating existing records
+ * if the user changes their preference.
+ */
 class CookieConsentRepository
 {
     private Database $db;
@@ -15,6 +21,10 @@ class CookieConsentRepository
         $this->db = $db;
     }
 
+    /**
+     * Store or update a consent record for the given session.
+     * Returns the consent record ID.
+     */
     public function store(string $sessionId, ?int $userId, string $consent, ?string $ipAddress): int
     {
         $existing = $this->findBySessionId($sessionId);
@@ -37,6 +47,9 @@ class CookieConsentRepository
         ]);
     }
 
+    /**
+     * Find the most recent consent record for a session.
+     */
     public function findBySessionId(string $sessionId): ?array
     {
         return $this->db->fetchOne(
@@ -45,6 +58,9 @@ class CookieConsentRepository
         );
     }
 
+    /**
+     * Get the consent value for a session, or null if no consent exists.
+     */
     public function hasConsent(string $sessionId): ?string
     {
         $row = $this->findBySessionId($sessionId);

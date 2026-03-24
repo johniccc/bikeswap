@@ -11,6 +11,12 @@ use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\TwoFactorService;
 
+/**
+ * Manages two-factor authentication workflows.
+ *
+ * Handles TOTP verification during login, 2FA setup/disable for
+ * authenticated users, and recovery code display/regeneration.
+ */
 class TwoFactorController
 {
     public function __construct(
@@ -22,6 +28,12 @@ class TwoFactorController
 
     // ── Login 2FA ────────────────────────────────────────────────
 
+    /**
+     * Show the 2FA verification form during login.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function verifyForm(Request $request): Response
     {
         $userId = $this->session->get('2fa_user_id');
@@ -41,6 +53,12 @@ class TwoFactorController
         ])->withLayout('layouts/public');
     }
 
+    /**
+     * Verify the submitted TOTP or recovery code and complete login.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function verify(Request $request): Response
     {
         $userId = $this->session->get('2fa_user_id');
@@ -109,6 +127,12 @@ class TwoFactorController
         return redirect($redirect);
     }
 
+    /**
+     * Cancel 2FA verification and return to login.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function cancelVerify(Request $request): Response
     {
         $this->session->remove('2fa_user_id');
@@ -118,6 +142,12 @@ class TwoFactorController
 
     // ── Setup 2FA (authenticated) ────────────────────────────────
 
+    /**
+     * Show the 2FA setup page with QR code and secret.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function setupForm(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -151,6 +181,12 @@ class TwoFactorController
         ])->withLayout('layouts/app');
     }
 
+    /**
+     * Verify the TOTP code and enable 2FA for the user.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function enableSetup(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -182,6 +218,12 @@ class TwoFactorController
         return redirect('/profile/2fa/recovery-codes');
     }
 
+    /**
+     * Display recovery codes (one-time view after setup or regeneration).
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function showRecoveryCodes(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -206,6 +248,12 @@ class TwoFactorController
         ])->withLayout('layouts/app');
     }
 
+    /**
+     * Generate new recovery codes, replacing the old ones.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function regenerateCodes(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -229,6 +277,12 @@ class TwoFactorController
 
     // ── Disable 2FA ──────────────────────────────────────────────
 
+    /**
+     * Show the 2FA disable confirmation form.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function disableForm(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -249,6 +303,12 @@ class TwoFactorController
         ])->withLayout('layouts/app');
     }
 
+    /**
+     * Disable 2FA after verifying the user's password and TOTP code.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function disable(Request $request): Response
     {
         $user = $this->authService->currentUser();

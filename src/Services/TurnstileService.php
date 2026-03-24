@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+/**
+ * Cloudflare Turnstile CAPTCHA verification.
+ *
+ * Validates CAPTCHA tokens server-side via the Turnstile API.
+ * If no secret key is configured, verification is skipped (always passes).
+ */
 class TurnstileService
 {
     private string $secretKey;

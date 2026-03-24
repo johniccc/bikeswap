@@ -17,6 +17,10 @@ use App\Services\FoundReportService;
 use App\Services\KarmaService;
 use App\Services\TurnstileService;
 
+/**
+ * Manages found-bike reports: submission, conversations between finder and owner,
+ * resolution, and PDF export for police.
+ */
 class FoundReportController
 {
     private BikeRepository $bikeRepository;

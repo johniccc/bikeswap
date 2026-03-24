@@ -42,7 +42,7 @@
         </div>
       <?php endif; ?>
 
-      <div style="margin-left:auto" class="flex gap-sm flex-wrap items-center">
+      <div class="ml-auto flex gap-sm flex-wrap items-center">
         <span class="status-badge <?= e($report->getStatusClass()) ?>">
           <?= e($report->getStatusLabel()) ?>
         </span>
@@ -91,7 +91,7 @@
          data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>"
          data-status="<?= e($report->getStatusLabel()) ?>">
       <?php if (empty($messages)): ?>
-        <p class="text-muted" style="text-align:center;padding:2rem 0">Zatím žádné zprávy.</p>
+        <p class="text-muted text-center" style="padding:2rem 0">Zatím žádné zprávy.</p>
       <?php else: ?>
         <?php foreach ($messages as $msg): ?>
           <?php

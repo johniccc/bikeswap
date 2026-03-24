@@ -9,6 +9,12 @@ use App\Core\Session;
 use App\Response\Response;
 use App\Services\AuthService;
 
+/**
+ * Restricts access to admin/police routes.
+ *
+ * Requires authentication and at least the 'police' role.
+ * Returns JSON errors for API requests, redirects for browser requests.
+ */
 class AdminMiddleware
 {
     private Session $session;
@@ -20,6 +26,11 @@ class AdminMiddleware
         $this->authService = $authService;
     }
 
+    /**
+     * Check authentication and admin/police role.
+     *
+     * @return Response|null Return a Response to short-circuit, null to continue.
+     */
     public function handle(Request $request): ?Response
     {
         if (!$this->session->isLoggedIn()) {

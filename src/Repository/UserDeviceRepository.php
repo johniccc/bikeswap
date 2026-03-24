@@ -7,6 +7,12 @@ namespace App\Repository;
 use App\Core\Database;
 use App\Entity\UserDevice;
 
+/**
+ * Repository for the user_devices table.
+ *
+ * Tracks browser fingerprints for security monitoring and
+ * suspicious login detection.
+ */
 class UserDeviceRepository
 {
     private Database $db;
@@ -29,6 +35,12 @@ class UserDeviceRepository
         return array_map([UserDevice::class, 'fromRow'], $rows);
     }
 
+    /**
+     * Insert or update a device record for a user.
+     *
+     * Uses ON DUPLICATE KEY UPDATE to refresh the last_seen_at timestamp
+     * and device attributes on subsequent logins from the same fingerprint.
+     */
     public function upsert(int $userId, string $fingerprintHash, array $data): void
     {
         $this->db->query(

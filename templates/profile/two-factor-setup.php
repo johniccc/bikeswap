@@ -16,15 +16,15 @@
       Otevřete aplikaci Google Authenticator, Authy nebo jinou TOTP aplikaci a naskenujte tento QR kód.
     </p>
 
-    <div style="text-align:center;margin-bottom:1rem;">
+    <div class="text-center mb-md">
       <img src="<?= e($qrDataUri) ?>" alt="QR kód pro 2FA"
            style="width:200px;height:200px;border-radius:8px;image-rendering:pixelated;">
     </div>
 
-    <p class="text-muted text-sm" style="text-align:center;margin-bottom:0.5rem;">
+    <p class="text-muted text-sm text-center mb-sm">
       Nebo zadejte kód ručně:
     </p>
-    <div class="alert alert-info" style="text-align:center;font-family:monospace;font-size:0.95rem;letter-spacing:0.1rem;word-break:break-all;user-select:all;">
+    <div class="alert alert-info text-center text-mono" style="font-size:0.95rem;letter-spacing:0.1rem;word-break:break-all;user-select:all;">
       <?= e($secret) ?>
     </div>
   </div>
@@ -47,7 +47,7 @@
                inputmode="numeric" autocomplete="one-time-code"
                pattern="[0-9]{6}" maxlength="6" required autofocus
                placeholder="000000"
-               style="text-align:center;font-family:monospace;font-size:1.25rem;letter-spacing:0.4rem;max-width:200px;">
+               class="totp-input">
       </div>
 
       <div class="form-actions">

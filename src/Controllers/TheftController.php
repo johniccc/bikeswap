@@ -13,6 +13,9 @@ use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\TheftService;
 
+/**
+ * Handles bike theft reporting, the public stolen-bikes list, and theft resolution.
+ */
 class TheftController
 {
     private BikeRepository $bikeRepository;

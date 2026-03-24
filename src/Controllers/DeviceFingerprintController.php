@@ -9,6 +9,12 @@ use App\Core\Session;
 use App\Repository\UserDeviceRepository;
 use App\Response\Response;
 
+/**
+ * Receives browser fingerprint data and stores a hashed device profile.
+ *
+ * Used for security monitoring — fingerprints are hashed server-side
+ * so raw device attributes are never persisted.
+ */
 class DeviceFingerprintController
 {
     private UserDeviceRepository $deviceRepo;
@@ -20,6 +26,12 @@ class DeviceFingerprintController
         $this->session = $session;
     }
 
+    /**
+     * Receive browser fingerprint data and persist a hashed device profile.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function store(Request $request): Response
     {
         $userId = $this->session->userId();

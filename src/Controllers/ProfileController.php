@@ -17,6 +17,10 @@ use App\Services\ActivityLogService;
 use App\Services\AuthService;
 use App\Services\TwoFactorService;
 
+/**
+ * User profile management: view profile, update settings, change password/email,
+ * and configure notification preferences.
+ */
 class ProfileController
 {
     public function __construct(
@@ -31,6 +35,12 @@ class ProfileController
         private Session $session,
     ) {}
 
+    /**
+     * Display the user's profile overview.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -53,6 +63,12 @@ class ProfileController
         ])->withLayout('layouts/app');
     }
 
+    /**
+     * Show the profile settings page.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function settings(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -77,6 +93,12 @@ class ProfileController
         ])->withLayout('layouts/app');
     }
 
+    /**
+     * Update the user's profile information (name, phone, address).
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function updateSettings(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -115,6 +137,12 @@ class ProfileController
         return redirect('/profile/settings');
     }
 
+    /**
+     * Change the user's password after verifying the current one.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function changePassword(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -145,6 +173,12 @@ class ProfileController
         return redirect('/profile/settings');
     }
 
+    /**
+     * Change the user's email address after verifying the password.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function changeEmail(Request $request): Response
     {
         $user = $this->authService->currentUser();
@@ -191,6 +225,12 @@ class ProfileController
         return redirect('/profile/settings');
     }
 
+    /**
+     * Save the user's email notification preferences.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function updatePreferences(Request $request): Response
     {
         $user = $this->authService->currentUser();

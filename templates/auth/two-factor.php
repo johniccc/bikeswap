@@ -1,7 +1,7 @@
 <div class="auth-page">
-  <div class="card max-w-sm" style="margin: 2rem auto;">
-    <div class="card-header" style="text-align:center;">
-      <h2 style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+  <div class="card max-w-sm mx-auto mt-xl mb-xl">
+    <div class="card-header text-center">
+      <h2 class="flex items-center justify-center gap-sm">
         <i data-lucide="shield-check"></i> Dvoufaktorové ověření
       </h2>
     </div>
@@ -11,7 +11,7 @@
         <input type="hidden" name="use_recovery" value="0" id="use-recovery-input">
 
         <div id="totp-section">
-          <p class="text-muted text-sm mb-md" style="text-align:center;">
+          <p class="text-muted text-sm mb-md text-center">
             Zadejte 6místný kód z vaší ověřovací aplikace.
           </p>
 
@@ -20,22 +20,22 @@
                    inputmode="numeric" autocomplete="one-time-code"
                    pattern="[0-9]{6}" maxlength="6" autofocus
                    placeholder="000000"
-                   style="text-align:center;font-family:monospace;font-size:1.5rem;letter-spacing:0.5rem;padding:0.75rem;">
+                   class="totp-input">
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary" style="width:100%;">
+            <button type="submit" class="btn btn-primary w-full">
               <i data-lucide="check"></i> Ověřit
             </button>
           </div>
 
-          <div style="text-align:center;margin-top:1rem;">
+          <div class="text-center mt-md">
             <a href="#" id="toggle-recovery" class="text-sm">Použít záložní kód</a>
           </div>
         </div>
 
         <div id="recovery-section" style="display:none;">
-          <p class="text-muted text-sm mb-md" style="text-align:center;">
+          <p class="text-muted text-sm mb-md text-center">
             Zadejte jeden z vašich záložních kódů.
           </p>
 
@@ -43,31 +43,31 @@
             <input type="text" id="recovery-code"
                    autocomplete="off" maxlength="9"
                    placeholder="xxxx-xxxx"
-                   style="text-align:center;font-family:monospace;font-size:1.25rem;letter-spacing:0.2rem;padding:0.75rem;">
+                   class="recovery-input">
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary" style="width:100%;">
+            <button type="submit" class="btn btn-primary w-full">
               <i data-lucide="check"></i> Ověřit
             </button>
           </div>
 
-          <div style="text-align:center;margin-top:1rem;">
+          <div class="text-center mt-md">
             <a href="#" id="toggle-totp" class="text-sm">Použít ověřovací aplikaci</a>
           </div>
         </div>
       </form>
 
-      <hr style="margin:1rem 0;">
+      <hr class="divider">
 
-      <div style="text-align:center;">
-        <a href="/login/2fa/cancel" class="text-sm text-muted" style="display:inline-flex;align-items:center;gap:0.35rem;">
-          <i data-lucide="arrow-left" style="width:14px;height:14px;flex-shrink:0;"></i> Zpět na přihlášení
+      <div class="text-center">
+        <a href="/login/2fa/cancel" class="text-sm text-muted inline-flex items-center gap-xs">
+          <i data-lucide="arrow-left" style="width:14px;height:14px" class="flex-shrink-0"></i> Zpět na přihlášení
         </a>
       </div>
 
-      <p class="text-muted text-sm" style="text-align:center;margin-top:0.75rem;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
-        <i data-lucide="clock" style="width:12px;height:12px;flex-shrink:0;"></i> Kód vyprší za 5 minut
+      <p class="text-muted text-sm text-center mt-md flex items-center justify-center gap-xs">
+        <i data-lucide="clock" style="width:12px;height:12px" class="flex-shrink-0"></i> Kód vyprší za 5 minut
       </p>
     </div>
   </div>

@@ -9,6 +9,9 @@ use App\Core\Session;
 use App\Response\Response;
 use App\Services\AuthService;
 
+/**
+ * Handles public-facing pages: homepage and privacy policy.
+ */
 class HomeController
 {
     private Session $session;
@@ -20,6 +23,12 @@ class HomeController
         $this->authService = $authService;
     }
 
+    /**
+     * Display the homepage.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         if ($request->wantsJson()) {
@@ -38,6 +47,12 @@ class HomeController
         ])->withLayout('layouts/public');
     }
 
+    /**
+     * Display the privacy policy page.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function privacy(Request $request): Response
     {
         $currentUser = $this->session->isLoggedIn() ? $this->authService->currentUser() : null;

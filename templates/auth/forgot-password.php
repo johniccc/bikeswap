@@ -1,9 +1,9 @@
-<div class="main-public-padded" style="display:flex;justify-content:center;padding-top:4rem">
-  <div style="width:100%;max-width:420px">
+<div class="main-public-padded flex justify-center" style="padding-top:4rem">
+  <div class="w-full max-w-sm">
 
     <div class="card">
       <div class="card-header">
-        <h2 style="margin:0">Zapomenuté heslo</h2>
+        <h2 class="mb-0">Zapomenuté heslo</h2>
       </div>
       <div class="card-body">
         <p class="text-muted mb-lg">Zadejte svůj e-mail a pošleme vám odkaz pro obnovení hesla.</p>

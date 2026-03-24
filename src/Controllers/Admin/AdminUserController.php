@@ -14,6 +14,10 @@ use App\Response\Response;
 use App\Services\ActivityLogService;
 use App\Services\AuthService;
 
+/**
+ * Admin user management: listing, detail view, banning/unbanning,
+ * role changes, profile editing, and account deletion.
+ */
 class AdminUserController
 {
     private UserRepository $userRepository;

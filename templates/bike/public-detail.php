@@ -135,7 +135,7 @@
         </div>
 
         <?php if ($currentUser && $currentUser->isAdmin() && !$isOwner): ?>
-          <a href="/admin/bikes/<?= $bike->getId() ?>" class="btn btn-secondary btn-sm mt-md" style="display:inline-flex;align-items:center;gap:0.35rem;">
+          <a href="/admin/bikes/<?= $bike->getId() ?>" class="btn btn-secondary btn-sm mt-md inline-flex items-center gap-xs">
             <i data-lucide="settings"></i> Spravovat v administraci
           </a>
         <?php endif; ?>
@@ -151,7 +151,7 @@
 
     <!-- Active reservation info banner -->
     <?php if (isset($activeReservation) && $activeReservation && $bike->isShared() && !$bike->isStolen()): ?>
-      <div class="alert" style="background:var(--warning-light,#fef3c7);border:1px solid var(--warning,#d97706);color:var(--warning-dark,#92400e);margin-top:1rem;border-radius:var(--radius-md)">
+      <div class="alert alert-warning mt-md">
         <i data-lucide="calendar"></i>
         <div>
           <strong>Kolo je momentálně rezervováno</strong>

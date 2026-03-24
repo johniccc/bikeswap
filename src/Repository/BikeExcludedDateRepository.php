@@ -6,6 +6,12 @@ namespace App\Repository;
 
 use App\Core\Database;
 
+/**
+ * Repository for the bike_excluded_dates table.
+ *
+ * Manages dates when a bike is unavailable for borrowing
+ * (owner-defined blackout dates).
+ */
 class BikeExcludedDateRepository
 {
     private Database $db;
@@ -28,6 +34,9 @@ class BikeExcludedDateRepository
         return array_map(fn($row) => $row['excluded_date'], $rows);
     }
 
+    /**
+     * Add a single excluded date for a bike (ignores duplicates).
+     */
     public function add(int $bikeId, string $date): void
     {
         $this->db->query(
@@ -36,11 +45,19 @@ class BikeExcludedDateRepository
         );
     }
 
+    /**
+     * Remove a single excluded date for a bike.
+     */
     public function remove(int $bikeId, string $date): void
     {
         $this->db->delete('bike_excluded_dates', 'bike_id = ? AND excluded_date = ?', [$bikeId, $date]);
     }
 
+    /**
+     * Replace all excluded dates for a bike with a new set.
+     *
+     * @param string[] $dates Array of date strings (Y-m-d format)
+     */
     public function replaceAll(int $bikeId, array $dates): void
     {
         $this->db->delete('bike_excluded_dates', 'bike_id = ?', [$bikeId]);
@@ -53,6 +70,9 @@ class BikeExcludedDateRepository
         }
     }
 
+    /**
+     * Check if a specific date is excluded for a bike.
+     */
     public function isExcluded(int $bikeId, string $date): bool
     {
         $row = $this->db->fetchOne(
@@ -63,6 +83,9 @@ class BikeExcludedDateRepository
         return $row !== null;
     }
 
+    /**
+     * Check if any excluded date falls within a given date range.
+     */
     public function hasExcludedInRange(int $bikeId, string $dateFrom, string $dateTo): bool
     {
         $row = $this->db->fetchOne(

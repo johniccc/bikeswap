@@ -9,6 +9,9 @@ use App\Core\Session;
 use App\Repository\CookieConsentRepository;
 use App\Response\Response;
 
+/**
+ * Stores user cookie consent choices (all or necessary-only).
+ */
 class CookieConsentController
 {
     private CookieConsentRepository $consentRepo;
@@ -20,6 +23,12 @@ class CookieConsentController
         $this->session = $session;
     }
 
+    /**
+     * Store the user's cookie consent choice.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function store(Request $request): Response
     {
         $data = json_decode(file_get_contents('php://input'), true) ?? [];

@@ -80,7 +80,7 @@
         </a>
       <?php endif; ?>
       <?php if (isset($session)): ?>
-        <form method="POST" action="/logout" style="margin:0">
+        <form method="POST" action="/logout" class="mb-0">
           <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
           <button type="submit" class="sidebar-logout-btn">
             <i data-lucide="log-out"></i> Odhlásit se

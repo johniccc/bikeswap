@@ -13,6 +13,10 @@ use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\BikeWarningService;
 
+/**
+ * Admin/police management of bike warnings: creating, resolving warnings,
+ * seizing bikes, and returning seized bikes to owners.
+ */
 class AdminBikeWarningController
 {
     private BikeWarningRepository $bikeWarningRepository;

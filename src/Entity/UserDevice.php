@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+/**
+ * Immutable representation of a user's device fingerprint record.
+ *
+ * Stores hashed browser fingerprint data along with device attributes
+ * for security monitoring and suspicious login detection.
+ */
 class UserDevice
 {
     private int $id;
@@ -53,6 +59,9 @@ class UserDevice
         $this->lastSeenAt = $lastSeenAt;
     }
 
+    /**
+     * Construct a UserDevice from a database row.
+     */
     public static function fromRow(array $row): self
     {
         return new self(
@@ -88,6 +97,9 @@ class UserDevice
     public function getFirstSeenAt(): string { return $this->firstSeenAt; }
     public function getLastSeenAt(): string { return $this->lastSeenAt; }
 
+    /**
+     * Build a human-readable summary line from platform, resolution, and language.
+     */
     public function getDeviceSummary(): string
     {
         $parts = [];

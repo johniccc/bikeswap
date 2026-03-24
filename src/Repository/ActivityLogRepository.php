@@ -7,6 +7,11 @@ namespace App\Repository;
 use App\Core\Database;
 use App\Entity\ActivityLog;
 
+/**
+ * Repository for the activity_log table.
+ *
+ * Records and retrieves user actions for audit trail purposes.
+ */
 class ActivityLogRepository
 {
     private Database $db;
@@ -16,6 +21,9 @@ class ActivityLogRepository
         $this->db = $db;
     }
 
+    /**
+     * Record a new activity log entry. Returns the new entry's ID.
+     */
     public function log(
         ?int $userId,
         string $action,

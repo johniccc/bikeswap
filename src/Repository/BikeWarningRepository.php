@@ -7,6 +7,11 @@ namespace App\Repository;
 use App\Core\Database;
 use App\Entity\BikeWarning;
 
+/**
+ * Repository for the bike_warnings table.
+ *
+ * Manages the warning timeline for bikes (warnings, owner pickups, seizures).
+ */
 class BikeWarningRepository
 {
     private Database $db;
@@ -16,6 +21,9 @@ class BikeWarningRepository
         $this->db = $db;
     }
 
+    /**
+     * Find a warning by its ID.
+     */
     public function findById(int $id): ?BikeWarning
     {
         $row = $this->db->fetchOne("SELECT * FROM bike_warnings WHERE id = ?", [$id]);
@@ -23,6 +31,9 @@ class BikeWarningRepository
         return $row ? BikeWarning::fromRow($row) : null;
     }
 
+    /**
+     * Find the active warning for a bike (if any).
+     */
     public function findActiveByBikeId(int $bikeId): ?BikeWarning
     {
         $row = $this->db->fetchOne(
@@ -46,6 +57,9 @@ class BikeWarningRepository
         return array_map(fn(array $row) => BikeWarning::fromRow($row), $rows);
     }
 
+    /**
+     * Check whether a bike has any active warning.
+     */
     public function hasActiveWarning(int $bikeId): bool
     {
         $count = $this->db->fetchColumn(
@@ -56,6 +70,9 @@ class BikeWarningRepository
         return (int) $count > 0;
     }
 
+    /**
+     * Mark all active warnings for a bike as resolved.
+     */
     public function resolveActiveWarnings(int $bikeId): void
     {
         $this->db->query(
@@ -94,6 +111,9 @@ class BikeWarningRepository
         return array_map(fn(array $row) => BikeWarning::fromRow($row), $rows);
     }
 
+    /**
+     * Count warnings, optionally filtered by status.
+     */
     public function countByStatus(?string $status = null): int
     {
         if ($status !== null) {
@@ -106,6 +126,9 @@ class BikeWarningRepository
         return (int) $this->db->fetchColumn("SELECT COUNT(*) FROM bike_warnings");
     }
 
+    /**
+     * Count warnings of a specific type.
+     */
     public function countByType(string $type): int
     {
         return (int) $this->db->fetchColumn(
@@ -114,11 +137,17 @@ class BikeWarningRepository
         );
     }
 
+    /**
+     * Create a new warning entry. Returns the new ID.
+     */
     public function create(array $data): int
     {
         return $this->db->insert('bike_warnings', $data);
     }
 
+    /**
+     * Update the status of a warning entry.
+     */
     public function updateStatus(int $id, string $status): void
     {
         $this->db->update('bike_warnings', ['status' => $status], 'id = ?', [$id]);

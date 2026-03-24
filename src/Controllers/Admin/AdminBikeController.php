@@ -16,6 +16,9 @@ use App\Services\AuthService;
 use App\Services\FileUploadService;
 use App\Services\QRService;
 
+/**
+ * Admin bike management: listing, detail/edit, creation, and deletion of bikes.
+ */
 class AdminBikeController
 {
     private BikeRepository $bikeRepository;

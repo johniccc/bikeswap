@@ -11,6 +11,10 @@ use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\NotificationService;
 
+/**
+ * Displays and manages user notifications: listing, marking as read,
+ * and providing unread counts for the UI badge.
+ */
 class NotificationController
 {
     private NotificationRepository $repository;

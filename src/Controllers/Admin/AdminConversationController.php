@@ -15,6 +15,10 @@ use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\AuthService;
 
+/**
+ * Admin/police oversight of reservation and found-report conversations,
+ * including the ability to send messages as an admin participant.
+ */
 class AdminConversationController
 {
     private ReservationRepository $reservationRepository;

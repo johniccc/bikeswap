@@ -11,6 +11,9 @@ use App\Response\Response;
 use App\Services\AuthService;
 use App\Services\BikeWarningService;
 
+/**
+ * Handles owner-side bike warning actions such as confirming pickup.
+ */
 class BikeWarningController
 {
     private BikeWarningService $bikeWarningService;

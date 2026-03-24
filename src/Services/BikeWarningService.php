@@ -8,6 +8,12 @@ use App\Repository\BikeRepository;
 use App\Repository\BikeWarningRepository;
 use App\Repository\UserRepository;
 
+/**
+ * Manages the bike warning lifecycle: creating warnings, confirming owner pickups,
+ * seizing unclaimed bikes, and returning seized bikes.
+ *
+ * Each action creates a timeline event and sends notifications/emails to the owner.
+ */
 class BikeWarningService
 {
     private BikeWarningRepository $bikeWarningRepository;
@@ -30,6 +36,17 @@ class BikeWarningService
         $this->emailService = $emailService;
     }
 
+    /**
+     * Create a new warning for a bike and notify the owner.
+     *
+     * @param int         $bikeId    Bike to warn about
+     * @param int         $createdBy User ID of the police/admin creating the warning
+     * @param string      $reason    Reason for the warning
+     * @param string      $deadline  Pickup deadline date (Y-m-d format)
+     * @param string|null $location  Where the bike was found
+     * @return int Warning ID
+     * @throws \RuntimeException If bike not found or already has an active warning
+     */
     public function createWarning(int $bikeId, int $createdBy, string $reason, string $deadline, ?string $location): int
     {
         $bike = $this->bikeRepository->findById($bikeId);
@@ -71,6 +88,14 @@ class BikeWarningService
         return $warningId;
     }
 
+    /**
+     * Confirm that the owner picked up their warned bike.
+     *
+     * @param int $bikeId  Bike being picked up
+     * @param int $ownerId Owner confirming the pickup
+     * @return void
+     * @throws \RuntimeException If bike not found, not owned by user, or no active warning
+     */
     public function confirmPickup(int $bikeId, int $ownerId): void
     {
         $bike = $this->bikeRepository->findById($bikeId);
@@ -119,6 +144,14 @@ class BikeWarningService
         }
     }
 
+    /**
+     * Seize an unclaimed bike after the warning deadline passes.
+     *
+     * @param int $bikeId   Bike to seize
+     * @param int $seizedBy User ID of the officer seizing the bike
+     * @return void
+     * @throws \RuntimeException If bike not found
+     */
     public function seizeBike(int $bikeId, int $seizedBy): void
     {
         $bike = $this->bikeRepository->findById($bikeId);
@@ -155,6 +188,14 @@ class BikeWarningService
         );
     }
 
+    /**
+     * Return a seized bike to its owner, restoring active status.
+     *
+     * @param int $bikeId     Bike being returned
+     * @param int $returnedBy User ID of the officer returning the bike
+     * @return void
+     * @throws \RuntimeException If bike not found or not in seized status
+     */
     public function returnBike(int $bikeId, int $returnedBy): void
     {
         $bike = $this->bikeRepository->findById($bikeId);
@@ -188,6 +229,12 @@ class BikeWarningService
         );
     }
 
+    /**
+     * Manually resolve a single warning by ID.
+     *
+     * @param int $warningId Warning to resolve
+     * @return void
+     */
     public function resolveWarning(int $warningId): void
     {
         $this->bikeWarningRepository->updateStatus($warningId, 'resolved');

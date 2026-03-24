@@ -58,7 +58,7 @@ $bike = $reservation->getBike();
           </p>
         </div>
       <?php endif; ?>
-      <div style="margin-left:auto">
+      <div class="ml-auto">
         <span class="status-badge <?= $reservation->getStatusClass() ?>">
           <?= e($reservation->getStatusLabel()) ?>
         </span>
@@ -194,7 +194,7 @@ $bike = $reservation->getBike();
       </div>
 
       <?php if ($reservation->getNotReturnedReason()): ?>
-        <div class="mt-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+        <div class="mt-md info-panel">
           <h4 class="mb-xs text-sm text-muted">Popis vlastníka:</h4>
           <p><?= nl2br(e($reservation->getNotReturnedReason())) ?></p>
         </div>
@@ -224,14 +224,14 @@ $bike = $reservation->getBike();
       </div>
 
       <?php if ($reservation->getNotReturnedReason()): ?>
-        <div class="mt-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+        <div class="mt-md info-panel">
           <h4 class="mb-xs text-sm text-muted">Tvrzení vlastníka:</h4>
           <p><?= nl2br(e($reservation->getNotReturnedReason())) ?></p>
         </div>
       <?php endif; ?>
 
       <?php if ($reservation->getDisputeReason()): ?>
-        <div class="mt-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+        <div class="mt-md info-panel">
           <h4 class="mb-xs text-sm text-muted">Námitka vypůjčitele:</h4>
           <p><?= nl2br(e($reservation->getDisputeReason())) ?></p>
         </div>
@@ -263,14 +263,14 @@ $bike = $reservation->getBike();
       <p class="mb-md">Rozhodněte, která strana má pravdu. Toto rozhodnutí je nevratné.</p>
 
       <?php if ($reservation->getNotReturnedReason()): ?>
-        <div class="mb-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+        <div class="mb-md info-panel">
           <h4 class="mb-xs text-sm text-muted">Tvrzení vlastníka:</h4>
           <p><?= nl2br(e($reservation->getNotReturnedReason())) ?></p>
         </div>
       <?php endif; ?>
 
       <?php if ($reservation->getDisputeReason()): ?>
-        <div class="mb-md" style="padding:1rem;background:var(--bg-secondary, #f5f5f0);border-radius:var(--radius-md)">
+        <div class="mb-md info-panel">
           <h4 class="mb-xs text-sm text-muted">Námitka vypůjčitele:</h4>
           <p><?= nl2br(e($reservation->getDisputeReason())) ?></p>
         </div>
@@ -414,7 +414,7 @@ $bike = $reservation->getBike();
          data-last-id="<?= !empty($messages) ? $messages[array_key_last($messages)]->getId() : 0 ?>"
          data-status="<?= e($reservation->getStatusLabel()) ?>">
       <?php if (empty($messages)): ?>
-        <p class="text-muted" style="text-align:center;padding:2rem 0">Zatím žádné zprávy.</p>
+        <p class="text-muted text-center" style="padding:2rem 0">Zatím žádné zprávy.</p>
       <?php else: ?>
         <?php foreach ($messages as $msg): ?>
           <?php

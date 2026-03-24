@@ -11,6 +11,9 @@ use App\Repository\TheftReportRepository;
 use App\Response\Response;
 use App\Services\AuthService;
 
+/**
+ * Admin views for managing reservations and theft reports.
+ */
 class AdminReservationController
 {
     private ReservationRepository $reservationRepository;

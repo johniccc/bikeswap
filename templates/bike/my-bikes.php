@@ -1,13 +1,13 @@
 <div data-auto-refresh="/dashboard/poll" data-refresh-interval="8000"></div>
 
 <?php if (isset($currentUser) && !$currentUser->getPhone()): ?>
-  <div class="alert alert-warning mb-lg" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
-    <i data-lucide="phone-missed" style="flex-shrink:0"></i>
+  <div class="alert alert-warning mb-lg flex gap-lg items-center flex-wrap">
+    <i data-lucide="phone-missed" class="flex-shrink-0"></i>
     <div style="flex:1">
       <strong>Nemáte vyplněné telefonní číslo.</strong>
       <p class="mt-xs text-sm">Telefon usnadní kontakt při nálezu kola nebo výpůjčce — ostatní uživatelé vás mohou rychleji zastihnout.</p>
     </div>
-    <a href="/profile/settings" class="btn btn-sm btn-warning" style="flex-shrink:0">Doplnit kontakt</a>
+    <a href="/profile/settings" class="btn btn-sm btn-warning flex-shrink-0">Doplnit kontakt</a>
   </div>
 <?php endif; ?>
 
@@ -35,7 +35,7 @@
           <strong><?= e($bike->getFullName()) ?></strong>
           <span class="text-sm">Nahlášeno jako odcizené</span>
         </div>
-        <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+        <i data-lucide="chevron-right" class="ml-auto" style="opacity:0.5"></i>
       </a>
     <?php endforeach; ?>
     <?php foreach ($bikesWithFinds as $bike): ?>
@@ -46,7 +46,7 @@
           <?php $fc = $foundReportCounts[$bike->getId()]; ?>
           <span class="text-sm"><?= $fc ?> nový nález<?= $fc > 4 ? 'ů' : ($fc > 1 ? 'y' : '') ?> — zkontrolujte konverzaci</span>
         </div>
-        <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+        <i data-lucide="chevron-right" class="ml-auto" style="opacity:0.5"></i>
       </a>
     <?php endforeach; ?>
     <?php if (!empty($myOpenFinds)): ?>
@@ -63,7 +63,7 @@
               <?php endif; ?>
             </span>
           </div>
-          <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+          <i data-lucide="chevron-right" class="ml-auto" style="opacity:0.5"></i>
         </a>
       <?php endforeach; ?>
     <?php endif; ?>
@@ -115,7 +115,7 @@
               <?php endif; ?>
             </span>
           </div>
-          <i data-lucide="chevron-right" style="margin-left:auto;opacity:0.5"></i>
+          <i data-lucide="chevron-right" class="ml-auto" style="opacity:0.5"></i>
         </a>
       <?php endforeach; ?>
     <?php endif; ?>
@@ -134,7 +134,7 @@
 <?php else: ?>
   <div class="bike-grid">
     <?php foreach ($bikes as $bike): ?>
-      <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card card-hover" style="text-decoration:none;color:inherit">
+      <a href="/bike/<?= e($bike->getQrHash()) ?>" class="bike-card card-hover no-underline" style="color:inherit">
         <div class="bike-card-photo-wrap">
           <?php $primaryPhoto = $bike->getPrimaryPhoto(); ?>
           <?php if ($primaryPhoto): ?>

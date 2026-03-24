@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+/**
+ * Immutable representation of an audit log entry.
+ *
+ * Records user actions with optional before/after values for change tracking.
+ * Includes Czech-language labels for display in the admin interface.
+ */
 class ActivityLog
 {
     private int $id;
@@ -44,6 +50,9 @@ class ActivityLog
         $this->userName = $userName;
     }
 
+    /**
+     * Construct an ActivityLog from a database row, decoding JSON values.
+     */
     public static function fromRow(array $row): self
     {
         return new self(
@@ -73,6 +82,9 @@ class ActivityLog
     public function getCreatedAt(): string { return $this->createdAt; }
     public function getUserName(): ?string { return $this->userName; }
 
+    /**
+     * Get a Czech-language label for this action (for admin UI display).
+     */
     public function getActionLabel(): string
     {
         return match ($this->action) {
@@ -94,6 +106,9 @@ class ActivityLog
         };
     }
 
+    /**
+     * Truncate the user agent string to 80 characters for compact display.
+     */
     public function getShortUserAgent(): string
     {
         if ($this->userAgent === null) {

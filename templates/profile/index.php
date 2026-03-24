@@ -5,7 +5,7 @@
       <i data-lucide="settings"></i> Nastavení
     </a>
     <?php if (isset($session)): ?>
-      <form method="POST" action="/logout" style="margin:0">
+      <form method="POST" action="/logout" class="mb-0">
         <input type="hidden" name="_csrf" value="<?= e($session->csrfToken()) ?>">
         <button type="submit" class="btn btn-secondary btn-sm">
           <i data-lucide="log-out"></i> Odhlásit se
@@ -26,7 +26,7 @@
         <h2 style="margin-bottom:0.15rem"><?= e($user->getFullName()) ?></h2>
         <p class="text-muted text-sm"><?= e($user->getEmail()) ?></p>
       </div>
-      <div style="margin-left:auto;text-align:right">
+      <div class="ml-auto text-right">
         <?php if ($user->isPolice()): ?>
           <span class="police-badge" style="font-size:0.85rem;padding:0.25rem 0.6rem"><i data-lucide="shield" class="icon-inline"></i> Policie ČR</span>
         <?php else: ?>

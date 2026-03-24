@@ -1,5 +1,5 @@
 <div class="modal-overlay auth-modal" id="auth-modal">
-  <div class="modal" style="max-width:420px">
+  <div class="modal max-w-sm">
     <div class="modal-header">
       <h2 class="modal-title" id="auth-modal-title">Přihlášení</h2>
       <button type="button" class="modal-close" id="close-auth-modal" aria-label="Zavřít">
@@ -34,8 +34,8 @@
         <div class="form-group">
           <label for="login-password">Heslo</label>
           <input type="password" id="login-password" name="password" required autocomplete="current-password" placeholder="Vaše heslo">
-          <div style="text-align:right;margin-top:0.35rem">
-            <a href="/forgot-password" style="font-size:0.8em;color:var(--text-muted)">Zapomněli jste heslo?</a>
+          <div class="text-right" style="margin-top:0.35rem">
+            <a href="/forgot-password" class="text-xs" style="color:var(--text-muted)">Zapomněli jste heslo?</a>
           </div>
         </div>
 
@@ -109,44 +109,4 @@
   </div>
 </div>
 
-<script>
-(function () {
-  function formatCzechPhone(input) {
-    var raw = input.value.replace(/[^\d+]/g, '');
-    var prefix = '', digits = '';
-
-    if (raw.startsWith('+420')) {
-      prefix = '+420'; digits = raw.slice(4);
-    } else if (raw.startsWith('00420')) {
-      prefix = '00420'; digits = raw.slice(5);
-    } else {
-      // User is still typing the prefix — don't reformat yet
-      return;
-    }
-
-    digits = digits.slice(0, 9);
-    var formatted = prefix;
-    if (digits.length > 0) formatted += ' ' + digits.slice(0, 3);
-    if (digits.length > 3) formatted += ' ' + digits.slice(3, 6);
-    if (digits.length > 6) formatted += ' ' + digits.slice(6, 9);
-    input.value = formatted;
-  }
-
-  function stripSpacesBeforeSubmit(form) {
-    var phone = form.querySelector('input[name="phone"]');
-    if (phone) phone.value = phone.value.replace(/\s+/g, '');
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var regPhone = document.getElementById('reg-phone');
-    var regForm  = document.getElementById('auth-form-register');
-
-    if (regPhone) {
-      regPhone.addEventListener('input', function () { formatCzechPhone(regPhone); });
-    }
-    if (regForm) {
-      regForm.addEventListener('submit', function () { stripSpacesBeforeSubmit(regForm); });
-    }
-  });
-}());
-</script>
+<script src="/js/auth-modal.js"></script>

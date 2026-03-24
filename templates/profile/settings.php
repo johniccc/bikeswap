@@ -157,10 +157,10 @@
 <!-- Dvoufaktorové ověření -->
 <div class="card max-w-lg mb-lg">
   <div class="card-header">
-    <h3 style="display:flex;align-items:center;gap:0.5rem;">
+    <h3 class="flex items-center gap-sm">
       <?php if ($twoFactorEnabled): ?>
         <i data-lucide="shield-check"></i> Dvoufaktorové ověření
-        <span class="status-badge status-badge-success" style="margin-left:auto;">Aktivní</span>
+        <span class="status-badge status-badge-success ml-auto">Aktivní</span>
       <?php else: ?>
         <i data-lucide="shield"></i> Dvoufaktorové ověření
       <?php endif; ?>
@@ -173,7 +173,7 @@
         <span class="info-value"><?= e($recoveryCodesRemaining) ?> z 8 zbývajících</span>
       </div>
       <div class="form-actions">
-        <form method="POST" action="/profile/2fa/regenerate-codes" style="display:inline;">
+        <form method="POST" action="/profile/2fa/regenerate-codes" class="inline-flex">
           <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
           <button type="submit" class="btn btn-secondary btn-sm">
             <i data-lucide="refresh-cw"></i> Obnovit záložní kódy

@@ -27,7 +27,7 @@
       <span class="info-value">
         <?php if ($owner): ?>
           <?php if ($currentUser->isAdmin()): ?>
-            <a href="/admin/users/<?= $owner->getId() ?>" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:0.35rem;">
+            <a href="/admin/users/<?= $owner->getId() ?>" class="btn btn-secondary btn-sm inline-flex items-center gap-xs">
               <i data-lucide="user"></i> <?= e($owner->getFullName()) ?>
             </a>
           <?php else: ?>
@@ -251,14 +251,14 @@
             <?php if ($photo->isPrimary()): ?>
               <span class="photo-preview-badge" title="Hlavní fotografie"><i data-lucide="star"></i></span>
             <?php else: ?>
-              <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/primary" style="margin:0">
+              <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/primary" class="mb-0">
                 <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
                 <button type="submit" class="photo-action-btn" title="Nastavit jako hlavní">
                   <i data-lucide="star"></i>
                 </button>
               </form>
             <?php endif; ?>
-            <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete" style="margin:0">
+            <form method="POST" action="/bike/<?= $bike->getId() ?>/photo/<?= $photo->getId() ?>/delete" class="mb-0">
               <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
               <button type="submit" class="photo-action-btn photo-action-danger" title="Smazat fotku"
                       data-confirm="Opravdu smazat tuto fotku?">

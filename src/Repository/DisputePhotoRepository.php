@@ -6,6 +6,11 @@ namespace App\Repository;
 
 use App\Core\Database;
 
+/**
+ * Repository for the dispute_photos table.
+ *
+ * Manages photos uploaded as evidence during reservation disputes.
+ */
 class DisputePhotoRepository
 {
     private Database $db;
@@ -15,6 +20,9 @@ class DisputePhotoRepository
         $this->db = $db;
     }
 
+    /**
+     * Store a new dispute photo. Returns the photo ID.
+     */
     public function create(int $reservationId, string $filePath): int
     {
         return $this->db->insert('dispute_photos', [
@@ -23,6 +31,9 @@ class DisputePhotoRepository
         ]);
     }
 
+    /**
+     * Find a dispute photo by its ID.
+     */
     public function findById(int $id): ?array
     {
         $row = $this->db->fetchOne(
