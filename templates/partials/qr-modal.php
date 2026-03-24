@@ -28,6 +28,16 @@
           <i data-lucide="search"></i> Hledat
         </button>
       </form>
+
+      <form id="bike-id-form" class="flex gap-sm mt-md" style="align-items:flex-end">
+        <div class="form-group mb-0" style="flex:1">
+          <label for="bike-id-input">QR hash kola</label>
+          <input type="text" id="bike-id-input" placeholder="Zadejte QR hash kola" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i data-lucide="search"></i> Hledat
+        </button>
+      </form>
     </div>
   </div>
 </div>

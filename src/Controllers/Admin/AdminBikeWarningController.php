@@ -45,22 +45,16 @@ class AdminBikeWarningController
     public function bikeWarnings(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->hasRole('police')) {
-            throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
+        $tab = $request->query('tab', 'active');
 
-        $statusFilter = $request->query('status');
-        $warnings = $this->bikeWarningRepository->findAll($statusFilter);
+        // Active warnings (always needed for tab count)
+        $warnings = $this->bikeWarningRepository->findAll('active', 'warning');
 
         $bikesMap = [];
-        $creatorsMap = [];
         $ownersMap = [];
         foreach ($warnings as $w) {
             if (!isset($bikesMap[$w->getBikeId()])) {
                 $bikesMap[$w->getBikeId()] = $this->bikeRepository->findById($w->getBikeId());
-            }
-            if (!isset($creatorsMap[$w->getCreatedBy()])) {
-                $creatorsMap[$w->getCreatedBy()] = $this->userRepository->findById($w->getCreatedBy());
             }
             $bike = $bikesMap[$w->getBikeId()] ?? null;
             if ($bike && !isset($ownersMap[$bike->getOwnerId()])) {
@@ -68,22 +62,52 @@ class AdminBikeWarningController
             }
         }
 
-        $counts = [
-            'all' => $this->bikeWarningRepository->countByStatus(),
-            'active' => $this->bikeWarningRepository->countByStatus('active'),
-            'resolved' => $this->bikeWarningRepository->countByStatus('resolved'),
-            'expired' => $this->bikeWarningRepository->countByStatus('expired'),
+        // Seized bikes — with search filters when on seized tab
+        $seizedFilters = [
+            'search'       => trim($request->query('search', '')),
+            'owner'        => trim($request->query('owner', '')),
+            'color'        => trim($request->query('color', '')),
+            'year_from'    => $request->query('year_from', ''),
+            'year_to'      => $request->query('year_to', ''),
+            'frame_number' => trim($request->query('frame_number', '')),
+            'qr_hash'      => trim($request->query('qr_hash', '')),
         ];
+
+        $hasSeizedFilters = !empty(array_filter($seizedFilters, fn($v) => $v !== ''));
+
+        $seizedBikes = $this->bikeRepository->findSeized(
+            withPhotos: true,
+            search: $seizedFilters['search'] ?: null,
+            color: $seizedFilters['color'] ?: null,
+            yearFrom: $seizedFilters['year_from'] !== '' ? (int) $seizedFilters['year_from'] : null,
+            yearTo: $seizedFilters['year_to'] !== '' ? (int) $seizedFilters['year_to'] : null,
+            frameNumber: $seizedFilters['frame_number'] ?: null,
+            qrHash: $seizedFilters['qr_hash'] ?: null,
+            ownerSearch: $seizedFilters['owner'] ?: null,
+        );
+
+        $seizedCount = $this->bikeRepository->countAll('seized');
+        $yearRange = $this->bikeRepository->getSeizedBikeYearRange();
+
+        foreach ($seizedBikes as $sb) {
+            if (!isset($ownersMap[$sb->getOwnerId()])) {
+                $ownersMap[$sb->getOwnerId()] = $this->userRepository->findById($sb->getOwnerId());
+            }
+        }
 
         return view('admin/bike-warnings', [
             'title' => 'Upozornění na kola — Admin',
             'currentUser' => $currentUser,
+            'tab' => $tab,
             'warnings' => $warnings,
+            'seizedBikes' => $seizedBikes,
+            'seizedCount' => $seizedCount,
+            'seizedFilters' => $seizedFilters,
+            'hasSeizedFilters' => $hasSeizedFilters,
+            'yearMin' => $yearRange['min'],
+            'yearMax' => $yearRange['max'],
             'bikesMap' => $bikesMap,
-            'creatorsMap' => $creatorsMap,
             'ownersMap' => $ownersMap,
-            'counts' => $counts,
-            'statusFilter' => $statusFilter,
             'session' => $this->session,
         ])->withLayout('layouts/app');
     }
@@ -95,9 +119,6 @@ class AdminBikeWarningController
     public function createBikeWarningForm(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->hasRole('police')) {
-            throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
 
         $allBikes = $this->bikeRepository->findAll(null, withPhotos: true);
 
@@ -119,9 +140,6 @@ class AdminBikeWarningController
     public function storeBikeWarning(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
-        if (!$currentUser->hasRole('police')) {
-            throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
 
         $bikeIds = $request->input('bike_ids', []);
         if (!is_array($bikeIds)) {
@@ -172,15 +190,53 @@ class AdminBikeWarningController
      */
     public function resolveBikeWarning(Request $request): Response
     {
-        $currentUser = $this->authService->currentUser();
-        if (!$currentUser->hasRole('police')) {
-            throw new \RuntimeException('Nemáte oprávnění.', 403);
-        }
-
         $warningId = (int) $request->param('id');
         $this->bikeWarningService->resolveWarning($warningId);
         $this->session->flash('success', 'Upozornění bylo vyřešeno.');
 
         return redirect('/admin/warnings');
+    }
+
+    /**
+     * Seize a bike (tow it away).
+     * POST /admin/warnings/{bikeId}/seize
+     */
+    public function seizeBike(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        $bikeId = (int) $request->param('bikeId');
+
+        try {
+            $this->bikeWarningService->seizeBike($bikeId, $currentUser->getId());
+            $this->session->flash('success', 'Kolo bylo označeno jako odvezené.');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
+        }
+
+        return redirect('/admin/warnings');
+    }
+
+    /**
+     * Return a seized bike to its owner.
+     * POST /admin/warnings/{bikeId}/return
+     */
+    public function returnBike(Request $request): Response
+    {
+        $currentUser = $this->authService->currentUser();
+        $bikeId = (int) $request->param('bikeId');
+
+        try {
+            $this->bikeWarningService->returnBike($bikeId, $currentUser->getId());
+            $this->session->flash('success', 'Kolo bylo vráceno majiteli.');
+        } catch (\RuntimeException $e) {
+            $this->session->flash('error', $e->getMessage());
+        }
+
+        $bike = $this->bikeRepository->findById($bikeId);
+        if ($bike) {
+            return redirect('/admin/bikes/' . $bikeId);
+        }
+
+        return redirect('/admin/bikes');
     }
 }

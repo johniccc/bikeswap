@@ -29,11 +29,11 @@
       </div>
       <div class="info-row">
         <span class="info-label">Email</span>
-        <span class="info-value"><?= e($user->getEmail()) ?></span>
+        <span class="info-value"><a href="mailto:<?= e($user->getEmail()) ?>"><?= e($user->getEmail()) ?></a></span>
       </div>
       <div class="info-row">
         <span class="info-label">Telefon</span>
-        <span class="info-value"><?= $user->getPhone() ? e($user->getPhone()) : '—' ?></span>
+        <span class="info-value"><?= $user->getPhone() ? '<a href="tel:' . e($user->getPhone()) . '">' . e($user->getPhone()) . '</a>' : '—' ?></span>
       </div>
       <div class="info-row">
         <span class="info-label">Adresa</span>

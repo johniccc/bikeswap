@@ -25,14 +25,8 @@ class BikeWarningRepository
 
     public function findActiveByBikeId(int $bikeId): ?BikeWarning
     {
-        // Lazily expire overdue warnings
-        $this->db->query(
-            "UPDATE bike_warnings SET status = 'expired' WHERE bike_id = ? AND status = 'active' AND deadline < CURDATE()",
-            [$bikeId]
-        );
-
         $row = $this->db->fetchOne(
-            "SELECT * FROM bike_warnings WHERE bike_id = ? AND status = 'active' LIMIT 1",
+            "SELECT * FROM bike_warnings WHERE bike_id = ? AND type = 'warning' AND status = 'active' LIMIT 1",
             [$bikeId]
         );
 
@@ -42,14 +36,55 @@ class BikeWarningRepository
     /**
      * @return BikeWarning[]
      */
-    public function findAll(?string $status = null, int $limit = 50, int $offset = 0): array
+    public function findTimelineByBikeId(int $bikeId): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT * FROM bike_warnings WHERE bike_id = ? ORDER BY created_at DESC",
+            [$bikeId]
+        );
+
+        return array_map(fn(array $row) => BikeWarning::fromRow($row), $rows);
+    }
+
+    public function hasActiveWarning(int $bikeId): bool
+    {
+        $count = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM bike_warnings WHERE bike_id = ? AND type = 'warning' AND status = 'active'",
+            [$bikeId]
+        );
+
+        return (int) $count > 0;
+    }
+
+    public function resolveActiveWarnings(int $bikeId): void
+    {
+        $this->db->query(
+            "UPDATE bike_warnings SET status = 'resolved' WHERE bike_id = ? AND status = 'active'",
+            [$bikeId]
+        );
+    }
+
+    /**
+     * @return BikeWarning[]
+     */
+    public function findAll(?string $status = null, ?string $type = null, int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT * FROM bike_warnings";
         $params = [];
+        $conditions = [];
 
         if ($status !== null) {
-            $sql .= " WHERE status = ?";
+            $conditions[] = "status = ?";
             $params[] = $status;
+        }
+
+        if ($type !== null) {
+            $conditions[] = "type = ?";
+            $params[] = $type;
+        }
+
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(' AND ', $conditions);
         }
 
         $sql .= " ORDER BY created_at DESC LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
@@ -69,6 +104,14 @@ class BikeWarningRepository
         }
 
         return (int) $this->db->fetchColumn("SELECT COUNT(*) FROM bike_warnings");
+    }
+
+    public function countByType(string $type): int
+    {
+        return (int) $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM bike_warnings WHERE type = ?",
+            [$type]
+        );
     }
 
     public function create(array $data): int

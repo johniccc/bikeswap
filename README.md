@@ -1,22 +1,120 @@
-# bikeswap
+# BikeSwap
 
-## Lokální vývoj (Docker)
+Webová platforma pro registraci, sdílení a správu jízdních kol. Umožňuje vlastníkům nabízet kola k vypůjčení, spravovat rezervace, hlásit krádeže a koordinovat nálezy s policií.
+
+**Maturitní projekt** — SPŠe Pardubice, 2025/2026
+**Autor:** Jan Štefáček
+
+## Použité technologie
+
+| Vrstva     | Technologie                                       |
+| ---------- | ------------------------------------------------- |
+| Backend    | PHP 8.3 (vlastní framework, bez Laravel/Symfony)  |
+| Databáze   | MySQL 8 (PDO)                                     |
+| Frontend   | HTML, CSS, vanilla JavaScript                     |
+| CAPTCHA    | Cloudflare Turnstile                              |
+| QR kódy    | chillerlan/php-qrcode                             |
+| PDF export | dompdf/dompdf                                     |
+| 2FA (TOTP) | spomky-labs/otphp                                 |
+| Prostředí  | Docker (Apache + MySQL)                           |
+
+## Hlavní funkce
+
+- **Registrace kol** — přidání kol s fotkami, QR kódem a parametry
+- **Sdílení kol** — nastavení dostupnosti, vyloučená data, automatické rezervace
+- **Rezervace** — vytvoření, schválení/zamítnutí vlastníkem, dispute s důkazy
+- **Hlášení krádeží** — formuláře s geolokací a možností přiřazení policii
+- **Nálezy** — veřejný formulář s Turnstile CAPTCHA, konverzace s vlastníkem
+- **Notifikace** — in-app + e-mailové (s uživatelskými preferencemi)
+- **2FA** — TOTP autentizace s recovery kódy
+- **Administrace** — správa uživatelů, kol, rezervací, varování, konverzací
+- **Karma systém** — hodnocení uživatelů na základě aktivit
+
+## Uživatelské role
+
+| Role     | Popis                                           |
+| -------- | ----------------------------------------------- |
+| `user`   | Běžný uživatel — vlastník nebo vypůjčitel kola  |
+| `police` | Přístup do admin panelu, správa krádeží/nálezů  |
+| `admin`  | Plný přístup ke správě celé platformy           |
+
+## Architektura
+
+Vlastní MVC framework s dependency injection kontejnerem a middleware pipeline.
+
+```
+Request → index.php → App → Router → Middleware[] → Controller → Response
+```
+
+### Struktura projektu
+
+```
+bikeswap/
+├── config/
+│   ├── app.php                 # Konfigurace aplikace
+│   └── routes.php              # Definice rout
+├── database/
+│   ├── schema.sql              # Databázové schéma (20 tabulek)
+│   └── seeds.sql               # Testovací data
+├── docker/
+│   ├── apache.conf             # Konfigurace Apache
+│   └── entrypoint.sh           # Docker entrypoint
+├── public/                     # Webroot (document root)
+│   ├── index.php               # Vstupní bod aplikace
+│   ├── .htaccess               # URL rewriting
+│   ├── css/style.css           # Styly
+│   └── js/                     # Klientský JavaScript
+├── src/
+│   ├── Controllers/            # HTTP handlery (13 + 6 admin)
+│   ├── Core/                   # Jádro frameworku (App, Router, Container, Database, Session…)
+│   ├── Entity/                 # Datové objekty (bez active record)
+│   ├── Helpers/                # Globální helpery (e(), old(), view(), redirect()…)
+│   ├── Middleware/              # Auth, Admin, CSRF, RateLimit…
+│   ├── Repository/             # SQL dotazy (veškeré DB operace)
+│   ├── Response/               # ViewResponse, JsonResponse, RedirectResponse, FileResponse
+│   └── Services/               # Business logika (email, turnstile, QR, upload…)
+├── storage/
+│   └── uploads/                # Uživatelské soubory (bikes/, reports/)
+├── templates/                  # PHP šablony (12 adresářů)
+├── composer.json
+├── docker-compose.yaml
+└── Dockerfile
+```
+
+### Klíčové koncepty
+
+- **Controllers** — přijímají HTTP request, validují vstup, volají services, vrací Response objekt
+- **Services** — business logika, orchestrace repositories, odesílání e-mailů/notifikací
+- **Repositories** — veškeré SQL dotazy přes PDO wrapper s prepared statements
+- **Entities** — čisté datové objekty konstruované z DB řádků (bez active record)
+- **Middleware** — `handle(Request): ?Response` — vrátí Response pro přerušení, `null` pro pokračování
+- **DI Container** — auto-wiring přes PHP reflection, singleton registrace
+
+## Lokální vývoj
+
+### Požadavky
+
+- Docker a Docker Compose
+
+### Spuštění
 
 ```bash
-# Spuštění
 docker compose up -d
+```
 
-# Reset databáze (smaže data!)
+Aplikace běží na **http://localhost**.
+
+### Reset databáze
+
+```bash
 docker compose down
 docker volume rm bikeswap_db_data
 docker compose up -d
 ```
 
-Aplikace běží na `http://localhost`.
+### Testovací účty
 
-## Testovací účty
-
-Po importu `database/seeds.sql` jsou k dispozici tyto účty:
+Po importu `database/seeds.sql`:
 
 | Role          | E-mail                     | Heslo           |
 | ------------- | -------------------------- | --------------- |
@@ -25,145 +123,33 @@ Po importu `database/seeds.sql` jsou k dispozici tyto účty:
 | Vlastník      | `vlastnik@vlastnik.cz`     | `BikeSwap2026!` |
 | Vypůjčitel    | `vypujcitel@vypujcitel.cz` | `BikeSwap2026!` |
 
-## Nasazení na školní server
+## Nasazení
 
-Server: `stefacja22.mp.spse-net.cz`
-SFTP: `sftp.stefacja22.mp.spse-net.cz:2245` (uživatel `stefacja22`)
-Webroot: `/web/`
+**Server:** `stefacja22.mp.spse-net.cz`
+**SFTP:** `sftp.stefacja22.mp.spse-net.cz:2245` (uživatel `stefacja22`)
+**Webroot:** `/web/`
 
-### 1. Příprava souborů
+### Plochá struktura
 
-Na serveru musí být **plochá struktura** — vše leží přímo ve složce `web/`:
+Na serveru není `public/` podsložka — obsah `public/` se nahraje přímo do `web/`:
 
-```
-web/
-├── .env                    ← přejmenovaný .env.production
-├── .htaccess               ← z public/
-├── index.php               ← z public/
-├── css/
-│   └── style.css
-├── js/
-│   └── app.js
-├── config/
-│   ├── app.php
-│   └── routes.php
-├── src/
-│   ├── Controllers/
-│   ├── Core/
-│   ├── Entity/
-│   ├── Helpers/
-│   ├── Middleware/
-│   ├── Repository/
-│   ├── Response/
-│   └── Services/
-├── templates/
-│   ├── admin/
-│   ├── auth/
-│   ├── bike/
-│   ├── errors/
-│   ├── found/
-│   ├── home/
-│   ├── layouts/
-│   ├── notifications/
-│   ├── partials/
-│   ├── profile/
-│   ├── reservation/
-│   └── theft/
-├── storage/
-│   ├── uploads/
-│   │   ├── bikes/
-│   │   └── reports/
-├── vendor/                 ← composer install
-├── composer.json
-└── composer.lock
-```
+| Lokální zdroj       | Cíl na serveru      | Poznámka                   |
+| ------------------- | ------------------- | -------------------------- |
+| `public/.htaccess`  | `web/.htaccess`     | URL rewriting              |
+| `public/index.php`  | `web/index.php`     | Vstupní bod                |
+| `public/css/`       | `web/css/`          | Styly                      |
+| `public/js/`        | `web/js/`           | JavaScript                 |
+| `config/`           | `web/config/`       | Konfigurace                |
+| `src/`              | `web/src/`          | Zdrojový kód               |
+| `templates/`        | `web/templates/`    | Šablony                    |
+| `vendor/`           | `web/vendor/`       | Composer závislosti        |
+| `composer.json`     | `web/composer.json` | Definice závislostí        |
+| `composer.lock`     | `web/composer.lock` | Zamčené verze              |
+| `.env.production`   | `web/.env`          | **Přejmenovat** na `.env`  |
 
-### 2. Nahrání přes SFTP
+**Nenahrávat:** `.env`, `.git/`, `.claude/`, `docker/`, `docker-compose.yaml`, `Dockerfile`, `database/`, `README.md`, `storage/uploads/*`
 
-**Nahrát tyto složky/soubory do `web/`:**
+### Po nahrání
 
-| Zdroj (lokální)    | Cíl na serveru      | Poznámka                               |
-| ------------------ | ------------------- | -------------------------------------- |
-| `public/.htaccess` | `web/.htaccess`     | Front controller rewrite               |
-| `public/index.php` | `web/index.php`     | Vstupní bod aplikace                   |
-| `public/css/`      | `web/css/`          | Styly                                  |
-| `public/js/`       | `web/js/`           | JavaScript                             |
-| `config/`          | `web/config/`       | Konfigurace                            |
-| `src/`             | `web/src/`          | PHP kód aplikace                       |
-| `templates/`       | `web/templates/`    | Šablony                                |
-| `composer.json`    | `web/composer.json` | Závislosti                             |
-| `composer.lock`    | `web/composer.lock` | Zamčené verze                          |
-| `.env.production`  | `web/.env`          | **Přejmenovat!** Produkční konfigurace |
-
-**Nenahrávat:**
-
-- `.env` (lokální konfigurace)
-- `.git/`, `.claude/`
-- `docker/`, `docker-compose.yaml`, `Dockerfile`, `.dockerignore`
-- `database/` (SQL spouštět ručně, viz krok 4)
-- `README.md`
-- `storage/uploads/*` (vytvoří se automaticky)
-
-### 3. Instalace závislostí
-
-Na serveru přes SSH (pokud je dostupné):
-
-nahrát celou složku `vendor/` přes SFTP.
-
-### 4. Databáze
-
-Importovat schéma přes phpMyAdmin a seeds
-
-### 5. Oprávnění složek
-
-Složka `storage/` musí být zapisovatelná webserverem:
-
-```bash
-chmod -R 775 web/storage/
-```
-
-### Dodatečné
-
-- když jsem přesměrován na přihlášení, chci aby mě systém pak vrátil na původní stránku kam jsem chtěl jít
-- chci aby byli kartičky celého kola klikatelné a přesměrovávali na detail, ne jen tlačítko detail. tlačítko rezervovat samozřejmě přesměruje na rezervaci.
-- když jsem na stránce, kde se píše "načítání přihlašování", vždy vyskočí ten popup modal, ale když ho zavřu, chci aby mě to přesměrovalo zpět na homepage, ne jen na prázdnou stránku, kde je jen "načítání přihlášení". nebo nejlépe bys asi udělal, kdyby tento požadavek na přihlášení vyskakoval přes landing page, aby při zavření byla rovnou ta landing page a nemusel jsi přesměrovávat.
-- proč je kolo, co je schválené na výpůjčku klasifikováno jako nedostupné v sekci sdílených kol? to nechci
-- Důležité akce (zrušení rezervace apod.) by měl mít potvrzovací modal okna
-- Při registraci zvýrazni nějakým způsobem důležitost zadání kontaktu (email, telefon), klidně ty bannery co jsou na přehledu nebo když se zobrazuje že je kolo odcizené přímo na stránce kola. Zdůrazni že je to pro dobro uživatele a že to umožňuje rychlejší kontakt.
-- Přidej funkci zapomenuté heslo + přidej požadavky pro hesla (při registraci)
-- jakmile je kolo schváleno na výpůjčku, chci aby to u něho bylo vidět (podobně jako u odcizeného) a bude mít i badge na kartě s datem odkdy dokdy.
-- Projdeme celý systém posílání mailů, jelikož do toho jsme nijak nezabrousili. Budu chtít, aby skoro každá akce byla teda oznamována do mailu (v podstatě každý oznaámení), ale uživatel si může v profilu zvolit preference (že třeba nechde aby mu to chodilo). přidej jinak taky do oznámení to, že výpůjčka byla třeba zrušena
-- konečně doděláme user profile, uživatel si v sekci svého profilu bude moci měnit své údaje / user preferences co se týče zpráv na mail atd.
-- v profilu ani při registraci se nehlídá formát telefonu. také, nemělo by být rozděleno jméno a příjmení?
-- v profilu přidej změnu hesla
-- když jsem přihlášený a kouknu do sdílených kol a vidím tam to své, chci aby u něho na kartičce i v detailu bylo přesměrování ke všem rezervacím které jsou k mému danému kolu
-- sdílená kola půjde taky hledat, filtrovat apod (např. dle barvy)
-- v profilu přidej změnu emailu (srovnej rovnou i pořadí věcí které se tam upravují, email dej asi nad heslo, nebo prostě jak uznáš za vhodné)
-- V admin panelu bych byl rád, kdyby admin mohl též uživatelům měnit údaje, i kolům / mazat je / přidávat je (prostě celý CRUD). měl by také vidět nebo mít možnost vstoupit do konverzací (všech), ostatní ho neuvidí dokud samozřejmě nenapíše (podobný badge jak policie). V admin panelu zatím nefunguje ban uživatele ani změna role (tu bych chtěl udělat stylem dropdownu), ale to oprav s přidáním všech ostatních funkcí co jsem ti v tomto bodu napsal
-- Když failne captcha nebo jakkoliv failne i prostě odeslání nějakého formuláře, chci aby se informace v něm zachovali (bezpečným způsobem)
-- projeď prosimtě pořádně design v celém adminu (použij frontend skills, ui ux skills a superpowers/previews skill). tady máš hlavní věci, které tam teď designově nefungují a nesedí do zbytku aplikace: sekce konverzace není mobilně responzivní (řádky přetékají mimo obrazovku), chat okno konverzace vypadá úplně jinak než všude jinde (jak kdyby nenastylovaný), akce u uživatele jsou all over the place (blokace uživatele, pak najednou změna role), prostě to by chtělo uspořádat + změna role je neintuitiví (tlačítko změna role jsem nevěděl že potvrzuje + nevěděl jsem, že tam je vůbec dropdown), a dole kola uživatele mají hrozně u sebe všechny prvky (title, počet a tlačítko přidat kolo)k
-- Policie by měla vidět číslo/email vlastníka nalezeného kola pro rychlý kontakt
-- Policie smí na kolo umístit Upozornění na dlouhostojící kolo. To odkazuje na veřejné parkoviště kol u hlavního nádraží pardubice, kde smí kola nepřetržitě stát maximálně 2 týdny. Policie tedy bude moci i zadat lhůtu, do které si má vlastník kolo vyzvednout, než bude odvezeno pryč. Toto bude moci dělat i admin samozřejmě
-- oznámení bys mohl více kategorizovat. rozděl to na hlavní 2 skupiny: akce a zprávy. akce (např zrušení) budou na první pohled poznat (červený křízek + červený box)
-- na stránce aktivní upozornění by mělo být tlačítko přidat upozornění lépe zarovnané (nejlépe asi na pravou stranu, ne takto u titlu)
-- když ve formuláři pro upozornění na dlouhostojící kola zvolím kolo z nabídky, chci aby se ikona + po výběru změnila na minus a pak zase zpět
-- ikonky oznámení se vůbec nezměnili (přidávám jen, že to chci u všech uživatelů, kdyby to už předtím nebylo jasné)
-- Uživatel bude mít u rezervací možnost zapnout auto accepting. V tomto případě tedy uživatel bude moci i navolit, kdy bude kolo volné k výpůjčce. viděl bych to asi tak, že si bude moct zvolit pravidelnost a dny (ppodobně jak budík na mobilu) a k tomu i vybírat třeba úplně specifická data, která tam nechce zahrnout.
-- 5epo přihlášení jsem byll přesměrován na notification json z nějakýho fakin důvodu
-- failuje captcha (nebo takhle, banner říká suuccess ale neposunu se dál). stane se to jen jednou za čas ale i tak
-- je dobrý nápad dávat barvy do dropdownu?
-- domlouvali jsme se že policie bude moct řešit spory? taky, teď mi to píše že policie nemá přístup ke kolům
-- Dvoufázové ověření - řekni mi svůj názor co bude nejlepší implementovat, zda telefonní sms nebo auth aplikaci (google authenticator)
-- K jednotlivým uživatelům se na pozadí budou sbírat hw informace o něm (pro lepší dohledání pro admina). Tudíž budeme muset vymyslet, jak to udělat, aby to bylo v souladu s zákonem. asi postačí jen cookie banner?
-- sekce histori aktivity u uživatele se zobrazuje na počítači správně, na mobilu však tabulka není vidět. to stejné platí pro stejnou tabulku na dashboardu admina
-- sekce zařízení uživatele když je prázdná tak je text moc nalepený na stranách kontejneru. udělej tam trochu padding
-- u sekce zařízení uživatele mám také lehké podezření že nefunguje. po odsouhlasení uživatelem, na kterého v adminu koukám, se nezobrazí informace o zařízení. ten proces trvá, nebo něco nefunguje?
-- má uživatel možnost opt out z toho sledování (cookies banner)?
-- jsou v tuto chvíli logovány i akce nepřihlášeného uživatele po souhlasu s cookies? sbírají se tam i ty hw info a jsou pak vidět v logách?
-- formuláře s adresou (všude, takže u krádeží, v profilu apod) by mohli adresy napovídat a automaticky doplňovat. adresy mimo daný formát nebo prostě mimo systémem daným výběrem se nebudou počítat. na tohle nejspíš budeš potřebovat nějaké api, tak použij nějaké bezplatné a spolehlivé bez rate limitingu. Toto bude platit i pro tlačítko zjistit polohu, to bych chtěl mimo jiné u každého pole s adresou a aby bylo funkční (kdyžtak mi vysvětli jestli je třeba potřeba https nebo něcoo jiného)
-
-- emaily otestovat
-
-### Až na konec
-
-CELÝ PROJEKT MI DETAILNĚ VYSVĚTLI (POTŘEBUJI VĚDĚT KDE CO JE, PROČ JSOU VĚCI IMPLEMENTOVÁNY TAK JAK JSOU APOD.)
+1. Importovat `database/schema.sql` a `database/seeds.sql` přes phpMyAdmin
+2. Nastavit oprávnění: `chmod -R 775 web/storage/`

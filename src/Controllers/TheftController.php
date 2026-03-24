@@ -146,11 +146,17 @@ class TheftController
      */
     public function publicList(Request $request): Response
     {
+        $currentUser = $this->authService->currentUser();
+        if ($currentUser && $currentUser->isPolice()) {
+            return redirect('/admin/bikes?status=stolen');
+        }
+
         $search      = trim($request->query('search', '')) ?: null;
         $color       = trim($request->query('color', '')) ?: null;
         $yearFrom    = ($y = (int) $request->query('year_from', 0)) > 0 ? $y : null;
         $yearTo      = ($y = (int) $request->query('year_to', 0)) > 0 ? $y : null;
         $frameNumber = trim($request->query('frame_number', '')) ?: null;
+        $qrHash      = trim($request->query('qr_hash', '')) ?: null;
 
         $stolenBikes = $this->bikeRepository->findStolen(
             withPhotos: true,
@@ -158,7 +164,8 @@ class TheftController
             color: $color,
             yearFrom: $yearFrom,
             yearTo: $yearTo,
-            frameNumber: $frameNumber
+            frameNumber: $frameNumber,
+            qrHash: $qrHash
         );
         $yearRange = $this->bikeRepository->getStolenBikeYearRange();
 
@@ -178,6 +185,7 @@ class TheftController
             'year_from'    => $yearFrom ?? '',
             'year_to'      => $yearTo ?? '',
             'frame_number' => $frameNumber ?? '',
+            'qr_hash'      => $qrHash ?? '',
         ];
         $hasFilters = !empty(array_filter($filters, fn($v) => $v !== ''));
 

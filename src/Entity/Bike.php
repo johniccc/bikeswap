@@ -169,6 +169,7 @@ class Bike
             'stolen'    => 'Odcizené',
             'found'     => 'Nalezené',
             'recovered' => 'Navrácené',
+            'seized'    => 'Odvezeno',
             default     => 'Neznámý',
         };
     }
@@ -183,6 +184,7 @@ class Bike
             'stolen'    => 'status-stolen',
             'found'     => 'status-found',
             'recovered' => 'status-recovered',
+            'seized'    => 'status-seized',
             default     => 'status-unknown',
         };
     }
@@ -207,6 +209,11 @@ class Bike
     public function isRecovered(): bool
     {
         return $this->status === 'recovered';
+    }
+
+    public function isSeized(): bool
+    {
+        return $this->status === 'seized';
     }
 
     // ── Relations (set externally) ─────────────────────────────

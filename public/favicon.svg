@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Kola -->
+  <circle cx="14" cy="42" r="11" fill="none" stroke="#fff" stroke-width="3"/>
+  <circle cx="50" cy="42" r="11" fill="none" stroke="#fff" stroke-width="3"/>
+  <!-- Náboje -->
+  <circle cx="14" cy="42" r="2" fill="#fff"/>
+  <circle cx="50" cy="42" r="2" fill="#fff"/>
+  <!-- Zadní vidlice (sedlo → zadní náboj) -->
+  <line x1="14" y1="42" x2="28" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Sedlová trubka -->
+  <line x1="28" y1="22" x2="24" y2="14" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Horní rám (sedlo → hlavová trubka) -->
+  <line x1="28" y1="22" x2="40" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Dolní rám (střed → hlavová trubka) -->
+  <line x1="28" y1="22" x2="38" y2="42" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Přední vidlice (hlavová trubka → přední náboj) -->
+  <line x1="40" y1="22" x2="50" y2="42" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Řídítka -->
+  <line x1="40" y1="22" x2="44" y2="16" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Sedátko -->
+  <line x1="22" y1="14" x2="28" y2="14" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

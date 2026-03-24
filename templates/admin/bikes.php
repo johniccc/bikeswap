@@ -15,6 +15,7 @@
   <a href="/admin/bikes?status=active" class="btn btn-sm <?= $statusFilter === 'active' ? 'btn-primary' : 'btn-secondary' ?>">Aktivní</a>
   <a href="/admin/bikes?status=stolen" class="btn btn-sm <?= $statusFilter === 'stolen' ? 'btn-primary' : 'btn-secondary' ?>">Odcizená</a>
   <a href="/admin/bikes?status=inactive" class="btn btn-sm <?= $statusFilter === 'inactive' ? 'btn-primary' : 'btn-secondary' ?>">Neaktivní</a>
+  <a href="/admin/bikes?status=seized" class="btn btn-sm <?= $statusFilter === 'seized' ? 'btn-primary' : 'btn-secondary' ?>">Odvezená</a>
 </div>
 
 <?php if (empty($bikes)): ?>
@@ -37,7 +38,7 @@
             <?php endif; ?>
             <div class="bike-card-badges">
               <?php
-                $statusLabels = ['active' => 'Aktivní', 'stolen' => 'Odcizené', 'shared' => 'Sdílené', 'inactive' => 'Neaktivní'];
+                $statusLabels = ['active' => 'Aktivní', 'stolen' => 'Odcizené', 'shared' => 'Sdílené', 'inactive' => 'Neaktivní', 'seized' => 'Odvezeno'];
               ?>
               <span class="status-badge status-<?= e($bike->getStatus()) ?>">
                 <?= e($statusLabels[$bike->getStatus()] ?? $bike->getStatus()) ?>
@@ -47,13 +48,18 @@
           <div class="bike-card-body">
             <div class="bike-card-name"><?= e($bike->getFullName()) ?></div>
             <div class="bike-card-meta"><i data-lucide="palette"></i> <?= e($bike->getColor()) ?></div>
+            <?php $owner = $owners[$bike->getOwnerId()] ?? null; ?>
+            <?php if ($owner): ?>
+              <div class="bike-card-meta" style="margin-top:0.25rem">
+                <i data-lucide="user"></i>
+                <?= e($owner->getFullName()) ?>
+              </div>
+            <?php endif; ?>
           </div>
         </a>
-        <?php if ($currentUser->hasRole('police')): ?>
-          <a href="/admin/warnings/new?bike_id=<?= $bike->getId() ?>" class="btn btn-warning btn-sm" style="position:absolute;top:0.5rem;right:0.5rem;z-index:2" title="Přidat upozornění">
-            <i data-lucide="alert-triangle"></i>
-          </a>
-        <?php endif; ?>
+        <a href="/admin/warnings/new?bike_id=<?= $bike->getId() ?>" class="btn btn-warning btn-sm" style="position:absolute;top:0.5rem;right:0.5rem;z-index:2" title="Přidat upozornění">
+          <i data-lucide="alert-triangle"></i>
+        </a>
       </div>
     <?php endforeach; ?>
   </div>

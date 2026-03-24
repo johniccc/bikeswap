@@ -380,6 +380,41 @@ class ReservationRepository
         return (int) $this->db->fetchColumn("SELECT COUNT(*) FROM reservations");
     }
 
+    /**
+     * Find the most important reservation status for each bike.
+     * Priority: active > approved > pending.
+     *
+     * @param int[] $bikeIds
+     * @return array<int, string> [bikeId => status]
+     */
+    public function findReservationStatusesByBikeIds(array $bikeIds): array
+    {
+        if (empty($bikeIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($bikeIds), '?'));
+        $rows = $this->db->fetchAll(
+            "SELECT bike_id, status FROM reservations
+             WHERE bike_id IN ({$placeholders})
+               AND status IN ('pending', 'approved', 'active', 'not_returned', 'disputed')
+               AND date_to >= CURDATE()
+             ORDER BY FIELD(status, 'not_returned', 'disputed', 'active', 'approved', 'pending')",
+            array_values($bikeIds)
+        );
+
+        $map = [];
+        foreach ($rows as $row) {
+            $id = (int) $row['bike_id'];
+            // Keep only the highest priority status per bike (first match due to ORDER BY)
+            if (!isset($map[$id])) {
+                $map[$id] = $row['status'];
+            }
+        }
+
+        return $map;
+    }
+
     // ── Internal helpers ───────────────────────────────────
 
     /**

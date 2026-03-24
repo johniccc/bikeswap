@@ -12,6 +12,7 @@ declare(strict_types=1);
 use App\Controllers\HomeController;
 use App\Controllers\AuthController;
 use App\Controllers\BikeController;
+use App\Controllers\BikeWarningController;
 use App\Controllers\FileController;
 use App\Controllers\TheftController;
 use App\Controllers\FoundReportController;
@@ -58,6 +59,9 @@ $router->get('/login/2fa', [TwoFactorController::class, 'verifyForm']);
 $router->get('/login/2fa/cancel', [TwoFactorController::class, 'cancelVerify']);
 $router->get('/verify-email', [AuthController::class, 'verifyEmail']);
 $router->get('/forgot-password', [AuthController::class, 'forgotPasswordForm']);
+$router->get('/forgot-password/methods', [AuthController::class, 'resetMethodsForm']);
+$router->get('/forgot-password/totp', [AuthController::class, 'resetTotpForm']);
+$router->get('/forgot-password/recovery', [AuthController::class, 'resetRecoveryForm']);
 $router->get('/reset-password', [AuthController::class, 'resetPasswordForm']);
 
 // ── Found reports (public — no auth required) ──────────────────
@@ -74,6 +78,9 @@ $router->group('', [CsrfMiddleware::class], function ($router) {
     $router->post('/logout', [AuthController::class, 'logout']);
     $router->post('/login/2fa', [TwoFactorController::class, 'verify']);
     $router->post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    $router->post('/forgot-password/email', [AuthController::class, 'forgotPasswordEmail']);
+    $router->post('/forgot-password/totp', [AuthController::class, 'forgotPasswordTotp']);
+    $router->post('/forgot-password/recovery', [AuthController::class, 'forgotPasswordRecovery']);
     $router->post('/reset-password', [AuthController::class, 'resetPassword']);
     $router->post('/found/report/{qrHash}', [FoundReportController::class, 'report']);
     $router->post('/found/conversation/{token}/message', [FoundReportController::class, 'finderSendMessage']);
@@ -154,6 +161,9 @@ $router->group('', [AuthMiddleware::class, CsrfMiddleware::class], function ($ro
     $router->post('/reservation/{id}/admin-resolve', [ReservationController::class, 'adminResolve']);
     $router->post('/reservation/{id}/message', [ReservationController::class, 'sendMessage']);
     $router->post('/reservation/{id}/review', [ReservationController::class, 'submitReview']);
+
+    // Bike warning actions (owner)
+    $router->post('/warning/{bikeId}/pickup', [BikeWarningController::class, 'confirmPickup']);
 });
 
 // ── Bike search by serial/frame number ───────────────────────────
@@ -178,6 +188,8 @@ $router->group('/admin', [AdminMiddleware::class, CsrfMiddleware::class], functi
     $router->get('/warnings/new', [AdminBikeWarningController::class, 'createBikeWarningForm']);
     $router->post('/warnings/new', [AdminBikeWarningController::class, 'storeBikeWarning']);
     $router->post('/warnings/{id}/resolve', [AdminBikeWarningController::class, 'resolveBikeWarning']);
+    $router->post('/warnings/{bikeId}/seize', [AdminBikeWarningController::class, 'seizeBike']);
+    $router->post('/warnings/{bikeId}/return', [AdminBikeWarningController::class, 'returnBike']);
     $router->get('/bikes', [AdminBikeController::class, 'bikes']);
     $router->get('/bikes/new', [AdminBikeController::class, 'createBikeForm']);
     $router->post('/bikes/new', [AdminBikeController::class, 'createBike']);

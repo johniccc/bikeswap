@@ -36,6 +36,34 @@ class UserRepository
     }
 
     /**
+     * Find multiple users by IDs. Returns [id => User] associative array.
+     *
+     * @param int[] $ids
+     * @return array<int, User>
+     */
+    public function findByIds(array $ids): array
+    {
+        $ids = array_filter(array_map('intval', $ids));
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $rows = $this->db->fetchAll(
+            "SELECT * FROM users WHERE id IN ({$placeholders})",
+            array_values($ids)
+        );
+
+        $map = [];
+        foreach ($rows as $row) {
+            $user = User::fromRow($row);
+            $map[$user->getId()] = $user;
+        }
+
+        return $map;
+    }
+
+    /**
      * Find a user by email. Returns null if not found.
      */
     public function findByEmail(string $email): ?User

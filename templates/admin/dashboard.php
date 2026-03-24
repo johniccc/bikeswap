@@ -42,7 +42,7 @@
         <span class="admin-stat-value"><?= $stats['warnings_active'] ?? 0 ?></span>
         <span class="admin-stat-label">Aktivních upozornění</span>
       </div>
-      <a href="/admin/warnings?status=active" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
+      <a href="/admin/warnings" class="btn btn-sm btn-secondary mt-auto">Zobrazit</a>
     </div>
   </div>
 

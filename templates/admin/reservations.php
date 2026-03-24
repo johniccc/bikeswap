@@ -46,7 +46,7 @@
               <td class="text-muted">#<?= $res->getId() ?></td>
               <td>
                 <?php if ($resBike): ?>
-                  <a href="/bike/<?= e($resBike->getQrHash()) ?>"><?= e($resBike->getFullName()) ?></a>
+                  <a href="/admin/bikes/<?= $resBike->getId() ?>"><?= e($resBike->getFullName()) ?></a>
                 <?php else: ?>
                   Kolo #<?= $res->getBikeId() ?>
                 <?php endif; ?>

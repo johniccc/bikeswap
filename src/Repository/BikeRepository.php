@@ -110,10 +110,16 @@ class BikeRepository
         ?string $color = null,
         ?int $yearFrom = null,
         ?int $yearTo = null,
-        ?string $frameNumber = null
+        ?string $frameNumber = null,
+        ?string $qrHash = null
     ): array {
         $where  = ["status = 'stolen'"];
         $params = [];
+
+        if ($qrHash !== null && $qrHash !== '') {
+            $where[]  = "qr_hash = ?";
+            $params[] = $qrHash;
+        }
 
         if ($search !== null && $search !== '') {
             $where[]  = "(brand LIKE ? OR model LIKE ? OR description LIKE ?)";
@@ -187,10 +193,16 @@ class BikeRepository
         ?string $color = null,
         ?int $yearFrom = null,
         ?int $yearTo = null,
-        array $excludeIds = []
+        array $excludeIds = [],
+        ?string $qrHash = null
     ): array {
         $where  = ["is_shared = 1", "status = 'active'"];
         $params = [];
+
+        if ($qrHash !== null && $qrHash !== '') {
+            $where[]  = "qr_hash = ?";
+            $params[] = $qrHash;
+        }
 
         if ($search !== null && $search !== '') {
             $where[]  = "(brand LIKE ? OR model LIKE ? OR description LIKE ?)";
@@ -388,6 +400,100 @@ class BikeRepository
         }
 
         return $bikes;
+    }
+
+    /**
+     * Get seized bikes with optional search filters (including owner name/email via JOIN).
+     *
+     * @return Bike[]
+     */
+    public function findSeized(
+        bool $withPhotos = false,
+        ?string $search = null,
+        ?string $color = null,
+        ?int $yearFrom = null,
+        ?int $yearTo = null,
+        ?string $frameNumber = null,
+        ?string $qrHash = null,
+        ?string $ownerSearch = null
+    ): array {
+        $where  = ["b.status = 'seized'"];
+        $params = [];
+        $join   = '';
+
+        if ($ownerSearch !== null && $ownerSearch !== '') {
+            $join = 'JOIN users u ON b.owner_id = u.id';
+            $like = '%' . $ownerSearch . '%';
+            $where[]  = "(u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ? OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?)";
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        if ($qrHash !== null && $qrHash !== '') {
+            $where[]  = "b.qr_hash = ?";
+            $params[] = $qrHash;
+        }
+
+        if ($search !== null && $search !== '') {
+            $where[]  = "(b.brand LIKE ? OR b.model LIKE ? OR b.description LIKE ?)";
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        if ($color !== null && $color !== '') {
+            $where[]  = "b.color LIKE ?";
+            $params[] = '%' . $color . '%';
+        }
+
+        if ($yearFrom !== null) {
+            $where[]  = "b.year_of_manufacture >= ?";
+            $params[] = $yearFrom;
+        }
+
+        if ($yearTo !== null) {
+            $where[]  = "b.year_of_manufacture <= ?";
+            $params[] = $yearTo;
+        }
+
+        if ($frameNumber !== null && $frameNumber !== '') {
+            $where[]  = "b.frame_number LIKE ?";
+            $params[] = '%' . $frameNumber . '%';
+        }
+
+        $sql  = "SELECT b.* FROM bikes b {$join} WHERE " . implode(' AND ', $where) . " ORDER BY b.updated_at DESC";
+        $rows = $this->db->fetchAll($sql, $params);
+        $bikes = array_map(fn(array $row) => Bike::fromRow($row), $rows);
+
+        if ($withPhotos) {
+            $this->loadPhotosForBikes($bikes);
+        }
+
+        return $bikes;
+    }
+
+    /**
+     * Get min/max year of manufacture from seized bikes (for year slider range).
+     */
+    public function getSeizedBikeYearRange(): array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT MIN(year_of_manufacture) AS min_year, MAX(year_of_manufacture) AS max_year
+             FROM bikes WHERE status = 'seized' AND year_of_manufacture IS NOT NULL"
+        );
+        $currentYear = (int) date('Y');
+        $min = $row && $row['min_year'] ? (int) $row['min_year'] : 1990;
+        $max = $row && $row['max_year'] ? (int) $row['max_year'] : $currentYear;
+
+        if ($max - $min < 4) {
+            $min = $min - 2;
+            $max = max($max + 2, $currentYear);
+        }
+
+        return ['min' => $min, 'max' => $max];
     }
 
     // ── Photos ─────────────────────────────────────────────────

@@ -39,6 +39,19 @@
       </div>
     <?php endif; ?>
 
+    <!-- Seized alert -->
+    <?php if ($bike->isSeized()): ?>
+      <div class="alert alert-seized mb-lg">
+        <i data-lucide="truck"></i>
+        <div>
+          <strong>Toto kolo bylo odvezeno.</strong>
+          <p class="mt-sm" style="font-weight:400">
+            Kolo bylo odvezeno městskou policií. Pro více informací kontaktujte správce.
+          </p>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <!-- Bike info -->
     <div class="bike-info-grid">
       <div>
@@ -51,6 +64,7 @@
               'stolen' => 'Odcizené',
               'shared' => 'Sdílené',
               'inactive' => 'Neaktivní',
+              'seized' => 'Odvezeno',
             ];
           ?>
           <span class="status-badge status-<?= e($bike->getStatus()) ?>">
@@ -58,6 +72,16 @@
           </span>
           <?php if ($bike->isShared()): ?>
             <span class="status-badge status-shared">Sdílené</span>
+          <?php endif; ?>
+          <?php if ($isOwner && isset($reservationStatus) && $reservationStatus): ?>
+            <?php
+              $resLabels = ['pending' => 'Čeká na schválení', 'approved' => 'Rezervováno', 'active' => 'Zapůjčeno', 'not_returned' => 'Nevráceno', 'disputed' => 'Ve sporu'];
+              $resClasses = ['pending' => 'status-pending', 'approved' => 'status-found', 'active' => 'status-active', 'not_returned' => 'status-stolen', 'disputed' => 'status-stolen'];
+            ?>
+            <span class="status-badge <?= $resClasses[$reservationStatus] ?? '' ?>">
+              <i data-lucide="repeat" style="width:12px;height:12px"></i>
+              <?= $resLabels[$reservationStatus] ?? $reservationStatus ?>
+            </span>
           <?php endif; ?>
         </div>
 
@@ -89,8 +113,32 @@
                 <span class="info-value"><?= e($bike->getFrameNumber()) ?></span>
               </div>
             <?php endif; ?>
+            <?php if (isset($owner) && $owner && $currentUser && ($currentUser->isPolice() || $currentUser->isAdmin())): ?>
+              <div class="info-row">
+                <span class="info-label">Majitel</span>
+                <span class="info-value"><?= e($owner->getFullName()) ?></span>
+              </div>
+              <?php if ($owner->getEmail()): ?>
+                <div class="info-row">
+                  <span class="info-label">E-mail</span>
+                  <span class="info-value"><a href="mailto:<?= e($owner->getEmail()) ?>"><?= e($owner->getEmail()) ?></a></span>
+                </div>
+              <?php endif; ?>
+              <?php if ($owner->getPhone()): ?>
+                <div class="info-row">
+                  <span class="info-label">Telefon</span>
+                  <span class="info-value"><a href="tel:<?= e($owner->getPhone()) ?>"><?= e($owner->getPhone()) ?></a></span>
+                </div>
+              <?php endif; ?>
+            <?php endif; ?>
           </div>
         </div>
+
+        <?php if ($currentUser && $currentUser->isAdmin() && !$isOwner): ?>
+          <a href="/admin/bikes/<?= $bike->getId() ?>" class="btn btn-secondary btn-sm mt-md" style="display:inline-flex;align-items:center;gap:0.35rem;">
+            <i data-lucide="settings"></i> Spravovat v administraci
+          </a>
+        <?php endif; ?>
 
         <?php if ($bike->getDescription()): ?>
           <div class="mt-lg">
@@ -239,6 +287,97 @@
           <p class="text-sm text-muted mt-md">Vytiskněte a umístěte na kolo. Po naskenování zobrazí detail kola.</p>
         </div>
       <?php endif; ?>
+    <?php endif; ?>
+
+    <!-- Warning timeline -->
+    <?php if (!empty($warningTimeline)): ?>
+      <div class="card mt-lg">
+        <div class="card-header">
+          <h3><i data-lucide="history" class="icon-inline-lg"></i> Historie upozornění</h3>
+        </div>
+        <div class="card-body">
+          <div class="warning-timeline">
+            <?php foreach ($warningTimeline as $event): ?>
+              <?php
+                $color = $event->getTypeColor();
+                $daysSince = (int) ((time() - strtotime($event->getCreatedAt())) / 86400);
+              ?>
+              <div class="timeline-item">
+                <div class="timeline-icon timeline-icon-<?= $color ?>">
+                  <i data-lucide="<?= e($event->getTypeIcon()) ?>"></i>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-content-header">
+                    <span class="timeline-type-label timeline-type-label-<?= $color ?>">
+                      <?= e($event->getTypeLabel()) ?>
+                    </span>
+                    <span class="timeline-date">
+                      <?= formatDateTime($event->getCreatedAt()) ?>
+                      <?php if ($event->isActive() && $event->isWarning() && $daysSince > 0): ?>
+                        <span class="timeline-days-ago <?= $daysSince > 14 ? 'timeline-days-ago-danger' : '' ?>">
+                          <?= $daysSince ?> d
+                        </span>
+                      <?php endif; ?>
+                    </span>
+                  </div>
+                  <?php if ($event->getReason()): ?>
+                    <p class="timeline-detail"><?= e($event->getReason()) ?></p>
+                  <?php endif; ?>
+                  <?php if ($event->getLocationDescription()): ?>
+                    <p class="timeline-detail">
+                      <span class="timeline-location">
+                        <i data-lucide="map-pin"></i>
+                        <?= e($event->getLocationDescription()) ?>
+                      </span>
+                    </p>
+                  <?php endif; ?>
+                  <?php if ($event->getDeadline()): ?>
+                    <p class="timeline-detail">Doporučený termín: <?= e($event->getFormattedDeadline()) ?></p>
+                  <?php endif; ?>
+                </div>
+              </div>
+            <?php endforeach; ?>
+          </div>
+
+          <?php
+            $isPoliceOrAdmin = $currentUser && ($currentUser->isPolice() || $currentUser->isAdmin());
+            $showActions = ($isOwner && $hasActiveWarning) || ($isPoliceOrAdmin && !$isOwner && $hasActiveWarning) || ($isPoliceOrAdmin && $bike->isSeized());
+          ?>
+          <?php if ($showActions): ?>
+            <div class="timeline-actions">
+              <?php if ($isOwner && $hasActiveWarning): ?>
+                <form method="POST" action="/warning/<?= $bike->getId() ?>/pickup">
+                  <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                  <button type="submit" class="btn btn-success"
+                          data-confirm="Opravdu jste si kolo vyzvedli?" data-confirm-ok="Ano, vyzvednul/a" data-confirm-class="btn-success">
+                    <i data-lucide="check-circle"></i> Potvrzuji vyzvednutí kola
+                  </button>
+                </form>
+              <?php endif; ?>
+
+              <?php if ($isPoliceOrAdmin && !$isOwner && $hasActiveWarning): ?>
+                <form method="POST" action="/admin/warnings/<?= $bike->getId() ?>/seize">
+                  <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                  <button type="submit" class="btn btn-danger"
+                          data-confirm="Opravdu chcete toto kolo odvézt?">
+                    <i data-lucide="truck"></i> Odvézt kolo
+                  </button>
+                </form>
+              <?php endif; ?>
+
+              <?php if ($isPoliceOrAdmin && $bike->isSeized()): ?>
+                <form method="POST" action="/admin/warnings/<?= $bike->getId() ?>/return">
+                  <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                  <button type="submit" class="btn btn-success"
+                          data-confirm="Opravdu chcete kolo vrátit majiteli?" data-confirm-ok="Ano, vrátit" data-confirm-class="btn-success">
+                    <i data-lucide="undo-2"></i> Vrátit kolo majiteli
+                  </button>
+                </form>
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
     <?php endif; ?>
 
   </div>

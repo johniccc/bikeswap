@@ -140,16 +140,25 @@
         }
 
         function handleCode(data) {
+            // New format: bikeswap:{hash}
+            if (data.startsWith('bikeswap:')) {
+                var hash = data.substring(9);
+                if (hash) {
+                    window.location.href = window.location.origin + '/bike/' + hash;
+                    return;
+                }
+            }
+
+            // Legacy fallback: full URL with /bike/ path
             try {
                 var url = new URL(data);
-                if (url.hostname === window.location.hostname && url.pathname.startsWith('/bike/')) {
-                    window.location.href = data;
-                } else {
-                    setStatus('Neplatny QR kod BikeSwap.');
+                if (url.pathname.startsWith('/bike/')) {
+                    window.location.href = window.location.origin + url.pathname;
+                    return;
                 }
-            } catch(e) {
-                setStatus('Neplatny QR kod.');
-            }
+            } catch(e) {}
+
+            setStatus('Neplatny QR kod BikeSwap.');
         }
 
         function stopCamera() {
@@ -260,6 +269,18 @@
                 var input = document.getElementById('serial-number-input');
                 if (input && input.value.trim()) {
                     window.location.href = '/bike/serial/' + encodeURIComponent(input.value.trim());
+                }
+            });
+        }
+
+        // Bike ID lookup
+        var bikeIdForm = document.getElementById('bike-id-form');
+        if (bikeIdForm) {
+            bikeIdForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var input = document.getElementById('bike-id-input');
+                if (input && input.value.trim()) {
+                    window.location.href = '/bike/' + encodeURIComponent(input.value.trim());
                 }
             });
         }

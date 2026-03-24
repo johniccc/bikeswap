@@ -301,6 +301,32 @@ class EmailService
     }
 
     /**
+     * Notify owner that their bike was seized (towed away).
+     */
+    public function sendBikeSeizedNotification(int $ownerId, string $bikeName): void
+    {
+        if (!$this->preferencesRepository->isEnabled($ownerId, 'email_on_status_change')) {
+            return;
+        }
+
+        $user = $this->userRepository->findById($ownerId);
+        if ($user === null) {
+            return;
+        }
+
+        $subject = 'Vaše kolo bylo odvezeno – ' . $bikeName;
+        $body = sprintf(
+            "Dobrý den,\n\nvaše kolo %s bylo odvezeno městskou policií.\n\n" .
+            "Pro více informací se přihlaste do BikeSwap:\n%s\n\n" .
+            "S pozdravem,\nBikeSwap",
+            $bikeName,
+            $this->url('/dashboard')
+        );
+
+        $this->send($user->getEmail(), $subject, $body);
+    }
+
+    /**
      * Send an email (or log it in debug mode).
      */
     private function send(string $to, string $subject, string $body): void

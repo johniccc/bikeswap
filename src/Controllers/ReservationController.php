@@ -71,6 +71,10 @@ class ReservationController
     public function sharedBikes(Request $request): Response
     {
         $currentUser = $this->authService->currentUser();
+        if ($currentUser && $currentUser->isPolice()) {
+            return redirect('/admin/bikes');
+        }
+
         $layout = $currentUser ? 'layouts/app' : 'layouts/public';
 
         $search   = trim($request->query('search', '')) ?: null;
@@ -79,6 +83,7 @@ class ReservationController
         $yearTo   = ($y = (int) $request->query('year_to', 0)) > 0 ? $y : null;
         $dateFrom = trim($request->query('date_from', '')) ?: null;
         $dateTo   = trim($request->query('date_to', '')) ?: null;
+        $qrHash   = trim($request->query('qr_hash', '')) ?: null;
 
         $excludeIds = [];
         if ($dateFrom !== null && $dateTo !== null && $dateFrom <= $dateTo) {
@@ -91,12 +96,14 @@ class ReservationController
             color: $color,
             yearFrom: $yearFrom,
             yearTo: $yearTo,
-            excludeIds: $excludeIds
+            excludeIds: $excludeIds,
+            qrHash: $qrHash
         );
         $yearRange = $this->bikeRepo->getSharedBikeYearRange();
 
         $bikeIds            = array_map(fn($b) => $b->getId(), $bikes);
         $activeReservations = $this->reservationRepo->findCurrentByBikeIds($bikeIds);
+        $reservationStatuses = $this->reservationRepo->findReservationStatusesByBikeIds($bikeIds);
 
         $filters = [
             'search'    => $search ?? '',
@@ -105,19 +112,21 @@ class ReservationController
             'year_to'   => $yearTo ?? '',
             'date_from' => $dateFrom ?? '',
             'date_to'   => $dateTo ?? '',
+            'qr_hash'   => $qrHash ?? '',
         ];
         $hasFilters = !empty(array_filter($filters, fn($v) => $v !== ''));
 
         return view('reservation/shared-bikes', [
-            'title'              => 'Sdílená kola – BikeSwap',
-            'bikes'              => $bikes,
-            'activeReservations' => $activeReservations,
-            'yearMin'            => $yearRange['min'],
-            'yearMax'            => $yearRange['max'],
-            'filters'            => $filters,
-            'hasFilters'         => $hasFilters,
-            'currentUser'        => $currentUser,
-            'session'            => $this->session,
+            'title'               => 'Sdílená kola – BikeSwap',
+            'bikes'               => $bikes,
+            'activeReservations'  => $activeReservations,
+            'reservationStatuses' => $reservationStatuses,
+            'yearMin'             => $yearRange['min'],
+            'yearMax'             => $yearRange['max'],
+            'filters'             => $filters,
+            'hasFilters'          => $hasFilters,
+            'currentUser'         => $currentUser,
+            'session'             => $this->session,
         ])->withLayout($layout);
     }
 
@@ -250,7 +259,7 @@ class ReservationController
 
         $currentUser = $this->authService->currentUser();
 
-        if (!$reservation->involvesUser($currentUser->getId()) && !$currentUser->isAdmin()) {
+        if (!$reservation->involvesUser($currentUser->getId()) && !$currentUser->hasRole('police')) {
             throw new \RuntimeException('Nemáte oprávnění.', 403);
         }
 

@@ -152,6 +152,7 @@
                 'stolen' => 'Odcizené',
                 'shared' => 'Sdílené',
                 'inactive' => 'Neaktivní',
+                'seized' => 'Odvezeno',
               ];
             ?>
             <span class="status-badge status-<?= e($bike->getStatus()) ?>">
@@ -163,6 +164,17 @@
               <span class="found-report-badge">
                 <i data-lucide="map-pin" style="width:12px;height:12px"></i>
                 <?= $frCount ?> nález<?= $frCount > 4 ? 'ů' : ($frCount > 1 ? 'y' : '') ?>
+              </span>
+            <?php endif; ?>
+            <?php $resStatus = $reservationStatuses[$bike->getId()] ?? null; ?>
+            <?php if ($resStatus): ?>
+              <?php
+                $resLabels = ['pending' => 'Čeká na schválení', 'approved' => 'Rezervováno', 'active' => 'Zapůjčeno', 'not_returned' => 'Nevráceno', 'disputed' => 'Ve sporu'];
+                $resClasses = ['pending' => 'status-pending', 'approved' => 'status-found', 'active' => 'status-active', 'not_returned' => 'status-stolen', 'disputed' => 'status-stolen'];
+              ?>
+              <span class="status-badge <?= $resClasses[$resStatus] ?? '' ?>">
+                <i data-lucide="repeat" style="width:12px;height:12px"></i>
+                <?= $resLabels[$resStatus] ?? $resStatus ?>
               </span>
             <?php endif; ?>
           </div>

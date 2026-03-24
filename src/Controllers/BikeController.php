@@ -9,6 +9,7 @@ use App\Core\Session;
 use App\Core\Validator;
 use App\Repository\BikeExcludedDateRepository;
 use App\Repository\BikeRepository;
+use App\Repository\BikeWarningRepository;
 use App\Repository\FoundReportRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\TheftReportRepository;
@@ -22,6 +23,7 @@ class BikeController
 {
     private BikeExcludedDateRepository $excludedDateRepository;
     private BikeRepository $bikeRepository;
+    private BikeWarningRepository $bikeWarningRepository;
     private FoundReportRepository $foundReportRepository;
     private ReservationRepository $reservationRepository;
     private TheftReportRepository $theftReportRepository;
@@ -34,6 +36,7 @@ class BikeController
     public function __construct(
         BikeExcludedDateRepository $excludedDateRepository,
         BikeRepository $bikeRepository,
+        BikeWarningRepository $bikeWarningRepository,
         FoundReportRepository $foundReportRepository,
         ReservationRepository $reservationRepository,
         TheftReportRepository $theftReportRepository,
@@ -45,6 +48,7 @@ class BikeController
     ) {
         $this->excludedDateRepository = $excludedDateRepository;
         $this->bikeRepository = $bikeRepository;
+        $this->bikeWarningRepository = $bikeWarningRepository;
         $this->reservationRepository = $reservationRepository;
         $this->foundReportRepository = $foundReportRepository;
         $this->theftReportRepository = $theftReportRepository;
@@ -117,13 +121,38 @@ class BikeController
 
         $activeReservations = $this->reservationRepository->findCurrentByBikeIds([$bike->getId()]);
 
+        // Load owner info for police/admin (direct contact) or reservation status for owner
+        $owner = null;
+        if ($currentUser && ($currentUser->isPolice() || $currentUser->isAdmin())) {
+            $owner = $this->userRepository->findById($bike->getOwnerId());
+        }
+
+        // Load warning timeline for owner, police, admin
+        $warningTimeline = [];
+        $hasActiveWarning = false;
+        if ($currentUser && ($isOwner || $currentUser->isPolice() || $currentUser->isAdmin())) {
+            $warningTimeline = $this->bikeWarningRepository->findTimelineByBikeId($bike->getId());
+            $hasActiveWarning = $this->bikeWarningRepository->hasActiveWarning($bike->getId());
+        }
+
+        // Load reservation status for owner's view
+        $reservationStatus = null;
+        if ($isOwner) {
+            $statuses = $this->reservationRepository->findReservationStatusesByBikeIds([$bike->getId()]);
+            $reservationStatus = $statuses[$bike->getId()] ?? null;
+        }
+
         return view('bike/public-detail', [
             'title' => $bike->getFullName() . ' – BikeSwap',
             'bike' => $bike,
             'currentUser' => $currentUser,
             'isOwner' => $isOwner,
+            'owner' => $owner,
+            'reservationStatus' => $reservationStatus,
             'theftReport' => $bike->isStolen() ? $this->theftReportRepository->findActiveByBikeId($bike->getId()) : null,
             'foundReports' => $foundReports,
+            'warningTimeline' => $warningTimeline,
+            'hasActiveWarning' => $hasActiveWarning,
             'activeReservation' => $activeReservations[$bike->getId()] ?? null,
             'qrDataUri' => $this->qrService->generateQrDataUri($hash),
             'session' => $this->session,
@@ -384,6 +413,10 @@ class BikeController
             }
         }
 
+        // Load reservation statuses for badges
+        $bikeIds = array_map(fn($b) => $b->getId(), $bikes);
+        $reservationStatuses = $this->reservationRepository->findReservationStatusesByBikeIds($bikeIds);
+
         if ($request->wantsJson()) {
             return json(['bikes' => array_map(fn($b) => [
                 'id' => $b->getId(),
@@ -415,6 +448,7 @@ class BikeController
             'title' => 'Moje kola – BikeSwap',
             'bikes' => $bikes,
             'foundReportCounts' => $foundReportCounts,
+            'reservationStatuses' => $reservationStatuses,
             'myOpenFinds' => $myOpenFinds,
             'findBikes' => $findBikes,
             'actionableReservations' => $actionableReservations,

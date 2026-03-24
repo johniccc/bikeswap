@@ -3315,6 +3315,39 @@ td .btn { white-space: nowrap; }
   }
 }
 
+/* ── Filter tabs ───────────────────────────────────────────── */
+
+.filter-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.filter-tab:hover {
+  color: var(--text);
+}
+
+.filter-tab-active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
 /* ── Filter bar (shared bikes) ─────────────────────────────── */
 
 .filter-bar {
@@ -4208,6 +4241,211 @@ td .btn { white-space: nowrap; }
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: addr-spin 0.6s linear infinite;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   UTILITY CLASSES
+   ────────────────────────────────────────────────────────────────── */
+
+/* ──────────────────────────────────────────────────────────────────
+   TIMELINE
+   ────────────────────────────────────────────────────────────────── */
+
+.warning-timeline {
+  position: relative;
+  padding: 0.25rem 0;
+}
+
+/* Vertical connector line */
+.warning-timeline::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 2.25rem;
+  bottom: 2.25rem;
+  width: 2px;
+  background: var(--border);
+  border-radius: 1px;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  padding: 0.875rem 0;
+  animation: tl-fadeIn var(--duration-slow) var(--ease) both;
+}
+
+.timeline-item:first-child { padding-top: 0; }
+.timeline-item:last-child  { padding-bottom: 0; }
+
+@keyframes tl-fadeIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0ms; }
+.timeline-item:nth-child(2) { animation-delay: 60ms; }
+.timeline-item:nth-child(3) { animation-delay: 120ms; }
+.timeline-item:nth-child(4) { animation-delay: 180ms; }
+.timeline-item:nth-child(5) { animation-delay: 240ms; }
+
+/* Dot / icon hub */
+.timeline-icon {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2.5px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--border), var(--shadow-sm);
+  transition: transform var(--duration) var(--ease-spring);
+}
+
+.timeline-item:hover .timeline-icon {
+  transform: scale(1.1);
+}
+
+.timeline-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Color variants */
+.timeline-icon-warning {
+  background: #FEF3C7;
+  color: #D97706;
+  box-shadow: 0 0 0 2px #FDE68A, var(--shadow-sm);
+}
+
+.timeline-icon-success {
+  background: #DCFCE7;
+  color: #16A34A;
+  box-shadow: 0 0 0 2px #BBF7D0, var(--shadow-sm);
+}
+
+.timeline-icon-danger {
+  background: #FEE2E2;
+  color: #DC2626;
+  box-shadow: 0 0 0 2px #FECACA, var(--shadow-sm);
+}
+
+.timeline-icon-muted {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  box-shadow: 0 0 0 2px var(--border), var(--shadow-sm);
+}
+
+/* Content block */
+.timeline-content {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.875rem 0.625rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+
+.timeline-item:hover .timeline-content {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-strong);
+}
+
+.timeline-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.timeline-type-label {
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+}
+
+.timeline-type-label-warning { color: #92400E; }
+.timeline-type-label-success { color: #166534; }
+.timeline-type-label-danger  { color: #991B1B; }
+.timeline-type-label-muted   { color: var(--text-muted); }
+
+.timeline-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.timeline-detail {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 0.125rem;
+}
+
+.timeline-detail + .timeline-detail {
+  margin-top: 0.25rem;
+}
+
+.timeline-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.timeline-location svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* Days-ago pill on active warnings */
+.timeline-days-ago {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.timeline-days-ago-danger {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* Action area below timeline */
+.timeline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Seized banner for the bike detail */
+.alert-seized {
+  background: linear-gradient(135deg, #FEF2F2 0%, #FFF7ED 100%);
+  color: #991B1B;
+  border-left-color: #DC2626;
+  font-weight: 500;
+}
+
+/* Status badge for seized */
+.status-seized {
+  background: #FEE2E2;
+  color: #991B1B;
 }
 
 /* ──────────────────────────────────────────────────────────────────

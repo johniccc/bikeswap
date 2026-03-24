@@ -51,7 +51,7 @@
               <td class="text-muted">#<?= $report->getId() ?></td>
               <td>
                 <?php if ($reportBike): ?>
-                  <a href="/bike/<?= e($reportBike->getQrHash()) ?>"><?= e($reportBike->getFullName()) ?></a>
+                  <a href="/admin/bikes/<?= $reportBike->getId() ?>"><?= e($reportBike->getFullName()) ?></a>
                 <?php else: ?>
                   Kolo #<?= $report->getBikeId() ?>
                 <?php endif; ?>
@@ -62,7 +62,7 @@
               <td class="text-muted text-sm"><?= date('d.m.Y', strtotime($report->getCreatedAt())) ?></td>
               <td>
                 <?php if ($reportBike): ?>
-                  <a href="/bike/<?= e($reportBike->getQrHash()) ?>" class="btn btn-sm btn-secondary">Detail kola</a>
+                  <a href="/admin/bikes/<?= $reportBike->getId() ?>" class="btn btn-sm btn-secondary">Detail kola</a>
                 <?php endif; ?>
               </td>
             </tr>
@@ -83,7 +83,7 @@
               default => 'status-unknown',
           };
         ?>
-        <a href="<?= $reportBike ? '/bike/' . e($reportBike->getQrHash()) : '#' ?>" class="admin-card-item">
+        <a href="<?= $reportBike ? '/admin/bikes/' . $reportBike->getId() : '#' ?>" class="admin-card-item">
           <div class="admin-card-item-header">
             <span class="admin-card-item-title"><?= $reportBike ? e($reportBike->getFullName()) : 'Kolo #' . $report->getBikeId() ?></span>
             <span class="status-badge <?= $statusClass ?>"><?= e($statusLabels[$report->getStatus()] ?? $report->getStatus()) ?></span>

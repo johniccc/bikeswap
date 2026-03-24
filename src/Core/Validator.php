@@ -196,6 +196,36 @@ class Validator
     }
 
     /**
+     * Email must not use a disposable/temporary email provider.
+     */
+    public function notDisposableEmail(string $field, string $message = ''): self
+    {
+        $value = $this->data[$field] ?? '';
+
+        if ($value === '' || !str_contains($value, '@')) {
+            return $this;
+        }
+
+        $domain = strtolower(substr($value, strrpos($value, '@') + 1));
+        $listPath = dirname(__DIR__, 2) . '/data/disposable_email_domains.txt';
+
+        if (!is_file($listPath)) {
+            return $this;
+        }
+
+        static $domains = null;
+        if ($domains === null) {
+            $domains = array_flip(array_filter(array_map('trim', file($listPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES))));
+        }
+
+        if (isset($domains[$domain])) {
+            $this->addError($field, $message ?: 'Dočasné e-mailové adresy nejsou povoleny.');
+        }
+
+        return $this;
+    }
+
+    /**
      * Validate a password field with standard rules (min 8 chars, uppercase, digit, confirmation).
      */
     public function password(string $field, string $confirmField): self

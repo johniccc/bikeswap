@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Session;
 use App\Core\Validator;
 use App\Repository\BikeRepository;
+use App\Repository\BikeWarningRepository;
 use App\Repository\UserRepository;
 use App\Response\Response;
 use App\Services\ActivityLogService;
@@ -18,6 +19,7 @@ use App\Services\QRService;
 class AdminBikeController
 {
     private BikeRepository $bikeRepository;
+    private BikeWarningRepository $bikeWarningRepository;
     private UserRepository $userRepository;
     private AuthService $authService;
     private FileUploadService $fileUploadService;
@@ -27,6 +29,7 @@ class AdminBikeController
 
     public function __construct(
         BikeRepository $bikeRepository,
+        BikeWarningRepository $bikeWarningRepository,
         UserRepository $userRepository,
         AuthService $authService,
         FileUploadService $fileUploadService,
@@ -35,6 +38,7 @@ class AdminBikeController
         Session $session
     ) {
         $this->bikeRepository = $bikeRepository;
+        $this->bikeWarningRepository = $bikeWarningRepository;
         $this->userRepository = $userRepository;
         $this->authService = $authService;
         $this->fileUploadService = $fileUploadService;
@@ -54,10 +58,15 @@ class AdminBikeController
 
         $bikes = $this->bikeRepository->findAll($statusFilter, withPhotos: true);
 
+        // Batch-load owners for all bikes
+        $ownerIds = array_unique(array_map(fn($b) => $b->getOwnerId(), $bikes));
+        $owners = $this->userRepository->findByIds($ownerIds);
+
         return view('admin/bikes', [
             'title' => 'Kola — Admin',
             'currentUser' => $currentUser,
             'bikes' => $bikes,
+            'owners' => $owners,
             'statusFilter' => $statusFilter,
             'session' => $this->session,
         ])->withLayout('layouts/app');
@@ -79,12 +88,16 @@ class AdminBikeController
         }
 
         $owner = $this->userRepository->findById($bike->getOwnerId());
+        $warningTimeline = $this->bikeWarningRepository->findTimelineByBikeId($bikeId);
+        $hasActiveWarning = $this->bikeWarningRepository->hasActiveWarning($bikeId);
 
         return view('admin/bike-detail', [
             'title' => $bike->getFullName() . ' — Admin',
             'currentUser' => $currentUser,
             'bike' => $bike,
             'owner' => $owner,
+            'warningTimeline' => $warningTimeline,
+            'hasActiveWarning' => $hasActiveWarning,
             'csrf' => $this->session->csrfToken(),
             'session' => $this->session,
         ])->withLayout('layouts/app');

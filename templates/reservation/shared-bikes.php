@@ -14,6 +14,7 @@
       $filters['year_to'],
       $filters['date_from'],
       $filters['date_to'],
+      $filters['qr_hash'],
     ], fn($v) => $v !== '');
     $advancedCount = count($advancedFilters);
   ?>
@@ -76,6 +77,11 @@
             <span>–</span>
             <input type="date" name="date_to" value="<?= e($filters['date_to']) ?>" min="<?= date('Y-m-d') ?>">
           </div>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-qr-hash">ID kola</label>
+          <input type="text" id="filter-qr-hash" name="qr_hash" value="<?= e($filters['qr_hash']) ?>" placeholder="QR hash kola">
         </div>
       </div>
     </div>
@@ -208,14 +214,27 @@
             <?php else: ?>
               <div class="bike-card-photo-placeholder"><i data-lucide="image"></i></div>
             <?php endif; ?>
-            <?php if ($activeRes): ?>
-              <div class="bike-card-badges">
+            <div class="bike-card-badges">
+              <?php if ($activeRes): ?>
                 <span class="status-badge" style="background:var(--warning-light,#fef3c7);color:var(--warning,#d97706);border:1px solid var(--warning,#d97706)">
                   <i data-lucide="calendar" style="width:11px;height:11px;display:inline;vertical-align:-1px"></i>
                   <?= e(date('d.m.', strtotime($activeRes['date_from']))) ?> – <?= e(date('d.m.', strtotime($activeRes['date_to']))) ?>
                 </span>
-              </div>
-            <?php endif; ?>
+              <?php endif; ?>
+              <?php if ($isOwner): ?>
+                <?php $resStatus = $reservationStatuses[$bike->getId()] ?? null; ?>
+                <?php if ($resStatus): ?>
+                  <?php
+                    $resLabels = ['pending' => 'Čeká na schválení', 'approved' => 'Rezervováno', 'active' => 'Zapůjčeno', 'not_returned' => 'Nevráceno', 'disputed' => 'Ve sporu'];
+                    $resClasses = ['pending' => 'status-pending', 'approved' => 'status-found', 'active' => 'status-active', 'not_returned' => 'status-stolen', 'disputed' => 'status-stolen'];
+                  ?>
+                  <span class="status-badge <?= $resClasses[$resStatus] ?? '' ?>">
+                    <i data-lucide="repeat" style="width:12px;height:12px"></i>
+                    <?= $resLabels[$resStatus] ?? $resStatus ?>
+                  </span>
+                <?php endif; ?>
+              <?php endif; ?>
+            </div>
           </div>
 
           <div class="bike-card-body">

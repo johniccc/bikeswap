@@ -13,6 +13,7 @@
       $filters['year_from'],
       $filters['year_to'],
       $filters['frame_number'],
+      $filters['qr_hash'],
     ], fn($v) => $v !== '');
     $advancedCount = count($advancedFilters);
   ?>
@@ -72,6 +73,12 @@
           <label for="stolen-frame-number">Sériové číslo</label>
           <input type="text" id="stolen-frame-number" name="frame_number"
                  value="<?= e($filters['frame_number']) ?>" placeholder="Sériové číslo">
+        </div>
+
+        <div class="filter-group">
+          <label for="stolen-qr-hash">ID kola</label>
+          <input type="text" id="stolen-qr-hash" name="qr_hash"
+                 value="<?= e($filters['qr_hash']) ?>" placeholder="QR hash kola">
         </div>
       </div>
     </div>
